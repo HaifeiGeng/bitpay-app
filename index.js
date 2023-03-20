@@ -12,6 +12,7 @@ import {enableFreeze} from 'react-native-screens';
 enableFreeze(true);
 
 export const {store, persistor} = getStore();
+console.log('启动成功!!!!');
 
 const ReduxProvider = () => {
   return (
