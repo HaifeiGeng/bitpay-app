@@ -1040,9 +1040,10 @@ export const startImportWithDerivationPath =
               wallet.credentials.chain,
             ),
           );
-
+          console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
           let key;
           const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
+          console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
           if (matchedKey) {
             // To avoid duplicate key creation when importing
             wallet.credentials.keyId = wallet.keyId = matchedKey.id;
@@ -1075,6 +1076,7 @@ export const startImportWithDerivationPath =
               backupComplete: true,
             });
           }
+          console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
           dispatch(
             successImport({
               key,
@@ -1172,9 +1174,11 @@ export const startImportWithDerivationPath =
               wallet.credentials.chain,
             ),
           );
-
+          console.log("---------- 使用公钥导入: WALLET", JSON.stringify(WALLET));
           let key;
           const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
+          console.log("---------- 使用公钥导入: matchedKey", JSON.stringify(matchedKey));
+          console.log("---------- 使用公钥导入: currencyAbbreviation currencyName tokenOpts ", currencyAbbreviation, currencyName, JSON.stringify(tokenOpts));
           if (matchedKey) {
             // To avoid duplicate key creation when importing
             wallet.credentials.keyId = wallet.keyId = matchedKey.id;
@@ -1192,6 +1196,7 @@ export const startImportWithDerivationPath =
                 ),
               ),
             );
+            console.log("---------- 使用公钥导入: if 最后的key ", JSON.stringify(key));
           } else {
             key = buildKeyObj({
               key: _key,
@@ -1206,6 +1211,7 @@ export const startImportWithDerivationPath =
               ],
               backupComplete: true,
             });
+            console.log("---------- 使用公钥导入: else 最后的key ", JSON.stringify(key));
           }
           dispatch(
             successImport({
@@ -1215,7 +1221,7 @@ export const startImportWithDerivationPath =
           resolve(key);
         });
       } catch (e) {
-        console.log("----------使用派生路径导入: 出错了", e);
+        console.log("----------使用公钥导入导入: 出错了", e);
         dispatch(failedImport());
         reject(e);
       }
@@ -1411,7 +1417,10 @@ export const serverAssistedImport = async (
     try {
       BwcProvider.API.serverAssistedImport(
         opts,
-        {baseUrl: 'https://bws.bitpay.com/bws/api'}, // 'http://localhost:3232/bws/api', uncomment for local testing
+        {
+          // baseUrl: 'https://bws.bitpay.com/bws/api'
+          baseUrl: 'http://10.100.201.52:3232/bws/api'
+        }, // 'http://localhost:3232/bws/api', uncomment for local testing
         // @ts-ignore
         async (err, key, wallets) => {
           if (err) {

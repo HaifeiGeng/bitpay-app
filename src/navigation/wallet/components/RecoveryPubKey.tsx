@@ -441,6 +441,7 @@ const RecoveryPubKey = () => {
       // 判断是否勾选了派生路径， 如果没有勾选派生路径， 使用助记词导入方法， 否则使用派生路径导入
       // const key = !derivationPathEnabled ? ((await dispatch<any>(startImportMnemonic(importData, opts))) as Key) : ((await dispatch<any>(startImportWithDerivationPath(importData, opts))) as Key);
       const key = ((await dispatch<any>(startImportPublicKey(importData, opts))) as Key);
+      console.log("---------- 执行完毕startImportPublicKey 最后的key = ", JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await dispatch(updatePortfolioBalance());

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const bwsUri = 'https://bws.bitpay.com/bws/api';
+// const bwsUri = 'https://bws.bitpay.com/bws/api';
+const bwsUri = 'http://10.100.201.52:3232/bws/api';
 
 export const moonpayGetTransactionDetails = async (
   transactionId?: string,

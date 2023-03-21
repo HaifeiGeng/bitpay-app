@@ -1,7 +1,8 @@
 import axios from 'axios';
 import {generateMessageId} from '../../../../navigation/services/swap-crypto/utils/changelly-utils';
 
-const uri = 'https://bws.bitpay.com/bws/api';
+// const uri = 'https://bws.bitpay.com/bws/api';
+const uri = 'http://10.100.201.52:3232/bws/api';
 
 export const changellyGetCurrencies = async (full?: boolean) => {
   try {
