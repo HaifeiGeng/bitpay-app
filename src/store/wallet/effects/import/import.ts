@@ -1089,6 +1089,143 @@ export const startImportWithDerivationPath =
     });
   };
 
+
+
+  /**
+   * 公钥导入
+   * @param importData 
+   * @param opts 
+   * @returns 
+   */
+  export const startImportPublicKey =
+  (
+    importData: {words?: string; xPrivKey?: string; xPublicKey?: string},
+    opts: Partial<KeyOptions>,
+  ): Effect =>
+  async (dispatch, getState): Promise<Key> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log("---------- startImportPublicKey 使用公钥导入 参数: importData, opts", JSON.stringify(importData), JSON.stringify(opts));
+        const {
+          WALLET,
+          APP: {
+            notificationsAccepted,
+            emailNotifications,
+            brazeEid,
+            defaultLanguage,
+          },
+        } = getState();
+        const tokenOpts = {
+          ...BitpaySupportedTokenOpts,
+          ...WALLET.tokenOptions,
+          ...WALLET.customTokenOptions,
+        };
+        const {words, xPrivKey, xPublicKey} = importData;
+        opts.mnemonic = words;
+        opts.extendedPrivateKey = xPrivKey;
+        opts.xPublicKey = xPublicKey;
+        const showOpts = Object.assign({}, opts);
+        if (showOpts.extendedPrivateKey) {
+          showOpts.extendedPrivateKey = '[hidden]';
+        }
+        if (showOpts.mnemonic) {
+          showOpts.mnemonic = '[hidden]';
+        }
+        dispatch(
+          LogActions.info(
+            `Importing Wallet with derivation path: ${JSON.stringify(
+              showOpts,
+            )}`,
+          ),
+        );
+        console.log("---------- startImportPublicKey : 准备执行createKeyAndCredentials", JSON.stringify(opts));
+        const data = await createKeyAndCredentials(opts);
+        console.log("----------使用公钥导入: 执行完毕, 返回data", JSON.stringify(data));
+        const {wallet, key: _key} = data;
+        wallet.openWallet(async (err: Error) => {
+          if (err) {
+            if (err.message.indexOf('not found') > 0) {
+              err = new Error('WALLET_DOES_NOT_EXIST');
+            }
+            return reject(err);
+          }
+          // subscribe new wallet to push notifications
+          if (notificationsAccepted) {
+            dispatch(subscribePushNotifications(wallet, brazeEid!));
+          }
+          // subscribe new wallet to email notifications
+          if (
+            emailNotifications &&
+            emailNotifications.accepted &&
+            emailNotifications.email
+          ) {
+            const prefs = {
+              email: emailNotifications.email,
+              language: defaultLanguage,
+              unit: 'btc', // deprecated
+            };
+            dispatch(subscribeEmailNotifications(wallet, prefs));
+          }
+          const {currencyAbbreviation, currencyName} = dispatch(
+            mapAbbreviationAndName(
+              wallet.credentials.coin,
+              wallet.credentials.chain,
+            ),
+          );
+
+          let key;
+          const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
+          if (matchedKey) {
+            // To avoid duplicate key creation when importing
+            wallet.credentials.keyId = wallet.keyId = matchedKey.id;
+            key = await findKeyByKeyId(matchedKey.id, WALLET.keys);
+            key.wallets.push(
+              merge(
+                wallet,
+                buildWalletObj(
+                  {
+                    ...wallet.credentials,
+                    currencyAbbreviation,
+                    currencyName,
+                  },
+                  tokenOpts,
+                ),
+              ),
+            );
+          } else {
+            key = buildKeyObj({
+              key: _key,
+              wallets: [
+                merge(
+                  wallet,
+                  buildWalletObj(
+                    {...wallet.credentials, currencyAbbreviation, currencyName},
+                    tokenOpts,
+                  ),
+                ),
+              ],
+              backupComplete: true,
+            });
+          }
+          dispatch(
+            successImport({
+              key,
+            }),
+          );
+          resolve(key);
+        });
+      } catch (e) {
+        console.log("----------使用派生路径导入: 出错了", e);
+        dispatch(failedImport());
+        reject(e);
+      }
+    });
+  };
+
+
+
+
+
 const createKeyAndCredentials = async (
   opts: Partial<KeyOptions>,
 ): Promise<any> => {
@@ -1145,12 +1282,35 @@ const createKeyAndCredentials = async (
     } catch (e) {
       throw e;
     }
+  } else if(opts.xPublicKey){
+    try {
+      key = BWC.createKey({
+        seedType: 'extendedPublicKey',
+        seedData: opts.xPublicKey,
+        useLegacyCoinType: opts.useLegacyCoinType,
+        useLegacyPurpose: opts.useLegacyPurpose,
+      });
+      console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
+      bwcClient.fromString(
+        key.createCredentials(undefined, {
+          coin,
+          chain: coin, // chain === coin for stored clients
+          network,
+          account,
+          n,
+          xpub: opts.xPublicKey
+        }),
+      );
+    } catch (e) {
+      throw e;
+    }
   } else {
     throw new Error(t('No data provided'));
   }
   let wallet;
   try {
     wallet = await BWC.getClient(JSON.stringify(bwcClient.credentials));
+    console.log('---------- wallet 创建成功: ', JSON.stringify(wallet));
   } catch (e) {
     throw e;
   }

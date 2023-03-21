@@ -1132,5 +1132,10 @@
   "To continue you will need to add a wallet to your key.": "要继续，您需要将钱包添加到密钥。",
   "Add wallet": "添加钱包",
   "Key and wallet required": "需要密钥和钱包",
-  "To continue you will need to create a key and add a wallet.": "要继续，您需要创建密钥并添加钱包。"
+  "To continue you will need to create a key and add a wallet.": "要继续，您需要创建密钥并添加钱包。",
+
+  "Watch Wallet": "观察钱包",
+  "Use an existing public key to import an existing watch wallet": "使用现有公钥导入观察钱包",
+  "Import Watch Wallet": "导入观察钱包",
+  "Public Key": "公钥"
 }

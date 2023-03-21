@@ -83,6 +83,24 @@ const CreationOptions: React.FC = () => {
       ),
       cta: () => setShowMultisigOptions(true),
     },
+    {
+      id: 'watch',
+      title: t('Watch Wallet'),
+      description: t(
+        'Use an existing public key to import an existing watch wallet',
+      ),
+      cta: () => {
+        // 导入公钥回调
+        dispatch(
+          Analytics.track('Clicked Import PubKey', {
+            context: 'CreationOptions',
+          }),
+        );
+        navigation.navigate('Wallet', {
+          screen: 'ImportPubKey',
+        });
+      },
+    }
   ];
   return (
     <>

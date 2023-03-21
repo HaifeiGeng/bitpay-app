@@ -143,6 +143,7 @@ export interface KeyOptions {
   password?: string;
   includeTestnetWallets?: boolean;
   includeLegacyWallets?: boolean;
+  xPublicKey?: string;
 }
 
 export interface Token {
