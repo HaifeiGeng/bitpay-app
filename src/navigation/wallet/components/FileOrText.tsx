@@ -18,7 +18,7 @@ import {BwcProvider} from '../../../lib/bwc';
 import {useLogger} from '../../../utils/hooks/useLogger';
 import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {startGetRates, startImportFile} from '../../../store/wallet/effects';
+import {startGetRates, startImportFile, startImportFileTest} from '../../../store/wallet/effects';
 import {
   dismissOnGoingProcessModal,
   setHomeCarouselConfig,
@@ -92,6 +92,7 @@ const FileOrText = () => {
       await dispatch(startOnGoingProcessModal('IMPORTING'));
       // @ts-ignore
       const key = await dispatch<Key>(startImportFile(decryptBackupText, opts));
+      console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
 
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
@@ -112,6 +113,45 @@ const FileOrText = () => {
         }),
       );
       dispatch(dismissOnGoingProcessModal());
+    } catch (e: any) {
+      logger.error(e.message);
+      dispatch(dismissOnGoingProcessModal());
+      await sleep(500);
+      showErrorModal(e.message);
+      return;
+    }
+  };
+
+
+  const importWalletTest = async (
+    decryptBackupText: string,
+    opts: Partial<KeyOptions>,
+  ) => {
+    try {
+      // await dispatch(startOnGoingProcessModal('IMPORTING'));
+      // @ts-ignore
+      const key = await dispatch<Key>(startImportFileTest(decryptBackupText, opts));
+      console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
+
+      await dispatch(startGetRates({}));
+      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
+      await sleep(1000);
+      await dispatch(updatePortfolioBalance());
+      dispatch(setHomeCarouselConfig({id: key.id, show: true}));
+
+      backupRedirect({
+        context: route.params?.context,
+        navigation,
+        walletTermsAccepted,
+        key,
+      });
+      dispatch(
+        Analytics.track('Imported Key', {
+          context: route.params?.context || '',
+          source: 'FileOrText',
+        }),
+      );
+      // dispatch(dismissOnGoingProcessModal());
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
@@ -148,13 +188,35 @@ const FileOrText = () => {
     }
     let decryptBackupText: string;
     try {
+      console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
       decryptBackupText = BWCProvider.getSJCL().decrypt(password, text);
+      console.log('---------- 解密结果: ', decryptBackupText);
     } catch (e: any) {
       logger.error(`Import: could not decrypt file ${e.message}`);
       showErrorModal(t('Could not decrypt file, check your password'));
       return;
     }
     importWallet(decryptBackupText, opts);
+  });
+
+  const onSubmitTest = handleSubmit(formData => {
+    const {text, password} = formData;
+
+    let opts: Partial<KeyOptions> = {};
+    if (route.params?.keyId) {
+      opts.keyId = route.params.keyId;
+    }
+    let decryptBackupText: string;
+    try {
+      console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
+      // decryptBackupText = BWCProvider.getSJCL().decrypt(password, text);
+      console.log('---------- 解密结果: ', text);
+    } catch (e: any) {
+      logger.error(`Import: could not decrypt file ${e.message}`);
+      showErrorModal(t('Could not decrypt file, check your password'));
+      return;
+    }
+    importWalletTest(text, opts);
   });
 
   return (
@@ -203,7 +265,7 @@ const FileOrText = () => {
           />
         </FormRow>
 
-        <Button buttonStyle={'primary'} onPress={onSubmit}>
+        <Button buttonStyle={'primary'} onPress={onSubmitTest}>
           {t('Import Wallet')}
         </Button>
       </ContentView>

@@ -187,7 +187,7 @@ const CtaContainer = styled(_CtaContainer)`
 
 /**
  * 观察钱包导入 - 组件
- * @returns 
+ * @returns
  */
 const RecoveryPubKey = () => {
   const {t} = useTranslation();
@@ -387,7 +387,7 @@ const RecoveryPubKey = () => {
   const onSubmit = (formData: {text: string}) => {
     const {text} = formData;
 
-    
+
 
     let keyOpts: Partial<KeyOptions> = {};
 
@@ -406,7 +406,7 @@ const RecoveryPubKey = () => {
     if (text.includes('xprv') || text.includes('tprv')) {
       const xPrivKey = text;
       importWallet({xPrivKey}, keyOpts);
-    } else if(text.includes('xpub') || text.includes('tpub')){
+    } else if (text.includes('xpub') || text.includes('tpub')) {
       console.log("----------使用公钥导入", text);
       const xPublicKey = text;
       importWallet({xPublicKey}, keyOpts);
@@ -428,14 +428,14 @@ const RecoveryPubKey = () => {
   ): Promise<void> => {
     try {
       console.log("---------- 准备导入: derivationPathEnabled 观察钱包 = ", JSON.stringify(importData), JSON.stringify(opts));
-      
+
       // const pubObj = BWC.Bitcore.HDPublicKey.fromString("xpub6FFdxJskyDchwhv8FP6qDyJu9R4b5ghmGjw8HR4WCdKwFLmniXGaDYX25FvTFAjAJehcB2fdNmdYYgKYmFGVLzzP1foxLbVjJg7Eckmfza5");
       // const derived = pubObj.derive("m/1");
       // console.log("生成出来的public对象： ", JSON.stringify(pubObj))
       // console.log(new BWC.Bitcore.Address(derived.publicKey, 'livenet').toString())
-            
 
-      
+
+
       // dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 判断是否勾选了派生路径， 如果没有勾选派生路径， 使用助记词导入方法， 否则使用派生路径导入
