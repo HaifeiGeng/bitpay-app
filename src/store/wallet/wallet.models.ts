@@ -126,6 +126,7 @@ export interface KeyOptions {
   singleAddress: any;
   coin: string;
   extendedPrivateKey: any;
+  extendedPublicKey: any;
   mnemonic: any;
   derivationStrategy: any;
   secret: any;

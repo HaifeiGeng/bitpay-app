@@ -134,9 +134,12 @@ const FileOrText = () => {
       console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
 
       await dispatch(startGetRates({}));
+      console.log('---------- startUpdateAllWalletStatusForKey -----------------------');
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
+      console.log('---------- updatePortfolioBalance -----------------------');
       await dispatch(updatePortfolioBalance());
+      console.log('---------- setHomeCarouselConfig -----------------------');
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
 
       backupRedirect({

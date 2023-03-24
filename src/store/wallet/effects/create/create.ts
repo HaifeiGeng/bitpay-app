@@ -487,7 +487,7 @@ export const startCreateKeyWithOpts =
         } = getState();
         const _key = BWC.createKey({
           seedType: opts.seedType!,
-          seedData: opts.mnemonic || opts.extendedPrivateKey,
+          seedData: opts.mnemonic || opts.extendedPrivateKey || opts.extendedPublicKey,
           useLegacyCoinType: opts.useLegacyCoinType,
           useLegacyPurpose: opts.useLegacyPurpose,
           passphrase: opts.passphrase,
@@ -495,6 +495,7 @@ export const startCreateKeyWithOpts =
 
         const _wallet = await createWalletWithOpts({key: _key, opts});
 
+        console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(_wallet, brazeEid!));

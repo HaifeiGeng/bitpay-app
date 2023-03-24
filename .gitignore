@@ -30,7 +30,7 @@ local.properties
 *.iml
 *.hprof
 android/app/src/main/res/raw/*
-
+android/app/src/main/assets/index.android.bundle
 # Emacs
 .log/
 

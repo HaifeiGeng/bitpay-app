@@ -238,7 +238,7 @@ const RecoveryPubKey = () => {
                 await sleep(500);
                 if (derivationPathEnabled) {
                   const {text} = getValues();
-                  setOptsAndCreate(text, advancedOptions);
+                  setOptsAndCreateTest(text, advancedOptions);
                 } else {
                   // select coin to create
                   setRecreateWallet(true);
@@ -461,9 +461,9 @@ const RecoveryPubKey = () => {
       // dispatch(dismissOnGoingProcessModal()); // 转圈结束
     } catch (e: any) {
       logger.error(e.message);
-      // dispatch(dismissOnGoingProcessModal());
-      // await sleep(600);
-      // showErrorModal(e);
+      dispatch(dismissOnGoingProcessModal());
+      await sleep(600);
+      showErrorModal(e);
       return;
     }
   };
@@ -521,6 +521,80 @@ const RecoveryPubKey = () => {
         key,
       });
       dispatch(dismissOnGoingProcessModal());
+      setRecreateWallet(false);
+    } catch (e: any) {
+      logger.error(e.message);
+      dispatch(dismissOnGoingProcessModal());
+      await sleep(500);
+      showErrorModal(e);
+      setRecreateWallet(false);
+      return;
+    }
+  };
+
+
+  /**
+   * 使用公钥导入，找不到用户后重新创建
+   * @param text 公钥信息
+   * @param advancedOpts 
+   * @returns 
+   */
+  const setOptsAndCreateTest = async (
+    text: string,
+    advancedOpts: {
+      derivationPath: string;
+      coin: string;
+      chain: string;
+      passphrase: string | undefined;
+      isMultisig: boolean;
+    },
+  ): Promise<void> => {
+    try {
+      let keyOpts: Partial<KeyOptions> = {
+        name: dispatch(GetName(advancedOpts.coin!, advancedOpts.chain)),
+      };
+
+      try {
+        setKeyOptions(keyOpts, advancedOpts);
+      } catch (e: any) {
+        logger.error(e.message);
+        showErrorModal(e);
+        return;
+      }
+
+      if (text.includes('xprv') || text.includes('tprv')) {
+        keyOpts.extendedPrivateKey = text;
+        keyOpts.seedType = 'extendedPrivateKey';
+      } else if (text.includes('xpub') || text.includes('tpub')) {
+        keyOpts.extendedPublicKey = text;
+        keyOpts.seedType = 'extendedPublicKey';
+      } else {
+        keyOpts.mnemonic = text;
+        keyOpts.seedType = 'mnemonic';
+        if (!isValidPhrase(text)) {
+          logger.error('Incorrect words length');
+          showErrorModal(new Error(t('The recovery phrase is invalid.')));
+          return;
+        }
+      }
+
+      // await dispatch(startOnGoingProcessModal('CREATING_KEY'));
+
+      const key = (await dispatch<any>(startCreateKeyWithOpts(keyOpts))) as Key;
+      await dispatch(startGetRates({}));
+      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
+      await sleep(1000);
+      await dispatch(updatePortfolioBalance());
+
+      dispatch(setHomeCarouselConfig({id: key.id, show: true}));
+
+      backupRedirect({
+        context: route.params?.context,
+        navigation,
+        walletTermsAccepted,
+        key,
+      });
+      // dispatch(dismissOnGoingProcessModal());
       setRecreateWallet(false);
     } catch (e: any) {
       logger.error(e.message);
