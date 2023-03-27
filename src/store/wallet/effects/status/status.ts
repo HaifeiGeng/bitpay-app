@@ -275,6 +275,8 @@ export const startUpdateAllWalletStatusForKeys =
         dispatch(
           LogActions.info('starting [startUpdateAllWalletStatusForKeys]'),
         );
+        console.log('---------- 报错之前 startUpdateAllWalletStatusForKeys ', JSON.stringify(keys), force);
+        
         const {APP, RATE, WALLET} = getState();
         const {defaultAltCurrency} = APP;
         const {balanceCacheKey} = WALLET;

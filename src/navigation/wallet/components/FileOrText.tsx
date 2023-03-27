@@ -268,7 +268,7 @@ const FileOrText = () => {
           />
         </FormRow>
 
-        <Button buttonStyle={'primary'} onPress={onSubmitTest}>
+        <Button buttonStyle={'primary'} onPress={onSubmit}>
           {t('Import Wallet')}
         </Button>
       </ContentView>

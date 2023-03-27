@@ -969,111 +969,7 @@ export const startImportFile =
   };
 
 
-  /**
-   * 使用此方法进行测试
-   * @param decryptBackupText 
-   * @param opts 
-   * @returns 
-   */
-  export const startImportFileTest =
-  (decryptBackupText: string, opts: Partial<KeyOptions>): Effect =>
-  async (dispatch, getState): Promise<Key> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const {
-          WALLET,
-          APP: {
-            notificationsAccepted,
-            emailNotifications,
-            brazeEid,
-            defaultLanguage,
-          },
-        } = getState();
-        const tokenOpts = {
-          ...BitpaySupportedTokenOpts,
-          ...WALLET.tokenOptions,
-          ...WALLET.customTokenOptions,
-        };
-        let {key: _key, wallet} = await createKeyAndCredentialsWithFileTest(
-          decryptBackupText,
-          opts,
-        );
-        let wallets = [wallet];
-        console.log('----------    文件导入: wallet _key', JSON.stringify(wallet), JSON.stringify(_key));
-        console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
-        const matchedKey = _key ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
-
-        console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
-
-        if (matchedKey && !opts?.keyId) {
-          _key = matchedKey.methods;
-          opts.keyId = null;
-          if (isMatchedWallet(wallets[0], matchedKey.wallets)) {
-            throw new Error(t('The wallet is already in the app.'));
-          }
-          wallets[0].keyId = matchedKey.id;
-          wallets = wallets.concat(matchedKey.wallets);
-        }
-
-        // To clear encrypt password
-        if (opts.keyId && matchedKey) {
-          let filteredKeys = matchedKey.wallets.filter(
-            w => w.credentials.walletId !== wallets[0].credentials.walletId,
-          );
-          filteredKeys.forEach(w => (w.credentials.keyId = w.keyId = _key.id));
-          wallets = wallets.concat(filteredKeys);
-          dispatch(deleteKey({keyId: opts.keyId}));
-        }
-
-        const key = buildKeyObj({
-          key: _key,
-          wallets: wallets.map(wallet => {
-            // subscribe new wallet to push notifications
-            if (notificationsAccepted) {
-              dispatch(subscribePushNotifications(wallet, brazeEid!));
-            }
-            // subscribe new wallet to email notifications
-            if (
-              emailNotifications &&
-              emailNotifications.accepted &&
-              emailNotifications.email
-            ) {
-              const prefs = {
-                email: emailNotifications.email,
-                language: defaultLanguage,
-                unit: 'btc', // deprecated
-              };
-              dispatch(subscribeEmailNotifications(wallet, prefs));
-            }
-            const {currencyAbbreviation, currencyName} = dispatch(
-              mapAbbreviationAndName(
-                wallet.credentials.coin,
-                wallet.credentials.chain,
-              ),
-            );
-            return merge(
-              wallet,
-              buildWalletObj(
-                {...wallet.credentials, currencyAbbreviation, currencyName},
-                tokenOpts,
-              ),
-            );
-          }),
-          backupComplete: true,
-        });
-
-        dispatch(
-          successImport({
-            key,
-          }),
-        );
-        resolve(key);
-      } catch (e) {
-        dispatch(failedImport());
-        reject(e);
-      }
-    });
-  };
+  
 
 // Server assisted import will not find any third party wallet only the ones already created in bws.
 export const startImportWithDerivationPath =
@@ -1198,7 +1094,119 @@ export const startImportWithDerivationPath =
     });
   };
 
+  /**
+     * 使用此方法进行测试
+     * @param decryptBackupText  公钥
+     * @param opts 
+     * @returns 
+     */
+  export const startImportFileTest =
+  (decryptBackupText: string, opts: Partial<KeyOptions>): Effect =>
+  async (dispatch, getState): Promise<Key> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const {
+          WALLET,
+          APP: {
+            notificationsAccepted,
+            emailNotifications,
+            brazeEid,
+            defaultLanguage,
+          },
+        } = getState();
+        const tokenOpts = {
+          ...BitpaySupportedTokenOpts,
+          ...WALLET.tokenOptions,
+          ...WALLET.customTokenOptions,
+        };
+        let {key: _key, wallet} = await createKeyAndCredentialsWithFileTest(
+          decryptBackupText,
+          opts,
+        );
+        wallet.openWallet(async (err: Error) => {
+          if (err) {
+            if (err.message.indexOf('not found') > 0) {
+              err = new Error('WALLET_DOES_NOT_EXIST');
+            }
+            return reject(err);
+          }
+        });
+        let wallets = [wallet];
+        console.log('----------    文件导入: wallet _key', JSON.stringify(wallet), JSON.stringify(_key));
+        console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
+        const matchedKey = _key ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
 
+        console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
+
+        if (matchedKey && !opts?.keyId) {
+          _key = matchedKey.methods;
+          opts.keyId = null;
+          if (isMatchedWallet(wallets[0], matchedKey.wallets)) {
+            throw new Error(t('The wallet is already in the app.'));
+          }
+          wallets[0].keyId = matchedKey.id;
+          wallets = wallets.concat(matchedKey.wallets);
+        }
+
+        // To clear encrypt password
+        if (opts.keyId && matchedKey) {
+          let filteredKeys = matchedKey.wallets.filter(
+            w => w.credentials.walletId !== wallets[0].credentials.walletId,
+          );
+          filteredKeys.forEach(w => (w.credentials.keyId = w.keyId = _key.id));
+          wallets = wallets.concat(filteredKeys);
+          dispatch(deleteKey({keyId: opts.keyId}));
+        }
+
+        const key = buildKeyObj({
+          key: _key,
+          wallets: wallets.map(wallet => {
+            // subscribe new wallet to push notifications
+            if (notificationsAccepted) {
+              dispatch(subscribePushNotifications(wallet, brazeEid!));
+            }
+            // subscribe new wallet to email notifications
+            if (
+              emailNotifications &&
+              emailNotifications.accepted &&
+              emailNotifications.email
+            ) {
+              const prefs = {
+                email: emailNotifications.email,
+                language: defaultLanguage,
+                unit: 'btc', // deprecated
+              };
+              dispatch(subscribeEmailNotifications(wallet, prefs));
+            }
+            const {currencyAbbreviation, currencyName} = dispatch(
+              mapAbbreviationAndName(
+                wallet.credentials.coin,
+                wallet.credentials.chain,
+              ),
+            );
+            return merge(
+              wallet,
+              buildWalletObj(
+                {...wallet.credentials, currencyAbbreviation, currencyName},
+                tokenOpts,
+              ),
+            );
+          }),
+          backupComplete: true,
+        });
+
+        dispatch(
+          successImport({
+            key,
+          }),
+        );
+        resolve(key);
+      } catch (e) {
+        dispatch(failedImport());
+        reject(e);
+      }
+    });
+  };
 
   /**
    * 公钥导入
@@ -1328,7 +1336,7 @@ export const startImportWithDerivationPath =
           resolve(key);
         });
       } catch (e) {
-        console.log("----------使用公钥导入导入: 出错了", e);
+        console.log("---------- 使用公钥导入导入: 出错了", e);
         dispatch(failedImport());
         reject(e);
       }
@@ -1414,6 +1422,8 @@ const createKeyAndCredentials = async (
           xpub: opts.xPublicKey
         }),
       );
+      // 使用公钥创建只读钱包，需要把key移除，否则不会认定为read only
+      key = null;
     } catch (e) {
       throw e;
     }
@@ -1528,31 +1538,18 @@ const createKeyAndCredentialsWithFileTest = async (
   let key;
   let addressBook;
   const Key = BWC.getKey();
-
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 收到的参数 decryptBackupText', decryptBackupText);
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 收到的参数 opts', JSON.stringify(opts));
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 生成的Key', JSON.stringify(Key));
-  // const data = JSON.parse(decryptBackupText);
-  // console.log('---------- createKeyAndCredentialsWithFile 导入之后 生成的data', JSON.stringify(data));
-
-  opts.coin = 'btc';
-  opts.networkName = 'testnet';
-  opts.account = 0;
-  opts.n = 1;
-  opts.m = 1;
-  opts.useLegacyCoinType = true;
-  opts.useLegacyPurpose = true;
+  opts.name = 'Read Only';
   opts.xPublicKey = decryptBackupText;
-
-
+  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 decryptBackupText', decryptBackupText);
+  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 opts', JSON.stringify(opts));
+  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 生成的Key', JSON.stringify(Key));
+  
   const coin = opts.coin as string;
   const network = opts.networkName || 'livenet';
   const account = opts.account || 0;
   const n = opts.n || 1;
-  const m = opts.m || 1;
 
-
-
+  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 useLegacyCoinType useLegacyPurpose', opts.useLegacyCoinType, opts.useLegacyPurpose);
 
   key = BWC.createKey({
     seedType: 'extendedPublicKey',
@@ -1561,16 +1558,6 @@ const createKeyAndCredentialsWithFileTest = async (
     useLegacyPurpose: opts.useLegacyPurpose,
   });
   console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
-  // bwcClient.fromString(
-  //   key.createCredentials(undefined, {
-  //     coin,
-  //     chain: coin, // chain === coin for stored clients
-  //     network,
-  //     account,
-  //     n,
-  //     xpub: opts.xPublicKey
-  //   }),
-  // );
 
   bwcClient.fromString(
     key.createCredentials(undefined, {
@@ -1582,22 +1569,32 @@ const createKeyAndCredentialsWithFileTest = async (
       xpub: opts.xPublicKey
     }),
   );
+
+  // 创建钱包 start
+  bwcClient.createWallet(
+    opts.name,
+    opts.myName || 'me',
+    opts.m || 1,
+    opts.n || 1,
+    {
+      network: opts.networkName,
+      singleAddress: opts.singleAddress,
+      coin: opts.coin,
+      useNativeSegwit: opts.useNativeSegwit,
+    },
+    (err: Error) => {
+      if (err) {
+        console.log('---------- 创建钱包时出错');
+        throw new Error(err.message);
+      } 
+    },
+  );
+  // 创建钱包 end
   let wallet = await BWC.getClient(JSON.stringify(bwcClient.credentials));
   console.log('---------- 模拟凭据完毕， 输出 wallet : ', JSON.stringify(wallet));
 
 
   let {credentials} = wallet;
-  // credentials.walletName = 'TEST_TEST';
-  // credentials.copayerName = 'TEST_TEST';
-  // credentials.publicKeyRing[0].copayerName = 'TEST_TEST';
-  // credentials.m = m;
-  // credentials.publicKeyRing[0].requestPubKey = '02ccdde27a8d1325dcc1492e4eca6e3ad59ffa5afb6685ac490212d9dc60095f25';
-  // credentials.walletPrivKey = '0ff3ef985d89655cb79a3f342aec9e3920b96159823d84a52e6924a2ab45788a';
-  // credentials.walletId = "38e7882d-ae65-4dc8-917b-fd575f44af11";
-  // credentials.requestPrivKey = '2dbe9b8c0dc75804bce2dc2c77f0449224d440ffc0216983296225c855f72ae3';
-  // credentials.requestPubKey = '02ccdde27a8d1325dcc1492e4eca6e3ad59ffa5afb6685ac490212d9dc60095f25';
-  // credentials.personalEncryptingKey = 'LUlfEi3ZkpamfzIUXyTn7w==';
-  // credentials.sharedEncryptingKey = 'dfVKSgalCOn9ZiwUFediwA==';
   delete credentials.keyId;
   key = null;
 

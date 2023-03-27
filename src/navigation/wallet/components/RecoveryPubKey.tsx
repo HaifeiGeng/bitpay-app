@@ -46,10 +46,12 @@ import {useLogger} from '../../../utils/hooks/useLogger';
 import {Key, KeyOptions} from '../../../store/wallet/wallet.models';
 import {
   startCreateKeyWithOpts,
+  startCreateKeyWithOptsTest,
   startGetRates,
   startImportMnemonic,
   startImportWithDerivationPath,
-  startImportPublicKey
+  startImportPublicKey,
+  startImportFileTest
 } from '../../../store/wallet/effects';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {ImportObj} from '../../../store/scan/scan.models';
@@ -386,14 +388,9 @@ const RecoveryPubKey = () => {
 
   const onSubmit = (formData: {text: string}) => {
     const {text} = formData;
-
-
-
     let keyOpts: Partial<KeyOptions> = {};
-
     keyOpts.includeTestnetWallets = includeTestnetWallets;
     keyOpts.includeLegacyWallets = includeLegacyWallets;
-
     console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
     try {
       setKeyOptions(keyOpts, advancedOptions);
@@ -402,46 +399,23 @@ const RecoveryPubKey = () => {
       showErrorModal(e);
       return;
     }
-
-    if (text.includes('xprv') || text.includes('tprv')) {
-      const xPrivKey = text;
-      importWallet({xPrivKey}, keyOpts);
-    } else if (text.includes('xpub') || text.includes('tpub')) {
-      console.log("----------使用公钥导入", text);
-      const xPublicKey = text;
-      importWallet({xPublicKey}, keyOpts);
-    } else {
-      const words = text;
-      if (!isValidPhrase(words)) {
-        logger.error('Incorrect words length');
-        showErrorModal(new Error(t('The recovery phrase is invalid.')));
-        return;
-      }
-      console.log("----------使用短语导入", words);
-      importWallet({words}, keyOpts);
-    }
+    console.log("---------- 使用公钥导入", text);
+    const xPublicKey = text;
+    importWallet({xPublicKey}, keyOpts);
   };
 
   const importWallet = async (
-    importData: {words?: string | undefined; xPrivKey?: string | undefined; xPublicKey?: string | undefined},
+    importData: {xPublicKey: string},
     opts: Partial<KeyOptions>,
   ): Promise<void> => {
     try {
-      console.log("---------- 准备导入: derivationPathEnabled 观察钱包 = ", JSON.stringify(importData), JSON.stringify(opts));
-
-      // const pubObj = BWC.Bitcore.HDPublicKey.fromString("xpub6FFdxJskyDchwhv8FP6qDyJu9R4b5ghmGjw8HR4WCdKwFLmniXGaDYX25FvTFAjAJehcB2fdNmdYYgKYmFGVLzzP1foxLbVjJg7Eckmfza5");
-      // const derived = pubObj.derive("m/1");
-      // console.log("生成出来的public对象： ", JSON.stringify(pubObj))
-      // console.log(new BWC.Bitcore.Address(derived.publicKey, 'livenet').toString())
-
-
-
+      console.log("---------- 使用公钥导入观察钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
       // dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
-      // 判断是否勾选了派生路径， 如果没有勾选派生路径， 使用助记词导入方法， 否则使用派生路径导入
-      // const key = !derivationPathEnabled ? ((await dispatch<any>(startImportMnemonic(importData, opts))) as Key) : ((await dispatch<any>(startImportWithDerivationPath(importData, opts))) as Key);
+      // 目标是导入一个只读钱包，使用公钥导入 
+      // const key = ((await dispatch<any>(startImportFileTest(importData.xPublicKey, opts))) as Key);
       const key = ((await dispatch<any>(startImportPublicKey(importData, opts))) as Key);
-      console.log("---------- 执行完毕startImportPublicKey 最后的key = ", JSON.stringify(key));
+      console.log("---------- 执行完毕startImportFileTest 最后的key = ", JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await dispatch(updatePortfolioBalance());
@@ -579,8 +553,9 @@ const RecoveryPubKey = () => {
       }
 
       // await dispatch(startOnGoingProcessModal('CREATING_KEY'));
-
-      const key = (await dispatch<any>(startCreateKeyWithOpts(keyOpts))) as Key;
+      console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
+      // const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
+      const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
