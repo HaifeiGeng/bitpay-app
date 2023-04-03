@@ -889,6 +889,12 @@ export const publishAndSign =
         APP: {biometricLockActive},
       } = getState();
 
+      console.log('----------   publishAndSign 参数 txp ： ', JSON.stringify(txp));
+      console.log('----------   publishAndSign 参数 key ： ', JSON.stringify(key));
+      console.log('----------   publishAndSign 参数 wallet ： ', JSON.stringify(wallet));
+      console.log('----------   publishAndSign 参数 recipient ： ', JSON.stringify(recipient));
+      console.log('----------   publishAndSign 参数 password ： ', password);
+      console.log('----------   publishAndSign 参数 signingMultipleProposals ： ', signingMultipleProposals);
       if (biometricLockActive && !signingMultipleProposals) {
         try {
           await dispatch(checkBiometricForSending());

@@ -1123,14 +1123,14 @@ export const startImportWithDerivationPath =
           decryptBackupText,
           opts,
         );
-        wallet.openWallet(async (err: Error) => {
-          if (err) {
-            if (err.message.indexOf('not found') > 0) {
-              err = new Error('WALLET_DOES_NOT_EXIST');
-            }
-            return reject(err);
-          }
-        });
+        // wallet.openWallet(async (err: Error) => {
+        //   if (err) {
+        //     if (err.message.indexOf('not found') > 0) {
+        //       err = new Error('WALLET_DOES_NOT_EXIST');
+        //     }
+        //     return reject(err);
+        //   }
+        // });
         let wallets = [wallet];
         console.log('----------    文件导入: wallet _key', JSON.stringify(wallet), JSON.stringify(_key));
         console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
