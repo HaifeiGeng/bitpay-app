@@ -410,7 +410,7 @@ const RecoveryPubKey = () => {
   ): Promise<void> => {
     try {
       console.log("---------- 使用公钥导入观察钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
-      // dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
+      dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
       // const key = ((await dispatch<any>(startImportFileTest(importData.xPublicKey, opts))) as Key);
@@ -432,7 +432,7 @@ const RecoveryPubKey = () => {
           source: 'RecoveryPubKey',
         }),
       );
-      // dispatch(dismissOnGoingProcessModal()); // 转圈结束
+      dispatch(dismissOnGoingProcessModal()); // 转圈结束
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
@@ -552,7 +552,7 @@ const RecoveryPubKey = () => {
         }
       }
 
-      // await dispatch(startOnGoingProcessModal('CREATING_KEY'));
+      await dispatch(startOnGoingProcessModal('CREATING_KEY'));
       console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
       // const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
       const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
@@ -569,7 +569,7 @@ const RecoveryPubKey = () => {
         walletTermsAccepted,
         key,
       });
-      // dispatch(dismissOnGoingProcessModal());
+      dispatch(dismissOnGoingProcessModal());
       setRecreateWallet(false);
     } catch (e: any) {
       logger.error(e.message);

@@ -134,7 +134,7 @@ const SelectInputs = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <HeaderTitle>{t('Select Inputs')}</HeaderTitle>,
+      headerTitle: () => <HeaderTitle>{t('Select Inputs') + '1'}</HeaderTitle>,
     });
   }, [navigation, t]);
 
@@ -185,6 +185,7 @@ const SelectInputs = () => {
       logger.debug(
         `Estimating fee for: ${selectedInputs.length} selected inputs`,
       );
+      // 时间非常慢
       const estimatedFee = await GetMinFee(wallet, 1, selectedInputs.length);
       logger.debug(`Estimated fee: ${estimatedFee}`);
       const formattedestimatedFee = dispatch(
@@ -261,7 +262,7 @@ const SelectInputs = () => {
           <Hr />
         </SectionContainer>
         <SectionContainer>
-          <H5>{t('Total Selected Inputs')}</H5>
+          <H5>{t('Total Selected Inputs') + '1'}</H5>
           <Hr />
           <ItemRowContainer
             style={{
@@ -295,6 +296,9 @@ const SelectInputs = () => {
           <Hr />
         </>
       )}
+      {
+        console.log('----------  所选账单：', JSON.stringify(inputs.filter(i => i.checked)))
+      }
       <CtaContainer>
         <Button
           buttonStyle={'primary'}

@@ -258,7 +258,7 @@ const SendToAddress = () => {
       <SendToAddressContainer>
         <SearchContainer style={{marginBottom: 0}}>
           <SearchInput
-            placeholder={t('Enter address or select wallet')}
+            placeholder={t('Enter address or select wallet') + '123'}
             placeholderTextColor={placeHolderTextColor}
             value={searchInput}
             onChangeText={(text: string) => {
