@@ -255,10 +255,14 @@ const getWalletType = (
   wallet: Wallet,
 ): undefined | {title: string; icon?: ReactElement} => {
   const {
-    credentials: {token, walletId, addressType, keyId},
+    credentials: {token, walletId, addressType, keyId, cold},
   } = wallet;
+  console.log("---------- 生成icon 钱包属性打印 wallet ", JSON.stringify(wallet));
   if (!keyId) {
     return {title: i18next.t('Read Only')};
+  }
+  if(cold){
+    return {title: i18next.t('Cold Wallet')};
   }
   if (token) {
     const linkedWallet = key.wallets.find(({tokens}) =>

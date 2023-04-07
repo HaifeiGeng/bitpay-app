@@ -79,6 +79,7 @@ import CurrencyTokenSelectionScreen, {
 import EnterBuyerProvidedEmail from './screens/send/EnterBuyerProvidedEmail';
 import ExportTransactionHistory from './screens/wallet-settings/ExportTransactionHistory';
 import ImportPubKey, { ImportPubKeyParamList } from './screens/ImportPubKey';
+import ImportColdWallet from './screens/ImportColdWallet';
 
 export type WalletStackParamList = {
   CurrencySelection: CurrencySelectionParamList;
@@ -101,6 +102,7 @@ export type WalletStackParamList = {
   CreationOptions: undefined;
   Import: ImportParamList | undefined;
   ImportPubKey: ImportPubKeyParamList | undefined;
+  ImportColdWallet: ImportColdWalletParamList | undefined;
   CreateEncryptPassword: {key: Key};
   ExtendedPrivateKey: {xPrivKey: string};
   DeleteKey: {keyId: string};
@@ -167,6 +169,7 @@ export enum WalletScreens {
   CREATION_OPTIONS = 'CreationOptions',
   IMPORT = 'Import',
   IMPORT_PUB_KEY = 'ImportPubKey',
+  IMPORT_COLD_WALLET = 'ImportColdWallet',
   CREATE_ENCRYPT_PASSWORD = 'CreateEncryptPassword',
   EXTENDED_PRIVATE_KEY = 'ExtendedPrivateKey',
   DELETE_KEY = 'DeleteKey',
@@ -281,6 +284,7 @@ const WalletStack = () => {
         />
         <Wallet.Screen name={WalletScreens.IMPORT} component={Import} />
         <Wallet.Screen name={WalletScreens.IMPORT_PUB_KEY} component={ImportPubKey} />
+        <Wallet.Screen name={WalletScreens.IMPORT_COLD_WALLET} component={ImportColdWallet} />
         <Wallet.Screen
           name={WalletScreens.CREATION_OPTIONS}
           component={CreationOptions}

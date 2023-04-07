@@ -12,6 +12,8 @@ interface KeyOpts {
   useLegacyCoinType?: boolean;
   nonCompliantDerivation?: boolean;
   language?: string;
+  derivationPath?: string;
+  networkName?: string;
 }
 
 export class BwcProvider {
@@ -29,8 +31,8 @@ export class BwcProvider {
 
   public getClient(credentials?: string) {
     const bwc = new BWC({
-      // baseUrl: 'https://bws.bitpay.com/bws/api', // 'http://localhost:3232/bws/api', uncomment for local testing
-      baseUrl: 'http://10.100.201.52:3232/bws/api',
+      baseUrl: 'https://bws.bitpay.com/bws/api', // 'http://localhost:3232/bws/api', uncomment for local testing
+      // baseUrl: 'http://10.100.201.52:3232/bws/api',
       verbose: true,
       timeout: 100000,
       transports: ['polling'],

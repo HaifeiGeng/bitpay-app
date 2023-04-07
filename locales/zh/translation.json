@@ -1137,5 +1137,10 @@
   "Watch Wallet": "观察钱包",
   "Use an existing public key to import an existing watch wallet": "使用现有公钥导入观察钱包",
   "Import Watch Wallet": "导入观察钱包",
-  "Public Key": "公钥"
+  "Public Key": "公钥",
+  "Cold Wallet": "冷钱包",
+  "Use an existing recovery phrase to import an existing cold wallet": "使用现有恢复短语导入现有冷钱包",
+  "Import Cold Wallet": "导入冷钱包",
+  "Cold wallets do not display transaction information": "冷钱包不显示交易信息"
+
 }

@@ -655,7 +655,176 @@ export const startCreateKeyWithOpts =
     });
   };
 
+
+  /**
+   * 开始创建钱包 此处需要创建一个冷钱包
+   * @param opts 
+   * @returns 
+   */
+  export const startCreateKeyWithOptsCold =
+  (opts: Partial<KeyOptions>): Effect =>
+  async (dispatch, getState): Promise<Key> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const {
+          APP: {
+            notificationsAccepted,
+            emailNotifications,
+            brazeEid,
+            defaultLanguage,
+          },
+          WALLET: {keys},
+        } = getState();
+        const _key = BWC.createKey({
+          seedType: opts.seedType!,
+          seedData: opts.mnemonic || opts.extendedPrivateKey || opts.extendedPublicKey,
+          useLegacyCoinType: opts.useLegacyCoinType,
+          useLegacyPurpose: opts.useLegacyPurpose,
+          passphrase: opts.passphrase,
+          derivationPath: opts.cold ? opts.derivationPath : undefined,
+          networkName: opts.networkName,
+        });
+
+        console.log('---------- 钱包不存在, 准备创建 - 冷钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
+        const _wallet = await createColdWalletWithOpts({key: _key, opts});
+        console.log('---------- 钱包不存在，创建 - 冷钱包， _wallet : ', JSON.stringify(_wallet));
+        // subscribe new wallet to push notifications
+        // if (notificationsAccepted) {
+        //   dispatch(subscribePushNotifications(_wallet, brazeEid!));
+        // }
+        // subscribe new wallet to email notifications
+        // if (
+        //   emailNotifications &&
+        //   emailNotifications.accepted &&
+        //   emailNotifications.email
+        // ) {
+        //   const prefs = {
+        //     email: emailNotifications.email,
+        //     language: defaultLanguage,
+        //     unit: 'btc', // deprecated
+        //   };
+        //   dispatch(subscribeEmailNotifications(_wallet, prefs));
+        // }
+
+        const {currencyAbbreviation, currencyName} = dispatch(
+          mapAbbreviationAndName(
+            _wallet.credentials.coin,
+            _wallet.credentials.chain,
+          ),
+        );
+
+        // build out app specific props
+        const wallet = merge(
+          _wallet,
+          buildWalletObj({
+            ..._wallet.credentials,
+            currencyAbbreviation,
+            currencyName,
+          }),
+        ) as Wallet;
+
+        const key = buildKeyObj({
+          key: _key,
+          wallets: [wallet],
+          backupComplete: true,
+        });
+        const previousKeysLength = Object.keys(keys).length;
+        const numNewKeys = Object.keys(keys).length + 1;
+        const expectedLengthChange = previousKeysLength - numNewKeys;
+        batch(() => {
+          dispatch(
+            successCreateKey({
+              key,
+            }),
+          );
+          dispatch(setExpectedKeyLengthChange(expectedLengthChange));
+        });
+        resolve(key);
+      } catch (err) {
+        const errstring =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        dispatch(
+          LogActions.error(`Error creating key with opts: ${errstring}`),
+        );
+        reject(err);
+      }
+    });
+  };
 /////////////////////////////////////////////////////////////
+
+/**
+ * 创建冷钱包
+ * @param params 
+ * @returns 
+ */
+export const createColdWalletWithOpts = (params: {
+  key: KeyMethods;
+  opts: Partial<KeyOptions>;
+}): Promise<API> => {
+  return new Promise((resolve, reject) => {
+    const bwcClient = BWC.getClient();
+    const {key, opts} = params;
+    console.log('---------- 创建冷钱包， createColdWalletWithOpts 参数 key, opts : ', JSON.stringify(key), JSON.stringify(opts));
+    try {
+      bwcClient.fromString(
+        key.createCredentials(opts.password, {
+          coin: opts.coin || 'btc',
+          chain: opts.coin || 'btc', // chain === coin for stored clients
+          network: opts.networkName || 'livenet',
+          account: opts.account || 0,
+          n: opts.n || 1,
+          m: opts.m || 1,
+          cold: opts.cold,
+        }),
+      );
+      bwcClient.createColdWallet(
+        opts.name,
+        opts.myName || 'me',
+        opts.m || 1,
+        opts.n || 1,
+        {
+          network: opts.networkName,
+          singleAddress: opts.singleAddress,
+          coin: opts.coin,
+          useNativeSegwit: opts.useNativeSegwit,
+        },
+        (err: Error) => {
+          if (err) {
+            switch (err.name) {
+              case 'bwc.ErrorCOPAYER_REGISTERED': {
+                const account = opts.account || 0;
+                if (account >= 20) {
+                  return reject(
+                    new Error(
+                      t(
+                        '20 Wallet limit from the same coin and network has been reached.',
+                      ),
+                    ),
+                  );
+                }
+                return resolve(
+                  createColdWalletWithOpts({
+                    key,
+                    opts: {...opts, account: account + 1},
+                  }),
+                );
+              }
+            }
+
+            reject(err);
+          } else {
+            LogActions.info(`Added Coin ${opts.coin || 'btc'}`);
+            resolve(bwcClient);
+          }
+        },
+      );
+      resolve(bwcClient);
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 
 export const createWalletWithOpts = (params: {
   key: KeyMethods;

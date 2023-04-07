@@ -145,6 +145,8 @@ export interface KeyOptions {
   includeTestnetWallets?: boolean;
   includeLegacyWallets?: boolean;
   xPublicKey?: string;
+  cold?: string;
+  derivationPath?: string;
 }
 
 export interface Token {

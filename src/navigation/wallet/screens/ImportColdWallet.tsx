@@ -5,11 +5,11 @@ import {useNavigation} from '@react-navigation/native';
 import {WalletStackParamList} from '../WalletStack';
 import {StackScreenProps} from '@react-navigation/stack';
 import {useTranslation} from 'react-i18next';
-import RecoveryPubKey from '../components/RecoveryPubKey';
+import RecoveryColdWallet from '../components/RecoveryColdWallet';
 
-type ImportPubKeyScreenProps = StackScreenProps<WalletStackParamList, 'ImportPubKey'>;
+type ImportColdWalletScreenProps = StackScreenProps<WalletStackParamList, 'ImportColdWallet'>;
 
-export interface ImportPubKeyParamList {
+export interface ImportColdWalletParamList {
   context?: string;
   keyId?: string;
   importQrCodeData?: string;
@@ -20,22 +20,22 @@ const ImportContainer = styled.SafeAreaView`
   margin-top: 10px;
 `;
 
-const ImportPubKey: React.FC<ImportPubKeyScreenProps> = ({route}) => {
+const ImportColdWallet: React.FC<ImportColdWalletScreenProps> = ({route}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <HeaderTitle>{t('Import Watch Wallet')}</HeaderTitle>,
+      headerTitle: () => <HeaderTitle>{t('Import Cold Wallet')}</HeaderTitle>,
       headerTitleAlign: 'center',
     });
   }, [navigation, t]);
 
   return (
     <ImportContainer>
-      <RecoveryPubKey />
+      <RecoveryColdWallet />
     </ImportContainer>
   );
 };
 
-export default ImportPubKey;
+export default ImportColdWallet;

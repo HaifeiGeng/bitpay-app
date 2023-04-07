@@ -100,6 +100,24 @@ const CreationOptions: React.FC = () => {
           screen: 'ImportPubKey',
         });
       },
+    },
+    {
+      id: 'cold',
+      title: t('Cold Wallet'),
+      description: t(
+        'Use an existing recovery phrase to import an existing cold wallet',
+      ),
+      cta: () => {
+        // 使用助记词导入冷钱包
+        dispatch(
+          Analytics.track('Clicked Import Cold Wallet', {
+            context: 'CreationOptions',
+          }),
+        );
+        navigation.navigate('Wallet', {
+          screen: 'ImportColdWallet',
+        });
+      },
     }
   ];
   return (
