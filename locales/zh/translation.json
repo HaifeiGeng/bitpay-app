@@ -1141,6 +1141,7 @@
   "Cold Wallet": "冷钱包",
   "Use an existing recovery phrase to import an existing cold wallet": "使用现有恢复短语导入现有冷钱包",
   "Import Cold Wallet": "导入冷钱包",
-  "Cold wallets do not display transaction information": "冷钱包不显示交易信息"
+  "Cold wallets do not display transaction information": "冷钱包不显示交易信息",
+  "Please sign": "请签名"
 
 }

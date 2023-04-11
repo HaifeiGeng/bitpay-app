@@ -70,6 +70,8 @@ import {toFiat} from '../../../../../store/wallet/utils/wallet';
 import {GetPrecision} from '../../../../../store/wallet/utils/currency';
 import prompt from 'react-native-prompt-android';
 import {Analytics} from '../../../../../store/analytics/analytics.effects';
+import DynamicQrCode from '../../../components/DynamicQrCode';
+import ReceiveAddress from '../../../components/ReceiveAddress';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -108,6 +110,10 @@ export const SettingTitle = styled(BaseText)`
 `;
 
 const Confirm = () => {
+  // 是否开启动态二维码窗口
+  const [showDynamicQrCodeModal, setShowDynamicQrCodeModal] = useState(false);
+  const [dynamicQrCodeData, setDynamicQrCodeData] = useState({});
+
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
   const {t} = useTranslation();
@@ -542,16 +548,24 @@ const Confirm = () => {
           try {
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
             await sleep(500);
-            await dispatch(startSendPayment({txp, key, wallet, recipient}));
+            const txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
+            console.log('---------- SwipeButton的最终返回值 txpResult', JSON.stringify(txpResult));
             dispatch(dismissOnGoingProcessModal());
-            dispatch(
-              Analytics.track('Sent Crypto', {
-                context: 'Confirm',
-                coin: currencyAbbreviation || '',
-              }),
-            );
+            // 将按钮恢复到未滑动状态
+            setResetSwipeButton(true);
+            // dispatch(
+            //   Analytics.track('Sent Crypto', {
+            //     context: 'Confirm',
+            //     coin: currencyAbbreviation || '',
+            //   }),
+            // );
+            // await sleep(500);
+            // setShowPaymentSentModal(true);
+            setDynamicQrCodeData(txpResult);
+            setShowDynamicQrCodeModal(true);
             await sleep(500);
-            setShowPaymentSentModal(true);
+            console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
+            console.log('---------- 准备展示动态二维码 wallet', JSON.stringify(txpResult.wallet));
           } catch (err) {
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);
@@ -576,6 +590,15 @@ const Confirm = () => {
           }
         }}
       />
+      {
+        console.log('---------- 展示动态二维码之前  : ', showDynamicQrCodeModal, JSON.stringify(dynamicQrCodeData)) 
+      }
+      {
+        showDynamicQrCodeModal &&
+        (
+          <DynamicQrCode isVisible={showDynamicQrCodeModal} closeModal={() => setShowDynamicQrCodeModal(false)} dynamicQrCodeData={dynamicQrCodeData} />
+        )
+      }
     </ConfirmContainer>
   );
 };

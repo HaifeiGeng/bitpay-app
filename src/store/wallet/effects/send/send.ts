@@ -835,23 +835,30 @@ export const startSendPayment =
   async dispatch => {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log('----------   startSendPayment 参数 txp ： ', JSON.stringify(txp));
+        console.log('----------   startSendPayment 参数 key ： ', JSON.stringify(key));
+        console.log('----------   startSendPayment 参数 wallet ： ', JSON.stringify(wallet));
+        console.log('----------   startSendPayment 参数 recipient ： ', JSON.stringify(recipient));
+        console.log('----------   startSendPayment 参数 wallet.credentials.rootPath ： ', JSON.stringify(wallet.credentials.rootPath));
+
+
         wallet.createTxProposal(
           {...txp, dryRun: false},
           async (err: Error, proposal: TransactionProposal) => {
             if (err) {
               return reject(err);
             }
-
             try {
-              const broadcastedTx = await dispatch(
-                publishAndSign({
-                  txp: proposal,
-                  key,
-                  wallet,
-                  recipient,
-                }),
-              );
-              return resolve(broadcastedTx);
+              // const broadcastedTx = await dispatch(
+              //   publishAndSign({
+              //     txp: proposal,
+              //     key,
+              //     wallet,
+              //     recipient,
+              //   }),
+              // );
+              // return resolve(broadcastedTx);
+              return resolve({txp: proposal,key,wallet,recipient,});
             } catch (e) {
               return reject(e);
             }

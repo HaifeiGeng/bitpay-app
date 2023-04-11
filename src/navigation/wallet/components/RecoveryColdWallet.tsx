@@ -424,7 +424,7 @@ const RecoveryColdWallet = () => {
       // 增加冷钱包标记
       opts.cold = '1';
       console.log("---------- 使用私钥导入冷钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
-      // dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
+      dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
       // // const key = ((await dispatch<any>(startImportFileTest(importData.xPublicKey, opts))) as Key);
@@ -448,10 +448,10 @@ const RecoveryColdWallet = () => {
           source: 'RecoveryColdWallet',
         }),
       );
-      // dispatch(dismissOnGoingProcessModal()); // 转圈结束
+      dispatch(dismissOnGoingProcessModal()); // 转圈结束
     } catch (e: any) {
       logger.error(e.message);
-      // dispatch(dismissOnGoingProcessModal());
+      dispatch(dismissOnGoingProcessModal());
       await sleep(600);
       showErrorModal(e);
       return;
