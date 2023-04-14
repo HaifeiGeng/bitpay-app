@@ -40,6 +40,8 @@
   "dependencies": {
     "@freakycoder/react-native-bounceable": "0.2.5",
     "@hookform/resolvers": "2.8.3",
+    "@keystonehq/bc-ur-registry": "0.5.4",
+    "@ngraveio/bc-ur": "1.1.6",
     "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-community/blur": "3.6.0",
     "@react-native-community/clipboard": "1.5.1",
@@ -55,6 +57,7 @@
     "@segment/analytics-react-native-plugin-idfa": "0.4.1",
     "@segment/sovran-react-native": "0.4.4",
     "@tradle/react-native-http": "2.0.1",
+    "@types/bs58check": "2.1.0",
     "@types/lodash.pickby": "4.6.6",
     "@types/lodash.sortby": "4.7.6",
     "@types/lodash.uniqby": "4.7.6",

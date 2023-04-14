@@ -257,7 +257,6 @@ const getWalletType = (
   const {
     credentials: {token, walletId, addressType, keyId, cold},
   } = wallet;
-  console.log("---------- 生成icon 钱包属性打印 wallet ", JSON.stringify(wallet));
   if (!keyId) {
     return {title: i18next.t('Read Only')};
   }
