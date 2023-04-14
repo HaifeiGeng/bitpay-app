@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import QRCode from 'react-native-qrcode-svg';
 import styled from 'styled-components/native';
 import {Paragraph, H4} from '../../../components/styled/Text';
 import SheetModal from '../../../components/modal/base/sheet/SheetModal';
@@ -10,6 +9,7 @@ import {Action, LightBlack, White} from '../../../styles/colors';
 import DynamicQrCodeHeader from './DynamicQrCodeHeader';
 import {useTranslation} from 'react-i18next';
 import QRCodeComponent from './QRCodeComponent';
+import { encodeUR } from '../../../utils/qr/ur';
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
 
@@ -50,7 +50,8 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
   // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
-
+  const fragmentsEncoded = encodeUR(Buffer.from(JSON.stringify(dynamicQrCodeData.txp), 'ascii').toString('hex'), 200);
+  
 
   // 动态二维码
   const [index, setIndex] = useState(0);
@@ -64,8 +65,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   useEffect(() => {
     try {
       setCoin(dynamicQrCodeData.txp.coin);
-      // fragments.push(...encodeUR(value, capacity));
-      const fragmentsEncoded = ['baaklsjhdfklashdfkljsahdfklhsakldfhslakhfdklas', 'hklhlkwehjrlthwelktwhklert', 'sdfkasjhdflkajhsdfkjashkldfhlkasjhfjklasdhfjklashkdlf', 'basmdnfasbdfabsdfmnasbkdfgasuhkdgfjkashbdfjkashgdfkdjf'];
       setFragments(fragmentsEncoded);
       setTotal(fragmentsEncoded.length);
       setDisplayQRCode(true);
@@ -89,11 +88,11 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   }, [total, index]);
 
   const startAutoMove = () => {
-    console.log('----------  准备执行 ：', index, total);
+    console.log('----------  当前index :', index, '当前 total :',total);
     if (!intervalHandler) {
       setIntervalHandler(setInterval(() => setIndex(prevState => {
         return (prevState + 1) % total
-      }), 200));
+      }), 300));
     }
   };
 
@@ -101,10 +100,10 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
     const currentFragment = fragments[index];
     if (currentFragment) {
       return currentFragment.toUpperCase();
+    } else {
+      return "";
     }
   }
-
-
 
   const _closeModal = () => {
     closeModal();
@@ -128,7 +127,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
             <H4>只有比特币钱包需要签名</H4>
           )
         }
-
         <CloseButton onPress={_closeModal}>
           <CloseButtonText>{t('CLOSE')}</CloseButtonText>
         </CloseButton>
