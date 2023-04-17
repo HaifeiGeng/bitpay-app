@@ -9,7 +9,9 @@ import {Action, LightBlack, White} from '../../../styles/colors';
 import DynamicQrCodeHeader from './DynamicQrCodeHeader';
 import {useTranslation} from 'react-i18next';
 import QRCodeComponent from './QRCodeComponent';
-import { encodeUR } from '../../../utils/qr/ur';
+import { encodeUR, BlueURDecoder} from '../../../utils/qr/ur';
+import { View, StyleSheet, Dimensions, Text ,Alert} from 'react-native';
+import { RNCamera } from 'react-native-camera';
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
 
@@ -45,7 +47,7 @@ interface Props {
   closeModal: () => void;
   dynamicQrCodeData: any;
 }
-
+let decoder: BlueURDecoder | undefined;
 const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
@@ -59,6 +61,11 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
   const [displayQRCode, setDisplayQRCode] = useState(true);
   const [fragments, setFragments] = useState<string[]>([]);
+  const [openCamera, setOpenCamera] = useState(false);
+  const [progress, setProgress] = useState(0);
+  // const [animatedQRCodeData, setAnimatedQRCodeData] = useState<Record<string, any>>({});
+  const [urTotal, setUrTotal] = useState(0);
+  const [urHave, setUrHave] = useState(0);
 
   const capacity = 200;
 
@@ -88,7 +95,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   }, [total, index]);
 
   const startAutoMove = () => {
-    console.log('----------  当前index :', index, '当前 total :',total);
+    // console.log('----------  当前index :', index, '当前 total :',total);
     if (!intervalHandler) {
       setIntervalHandler(setInterval(() => setIndex(prevState => {
         return (prevState + 1) % total
@@ -108,11 +115,61 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const _closeModal = () => {
     closeModal();
   };
+  
+  const _nextStep = () => {
+    if(intervalHandler){
+      clearInterval(intervalHandler);
+    }
+    setDisplayQRCode(false);
+    setOpenCamera(true);
+  }
+
+  const win = Dimensions.get("window");
+
+  const onBarCodeScanned = ({ data }: { data: string }) => {
+    // console.log('----------  扫描到的数据1：', data);
+    if (!decoder) {
+      decoder = new BlueURDecoder();
+    }
+    try {
+      decoder.receivePart(data);
+      if (decoder.isComplete()) {
+        const parseData = decoder.toString();
+        console.log('----------  扫描到的数据：', parseData);
+        decoder = undefined; // nullify for future use (?)
+
+        Alert.alert(
+          '扫描完毕',
+          JSON.stringify(parseData),
+          [{text: 'Cancel'}],
+          {cancelable: true},
+        );
+        // onBarScanned({ data });
+      } else {
+        setUrTotal(100);
+        setUrHave(Math.floor(decoder.estimatedPercentComplete() * 100));
+        // console.log('----------  扫描到的数据 没完成 ：', urHave);
+      }
+    } catch (error) {
+      console.warn(error);
+      // setIsLoading(true);
+      // Alert.alert(loc.send.scan_error, loc._.invalid_animated_qr_code_fragment, [
+      //   {
+      //     text: loc._.ok,
+      //     onPress: () => {
+      //       setIsLoading(false);
+      //     },
+      //     style: 'default',
+      //   },
+      //   { cancelabe: false },
+      // ]);
+    }
+  };
 
   return (
     <SheetModal isVisible={isVisible} onBackdropPress={_closeModal}>
       <ReceiveAddressContainer>
-        <DynamicQrCodeHeader />
+        <DynamicQrCodeHeader title={t('Please sign')} />
         {
           coin === 'btc' && displayQRCode ? (
           <QRCodeContainer>
@@ -123,16 +180,73 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
               />
             </QRCodeBackground>
           </QRCodeContainer>
-          ) : (
-            <H4>只有比特币钱包需要签名</H4>
-          )
+          ) : coin === 'btc' && !displayQRCode && openCamera ?  (
+
+            <View style={styles.cameraContainer}>
+              <Text style={styles.title}>
+                {/* {t('Scan the QRCode loop')} ({(progress * 100).toFixed(0)}%) */}
+                {t('Scan the QRCode loop')} ({urHave}%)
+              </Text>
+              <RNCamera
+                style={styles.root}
+                type={RNCamera.Constants.Type.back}
+                onBarCodeRead={onBarCodeScanned}
+              >
+                <View style={styles.cameraContainer}>
+                  <View style={[styles.rect, { width: win.width - 100, height: win.width - 100 }]} />
+                </View>
+              </RNCamera>
+            </View>
+            
+          ) : (<H4>只有比特币钱包需要签名</H4>)
         }
-        <CloseButton onPress={_closeModal}>
-          <CloseButtonText>{t('CLOSE')}</CloseButtonText>
-        </CloseButton>
+
+        <View style={{flexDirection: 'row', marginTop: 50}}>
+          <CloseButton onPress={_closeModal}>
+            <CloseButtonText>{t('CLOSE')}</CloseButtonText>
+          </CloseButton>
+          {displayQRCode ? (
+            <CloseButton onPress={_nextStep}>
+              <CloseButtonText>{t('Next step')}</CloseButtonText>
+            </CloseButton>
+          ) : null}
+          {!displayQRCode && (
+            <CloseButton onPress={_closeModal}>
+              <CloseButtonText>{t('Finish')}</CloseButtonText>
+            </CloseButton>
+          )}
+        </View>
+      
       </ReceiveAddressContainer>
     </SheetModal>
   );
 };
 
 export default DynamicQrCode;
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: 'hidden'
+  },
+  cameraContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rect: {
+    borderColor: "white",
+    borderWidth: 4,
+  },
+  title: {
+    color: "black",
+    fontSize: 20,
+    margin: 20,
+  },
+  scanProgress: {
+    color: "white",
+    fontSize: 20,
+    marginTop: 20,
+  },
+});

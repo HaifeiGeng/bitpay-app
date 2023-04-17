@@ -91,10 +91,15 @@ var getBC32Payload = function (workloads, type) {
     }
 };
 exports.decodeUR = function (workloads, type) {
+    console.log('----------  decodeUR 解码0: ', workloads, type);
     if (type === void 0) { type = 'bytes'; }
     var bc32Payload = getBC32Payload(workloads, type);
+    console.log('----------  decodeUR 解码 bc32Payload 1: ', JSON.stringify(bc32Payload));
     var cborPayload = bc_bech32_1.decodeBc32Data(bc32Payload);
-    return miniCbor_1.decodeSimpleCBOR(cborPayload);
+    console.log('----------  decodeUR 解码 cborPayload 2: ', JSON.stringify(cborPayload));
+    var result = miniCbor_1.decodeSimpleCBOR(cborPayload);
+    console.log('----------  decodeUR 解码 result 3: ', JSON.stringify(result));
+    return result;
 };
 exports.extractSingleWorkload = function (workload) {
     var pieces = workload.toUpperCase().split('/');

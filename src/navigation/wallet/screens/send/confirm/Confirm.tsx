@@ -593,7 +593,10 @@ const Confirm = () => {
       {
         showDynamicQrCodeModal &&
         (
-          <DynamicQrCode isVisible={showDynamicQrCodeModal} closeModal={() => setShowDynamicQrCodeModal(false)} dynamicQrCodeData={dynamicQrCodeData} />
+          <DynamicQrCode 
+            isVisible={showDynamicQrCodeModal} 
+            closeModal={() => setShowDynamicQrCodeModal(false)} 
+            dynamicQrCodeData={dynamicQrCodeData} />
         )
       }
     </ConfirmContainer>
