@@ -123,6 +123,7 @@ import ContactIcon from '../../tabs/contacts/components/ContactIcon';
 import {TRANSACTION_ICON_SIZE} from '../../../constants/TransactionIcons';
 import SentBadgeSvg from '../../../../assets/img/sent-badge.svg';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import SignByQrCode from '../components/SignByQrCode';
 
 export type WalletDetailsScreenParamList = {
   walletId: string;
@@ -307,6 +308,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({route}) => {
     useState(false);
   const [showBalanceDetailsModal, setShowBalanceDetailsModal] = useState(false);
   const walletType = getWalletType(key, fullWalletObj);
+  const [showSignatureBottomModal, setShowSignatureBottomModal] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -399,6 +401,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({route}) => {
   ]);
 
   const onRefresh = async () => {
+    // 如果是冷钱包， 不走刷新功能
+    // const cold = fullWalletObj.credentials.cold;
+    // console.log('---------- 如果是冷钱包， 不走刷新功能', JSON.stringify(fullWalletObj.credentials));
+    // return;
     setRefreshing(true);
     await sleep(1000);
 
@@ -992,6 +998,9 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({route}) => {
                   </Row>
                 </BalanceContainer>
 
+                {
+                  console.log('---------- linking button 寻找冷钱包标记', JSON.stringify(fullWalletObj.credentials))
+                }
                 {fullWalletObj ? (
                   <LinkingButtons
                     buy={{
@@ -1070,6 +1079,18 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({route}) => {
                           screen: 'SendTo',
                           params: {wallet: fullWalletObj},
                         });
+                      },
+                    }}
+                    sign={{
+                      hide: !fullWalletObj.credentials.cold,
+                      cta: () => {
+                        dispatch(
+                          Analytics.track('Sign TX', {
+                            context: 'WalletDetails',
+                            coin: fullWalletObj.currencyAbbreviation,
+                          }),
+                        );
+                        setShowSignatureBottomModal(true);
                       },
                     }}
                   />
@@ -1179,6 +1200,16 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({route}) => {
           wallet={fullWalletObj}
         />
       ) : null}
+
+      {
+        fullWalletObj ? (
+          <SignByQrCode 
+            isVisible={showSignatureBottomModal} 
+            closeModal={() => setShowSignatureBottomModal(false)} 
+            fullWalletObj={fullWalletObj}
+          />
+        ) : null
+      }
     </WalletDetailsContainer>
   );
 };

@@ -235,6 +235,7 @@ const HomeRoot = () => {
                 send={{
                   cta: () => dispatch(sendCrypto('HomeRoot')),
                 }}
+                sign={{cta: () => null, hide: true}}
               />
             </HomeSection>
           ) : null}

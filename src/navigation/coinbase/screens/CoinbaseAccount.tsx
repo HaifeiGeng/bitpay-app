@@ -631,6 +631,7 @@ const CoinbaseAccount = ({
                   }}
                   buy={{cta: () => null, hide: true}}
                   swap={{cta: () => null, hide: true}}
+                  sign={{cta: () => null, hide: true}}
                 />
               </BalanceContainer>
             </>

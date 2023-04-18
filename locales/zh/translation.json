@@ -1144,6 +1144,7 @@
   "Cold wallets do not display transaction information": "冷钱包不显示交易信息",
   "Please sign": "请签名",
   "Next step":"下一步",
-  "Scan the QRCode loop": "循环扫描二维码"
+  "Scan the QRCode loop": "循环扫描二维码",
+  "Signature": "签名"
 
 }
