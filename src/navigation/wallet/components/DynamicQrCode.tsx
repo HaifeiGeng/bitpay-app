@@ -10,7 +10,7 @@ import DynamicQrCodeHeader from './DynamicQrCodeHeader';
 import {useTranslation} from 'react-i18next';
 import QRCodeComponent from './QRCodeComponent';
 import { encodeUR, BlueURDecoder} from '../../../utils/qr/ur';
-import { View, StyleSheet, Dimensions, Text ,Alert} from 'react-native';
+import { View, StyleSheet, Dimensions, Text ,Alert, Clipboard, ToastAndroid } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
@@ -52,7 +52,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
   // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
-  const fragmentsEncoded = encodeUR(Buffer.from(JSON.stringify(dynamicQrCodeData.txp), 'ascii').toString('hex'), 200);
+  const fragmentsEncoded = encodeUR(Buffer.from(JSON.stringify(dynamicQrCodeData.txp), 'ascii').toString('hex'), 80);
   
 
   // 动态二维码
@@ -62,8 +62,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   const [displayQRCode, setDisplayQRCode] = useState(true);
   const [fragments, setFragments] = useState<string[]>([]);
   const [openCamera, setOpenCamera] = useState(false);
-  const [progress, setProgress] = useState(0);
-  // const [animatedQRCodeData, setAnimatedQRCodeData] = useState<Record<string, any>>({});
   const [urTotal, setUrTotal] = useState(0);
   const [urHave, setUrHave] = useState(0);
 
@@ -126,6 +124,11 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
 
   const win = Dimensions.get("window");
 
+  const handleCopy = (dataString : string) => {
+    Clipboard.setString(JSON.stringify(dataString));
+    ToastAndroid.show('已复制到剪贴板', ToastAndroid.SHORT);
+  }
+
   const onBarCodeScanned = ({ data }: { data: string }) => {
     // console.log('----------  扫描到的数据1：', data);
     if (!decoder) {
@@ -144,6 +147,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
           [{text: 'Cancel'}],
           {cancelable: true},
         );
+        handleCopy(parseData);
         // onBarScanned({ data });
       } else {
         setUrTotal(100);
