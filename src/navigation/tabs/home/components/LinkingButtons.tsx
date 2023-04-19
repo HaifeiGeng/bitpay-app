@@ -216,7 +216,7 @@ const LinkingButtons = ({buy, receive, send, swap, sign}: Props) => {
       hide: !!send?.hide,
     },
     {
-      label: t('Signature'),
+      label: t('Sign'),
       img: <SignSvg />,
       cta: sign?.cta,
       hide: !!sign?.hide,

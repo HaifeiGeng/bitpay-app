@@ -1149,17 +1149,18 @@ export const signTx = (
     try {
       const rootPath = wallet.getRootPath();
       const signatures = key.methods!.sign(rootPath, txp, password);
-      wallet.pushSignatures(
-        txp,
-        signatures,
-        (err: Error, signedTxp: any) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(signedTxp);
-        },
-        null,
-      );
+      resolve(signatures);
+      // wallet.pushSignatures(
+      //   txp,
+      //   signatures,
+      //   (err: Error, signedTxp: any) => {
+      //     if (err) {
+      //       reject(err);
+      //     }
+      //     resolve(signedTxp);
+      //   },
+      //   null,
+      // );
     } catch (err) {
       reject(err);
     }
