@@ -19,7 +19,9 @@ import {
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
-export const BchAddressTypes = ['Cash Address', 'Legacy'];
+import {signTx} from '../../../store/wallet/effects/send/send';
+import { useAppSelector } from '../../../utils/hooks';
+import { Key, Wallet } from '../../../store/wallet/wallet.models';
 
 const QRCodeContainer = styled.View`
   align-items: center;
@@ -51,27 +53,24 @@ const CloseButtonText = styled(Paragraph)`
 interface Props {
   isVisible: boolean;
   closeModal: () => void;
-  dynamicQrCodeData: any;
+  fullWalletObj: any;
+  keyObj: any;
 }
 let decoder: BlueURDecoder | undefined;
-const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
+const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => {
+  console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
+  console.log("---------------- key" + JSON.stringify(keyObj));
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
-  // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
-  const fragmentsEncoded = encodeUR(
-    Buffer.from(JSON.stringify(dynamicQrCodeData.txp), 'ascii').toString('hex'),
-    80,
-  );
-
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
   const [intervalHandler, setIntervalHandler] = useState<
     NodeJS.Timeout | undefined
   >();
-  const [displayQRCode, setDisplayQRCode] = useState(true);
+  const [displayQRCode, setDisplayQRCode] = useState(false);
   const [fragments, setFragments] = useState<string[]>([]);
-  const [openCamera, setOpenCamera] = useState(false);
+  const [openCamera, setOpenCamera] = useState(true);
   const [urTotal, setUrTotal] = useState(0);
   const [urHave, setUrHave] = useState(0);
 
@@ -79,19 +78,19 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
 
   useEffect(() => {
     try {
-      setCoin(dynamicQrCodeData.txp.coin);
-      setFragments(fragmentsEncoded);
-      setTotal(fragmentsEncoded.length);
-      setDisplayQRCode(true);
+      setCoin(fullWalletObj.credentials.coin);
+      setDisplayQRCode(false);
+      setOpenCamera(true);
     } catch (e) {
       console.log(e);
-      setDisplayQRCode(false);
+      setDisplayQRCode(true);
     }
     return () => {
+      setOpenCamera(false);
       if (intervalHandler) {
-        console.log('---------- DynamicQrCode 组件已经卸载');
         clearInterval(intervalHandler);
       }
+      console.log('---------- SignByQrCode 组件已经卸载');
     };
   }, []);
 
@@ -102,7 +101,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   }, [total, index]);
 
   const startAutoMove = () => {
-    // console.log('----------  当前index :', index, '当前 total :',total);
     if (!intervalHandler) {
       setIntervalHandler(
         setInterval(
@@ -125,16 +123,32 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
     }
   };
 
+  const buildQrData = (parseData: string) => {
+    const fragmentsEncoded = encodeUR(
+      Buffer.from(parseData, 'ascii').toString('hex'),
+      80,
+    );
+    setFragments(fragmentsEncoded);
+    setTotal(fragmentsEncoded.length);
+  };
+
   const _closeModal = () => {
     closeModal();
+    setTimeout(() => {
+      setOpenCamera(true);
+      setDisplayQRCode(false);
+    }, 500);
+    if (intervalHandler) {
+      clearInterval(intervalHandler);
+    }
   };
 
   const _nextStep = () => {
     if (intervalHandler) {
       clearInterval(intervalHandler);
     }
-    setDisplayQRCode(false);
-    setOpenCamera(true);
+    setOpenCamera(false);
+    setDisplayQRCode(true);
   };
 
   const win = Dimensions.get('window');
@@ -145,7 +159,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   };
 
   const onBarCodeScanned = ({data}: {data: string}) => {
-    // console.log('----------  扫描到的数据1：', data);
     if (!decoder) {
       decoder = new BlueURDecoder();
     }
@@ -154,31 +167,30 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
         console.log('----------  扫描到的数据：', parseData);
-        decoder = undefined; // nullify for future use (?)
-
+        decoder = undefined;
+        _nextStep();
         Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
           cancelable: true,
         });
-        handleCopy(parseData);
+
+        const textObj = JSON.parse(parseData);
+
+        // const key = useAppSelector(({WALLET}) => WALLET.keys[keyId]) as Key;
+        // const wallet = findWalletById(key.wallets, walletId) as Wallet;
+
+        const signature = signTx(fullWalletObj, keyObj, textObj);
+        
+        console.log('----------  扫描到的签名：', JSON.stringify(signature));
+        handleCopy(JSON.stringify(signature));
+        // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
+        buildQrData(JSON.stringify(signature));
         // onBarScanned({ data });
       } else {
         setUrTotal(100);
         setUrHave(Math.floor(decoder.estimatedPercentComplete() * 100));
-        // console.log('----------  扫描到的数据 没完成 ：', urHave);
       }
     } catch (error) {
       console.warn(error);
-      // setIsLoading(true);
-      // Alert.alert(loc.send.scan_error, loc._.invalid_animated_qr_code_fragment, [
-      //   {
-      //     text: loc._.ok,
-      //     onPress: () => {
-      //       setIsLoading(false);
-      //     },
-      //     style: 'default',
-      //   },
-      //   { cancelabe: false },
-      // ]);
     }
   };
 
@@ -196,7 +208,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
         ) : coin === 'btc' && !displayQRCode && openCamera ? (
           <View style={styles.cameraContainer}>
             <Text style={styles.title}>
-              {/* {t('Scan the QRCode loop')} ({(progress * 100).toFixed(0)}%) */}
               {t('Scan the QRCode loop')} ({urHave}%)
             </Text>
             <RNCamera
@@ -221,12 +232,12 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
           <CloseButton onPress={_closeModal}>
             <CloseButtonText>{t('CLOSE')}</CloseButtonText>
           </CloseButton>
-          {displayQRCode ? (
+          {/* {!displayQRCode ? (
             <CloseButton onPress={_nextStep}>
               <CloseButtonText>{t('Next step')}</CloseButtonText>
             </CloseButton>
-          ) : null}
-          {!displayQRCode && (
+          ) : null} */}
+          {displayQRCode && (
             <CloseButton onPress={_closeModal}>
               <CloseButtonText>{t('Finish')}</CloseButtonText>
             </CloseButton>
@@ -237,7 +248,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
   );
 };
 
-export default DynamicQrCode;
+export default SignByQrCode;
 
 const styles = StyleSheet.create({
   root: {

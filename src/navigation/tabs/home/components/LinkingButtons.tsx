@@ -7,7 +7,7 @@ import {titleCasing} from '../../../../utils/helper-methods';
 import {useAppDispatch} from '../../../../utils/hooks';
 import {ActiveOpacity} from '../../../../components/styled/Containers';
 import {useNavigation} from '@react-navigation/native';
-import {Path, Svg} from 'react-native-svg';
+import {Circle, G, Path, Svg} from 'react-native-svg';
 import {useRequireKeyAndWalletRedirect} from '../../../../utils/hooks/useRequireKeyAndWalletRedirect';
 import {useTranslation} from 'react-i18next';
 import {WalletScreens} from '../../../wallet/WalletStack';
@@ -99,6 +99,23 @@ const SendSvg = () => {
   );
 };
 
+const SignSvg = () => {
+  const theme = useTheme();
+  return (
+    <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <G 
+        fill={theme.dark ? '#4989FF' : White}
+        stroke="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2">
+        <Circle cx="8" cy="15" r="4"/>
+        <Path d="m10.313 11.566l7.94-7.94l2.121 2.121l-1.414 1.414l2.121 2.121l-3.535 3.536l-2.121-2.121l-2.99 2.99a5.002 5.002 0 0 1-7.97 5.849a5 5 0 0 1 5.848-7.97zm-.899 5.848a2 2 0 1 0-2.828-2.828a2 2 0 0 0 2.828 2.828z" />
+      </G>
+    </Svg>
+  );
+};
+
 interface ButtonListProps {
   label: string;
   img: ReactNode;
@@ -125,9 +142,13 @@ interface Props {
     hide?: boolean;
     cta: () => void;
   };
+  sign?: {
+    hide?: boolean;
+    cta: () => void;
+  };
 }
 
-const LinkingButtons = ({buy, receive, send, swap}: Props) => {
+const LinkingButtons = ({buy, receive, send, swap, sign}: Props) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
@@ -194,6 +215,12 @@ const LinkingButtons = ({buy, receive, send, swap}: Props) => {
       cta: send.cta,
       hide: !!send?.hide,
     },
+    {
+      label: t('Sign'),
+      img: <SignSvg />,
+      cta: sign?.cta,
+      hide: !!sign?.hide,
+    }
   ];
   return (
     <ButtonsRow>

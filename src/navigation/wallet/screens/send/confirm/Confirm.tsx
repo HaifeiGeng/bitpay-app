@@ -591,12 +591,12 @@ const Confirm = () => {
         }}
       />
       {
-        console.log('---------- 展示动态二维码之前  : ', showDynamicQrCodeModal, JSON.stringify(dynamicQrCodeData)) 
-      }
-      {
         showDynamicQrCodeModal &&
         (
-          <DynamicQrCode isVisible={showDynamicQrCodeModal} closeModal={() => setShowDynamicQrCodeModal(false)} dynamicQrCodeData={dynamicQrCodeData} />
+          <DynamicQrCode 
+            isVisible={showDynamicQrCodeModal} 
+            closeModal={() => setShowDynamicQrCodeModal(false)} 
+            dynamicQrCodeData={dynamicQrCodeData} />
         )
       }
     </ConfirmContainer>

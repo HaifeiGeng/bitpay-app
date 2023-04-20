@@ -2,8 +2,7 @@ import React from 'react';
 import haptic from '../../../components/haptic-feedback/haptic';
 import RefreshIcon from '../../../components/icons/refresh/RefreshIcon';
 import styled from 'styled-components/native';
-import {BaseText, H4} from '../../../components/styled/Text';
-import {Action, NeutralSlate, SlateDark} from '../../../styles/colors';
+import {H4} from '../../../components/styled/Text';
 import {useTranslation} from 'react-i18next';
 
 const Header = styled.View`
@@ -18,14 +17,15 @@ const Title = styled(H4)`
   color: ${({theme}) => theme.colors.text};
 `;
 
+interface DynamicQrCodeHeaderProps {
+  title: string;
+}
 
-
-
-const DynamicQrCodeHeader = () => {
+const DynamicQrCodeHeader = ({title}: DynamicQrCodeHeaderProps) => {
   const {t} = useTranslation();
     return (
       <Header>
-        <Title>{t('Please sign')}</Title>
+        <Title>{title}</Title>
       </Header>
     );
   }
