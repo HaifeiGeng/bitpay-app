@@ -169,9 +169,9 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         console.log('----------  扫描到的数据：', parseData);
         decoder = undefined;
         _nextStep();
-        Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
-          cancelable: true,
-        });
+        // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
+        //   cancelable: true,
+        // });
 
         const textObj = JSON.parse(parseData);
 
@@ -195,7 +195,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   };
 
   return (
-    <SheetModal isVisible={isVisible} onBackdropPress={_closeModal}>
+    <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
         <DynamicQrCodeHeader title={t('Please sign')} />
         {coin === 'btc' && displayQRCode ? (

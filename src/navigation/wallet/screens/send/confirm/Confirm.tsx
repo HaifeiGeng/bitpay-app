@@ -358,6 +358,10 @@ const Confirm = () => {
     recipientData = sendingTo;
   }
 
+  const onShowPaymentSent = () => {
+    setShowPaymentSentModal(true);
+  }
+
   return (
     <ConfirmContainer>
       <ConfirmScrollView
@@ -561,11 +565,11 @@ const Confirm = () => {
             // );
             // await sleep(500);
             // setShowPaymentSentModal(true);
-            setDynamicQrCodeData(txpResult);
+            setDynamicQrCodeData({txp: txpResult, wallet});
             setShowDynamicQrCodeModal(true);
             await sleep(500);
             console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
-            console.log('---------- 准备展示动态二维码 wallet', JSON.stringify(txpResult.wallet));
+            console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
           } catch (err) {
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);
@@ -596,7 +600,9 @@ const Confirm = () => {
           <DynamicQrCode 
             isVisible={showDynamicQrCodeModal} 
             closeModal={() => setShowDynamicQrCodeModal(false)} 
-            dynamicQrCodeData={dynamicQrCodeData} />
+            dynamicQrCodeData={dynamicQrCodeData} 
+            onShowPaymentSent={() => {onShowPaymentSent()}}
+          />
         )
       }
     </ConfirmContainer>

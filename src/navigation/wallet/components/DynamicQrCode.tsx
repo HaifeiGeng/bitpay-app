@@ -18,6 +18,16 @@ import {
   ToastAndroid,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
+import { broadcastTx } from '../../../store/wallet/effects/send/send';
+import {useAppDispatch} from '../../../utils/hooks';
+import {Analytics} from '../../../store/analytics/analytics.effects';
+import {
+  startOnGoingProcessModal,
+} from '../../../store/app/app.effects';
+import {
+  dismissOnGoingProcessModal,
+} from '../../../store/app/app.actions';
+
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
 
@@ -52,9 +62,11 @@ interface Props {
   isVisible: boolean;
   closeModal: () => void;
   dynamicQrCodeData: any;
+  onShowPaymentSent: () => void;
 }
 let decoder: BlueURDecoder | undefined;
-const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
+const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentSent}: Props) => {
+  const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
   // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
@@ -155,35 +167,48 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData}: Props) => {
         const parseData = decoder.toString();
         console.log('----------  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
-
-        Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
-          cancelable: true,
-        });
+        
+        // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
+        //   cancelable: true,
+        // });
+        setOpenCamera(false);
+        closeModal();
+        dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
+        const signatureArray = parseData.split(',');
         handleCopy(parseData);
-        // onBarScanned({ data });
+        dynamicQrCodeData.wallet.pushSignatures(
+          dynamicQrCodeData.txp,
+          signatureArray,
+          async (err: Error, signedTxp: any) => {
+            if (err) {
+              console.log('----------  签名返回值： 失败', JSON.stringify(err));
+            }
+            console.log('----------  签名返回值： 成功1', JSON.stringify(signedTxp));
+            let broadcastedTx = await broadcastTx(dynamicQrCodeData.wallet, signedTxp);
+            console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
+            dispatch(
+              Analytics.track('Sent Crypto', {
+                context: 'Confirm',
+                coin: dynamicQrCodeData.wallet.currencyAbbreviation || '',
+              }),
+            );
+            dispatch(dismissOnGoingProcessModal());
+            onShowPaymentSent();
+          },
+          null,
+        );
       } else {
         setUrTotal(100);
         setUrHave(Math.floor(decoder.estimatedPercentComplete() * 100));
-        // console.log('----------  扫描到的数据 没完成 ：', urHave);
       }
     } catch (error) {
       console.warn(error);
-      // setIsLoading(true);
-      // Alert.alert(loc.send.scan_error, loc._.invalid_animated_qr_code_fragment, [
-      //   {
-      //     text: loc._.ok,
-      //     onPress: () => {
-      //       setIsLoading(false);
-      //     },
-      //     style: 'default',
-      //   },
-      //   { cancelabe: false },
-      // ]);
+      dispatch(dismissOnGoingProcessModal());
     }
   };
 
   return (
-    <SheetModal isVisible={isVisible} onBackdropPress={_closeModal}>
+    <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
         <DynamicQrCodeHeader title={t('Please sign')} />
         {coin === 'btc' && displayQRCode ? (

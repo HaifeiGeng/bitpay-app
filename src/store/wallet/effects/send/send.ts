@@ -849,16 +849,17 @@ export const startSendPayment =
               return reject(err);
             }
             try {
-              // const broadcastedTx = await dispatch(
-              //   publishAndSign({
-              //     txp: proposal,
-              //     key,
-              //     wallet,
-              //     recipient,
-              //   }),
-              // );
-              // return resolve(broadcastedTx);
-              return resolve({txp: proposal,key,wallet,recipient,});
+              const broadcastedTx = await dispatch(
+                publishAndSign({
+                  txp: proposal,
+                  key,
+                  wallet,
+                  recipient,
+                }),
+              );
+              console.log('----------   startSendPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
+              return resolve(broadcastedTx);
+              // return resolve({txp: proposal,key,wallet,recipient,});
             } catch (e) {
               return reject(e);
             }
