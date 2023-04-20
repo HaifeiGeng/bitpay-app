@@ -123,9 +123,9 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }
   };
 
-  const buildQrData = (parseData: string) => {
+  const buildQrData = (data: string) => {
     const fragmentsEncoded = encodeUR(
-      Buffer.from(parseData, 'ascii').toString('hex'),
+      Buffer.from(data, 'ascii').toString('hex'),
       80,
     );
     setFragments(fragmentsEncoded);
@@ -158,7 +158,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     ToastAndroid.show('已复制到剪贴板', ToastAndroid.SHORT);
   };
 
-  const onBarCodeScanned = ({data}: {data: string}) => {
+  const onBarCodeScanned = async ({data}: {data: string}) => {
     if (!decoder) {
       decoder = new BlueURDecoder();
     }
@@ -169,21 +169,21 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         console.log('----------  扫描到的数据：', parseData);
         decoder = undefined;
         _nextStep();
-        Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
-          cancelable: true,
-        });
+        // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
+        //   cancelable: true,
+        // });
 
         const textObj = JSON.parse(parseData);
 
         // const key = useAppSelector(({WALLET}) => WALLET.keys[keyId]) as Key;
         // const wallet = findWalletById(key.wallets, walletId) as Wallet;
 
-        const signature = signTx(fullWalletObj, keyObj, textObj);
+        const signature = await signTx(fullWalletObj, keyObj, textObj);
         
         console.log('----------  扫描到的签名：', JSON.stringify(signature));
-        handleCopy(JSON.stringify(signature));
+        handleCopy(signature.join(','));
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
-        buildQrData(JSON.stringify(signature));
+        buildQrData(signature.join(','));
         // onBarScanned({ data });
       } else {
         setUrTotal(100);
@@ -195,7 +195,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   };
 
   return (
-    <SheetModal isVisible={isVisible} onBackdropPress={_closeModal}>
+    <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
         <DynamicQrCodeHeader title={t('Please sign')} />
         {coin === 'btc' && displayQRCode ? (
