@@ -108,7 +108,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
             setIndex(prevState => {
               return (prevState + 1) % total;
             }),
-          300,
+          200,
         ),
       );
     }

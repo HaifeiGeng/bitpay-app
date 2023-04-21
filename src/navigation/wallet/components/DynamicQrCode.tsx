@@ -122,7 +122,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
             setIndex(prevState => {
               return (prevState + 1) % total;
             }),
-          300,
+          200,
         ),
       );
     }

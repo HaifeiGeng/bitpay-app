@@ -157,6 +157,10 @@ android {
             keyPassword 'android'
         }
         release {
+            storeFile file('/home/genghaifei/Documents/object_code/bitpay-app/android/canpay.keystore.jks')
+            storePassword '123456'
+            keyAlias 'canpay'
+            keyPassword '123456'
             if (project.hasProperty('APP_UPLOAD_STORE_FILE')) {
                 storeFile file(APP_UPLOAD_STORE_FILE)
                 storePassword APP_UPLOAD_STORE_PASSWORD
