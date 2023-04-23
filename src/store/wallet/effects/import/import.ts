@@ -1670,7 +1670,6 @@ const createKeyAndCredentialsWithFileTest = async (
   const bwcClient = BWC.getClient(undefined);
   // let credentials;
   let key;
-  let addressBook;
   const Key = BWC.getKey();
   opts.name = 'Read Only';
   opts.xPublicKey = decryptBackupText;
@@ -1700,7 +1699,7 @@ const createKeyAndCredentialsWithFileTest = async (
       network,
       account,
       n,
-      xpub: opts.xPublicKey
+      xpub: opts.xPublicKey,
     }),
   );
 
@@ -1720,11 +1719,11 @@ const createKeyAndCredentialsWithFileTest = async (
       if (err) {
         console.log('---------- 创建钱包时出错');
         throw new Error(err.message);
-      } 
+      }
     },
   );
   // 创建钱包 end
-  let wallet = await BWC.getClient(JSON.stringify(bwcClient.credentials));
+  let wallet = BWC.getClient(JSON.stringify(bwcClient.credentials));
   console.log('---------- 模拟凭据完毕， 输出 wallet : ', JSON.stringify(wallet));
 
 
@@ -1732,7 +1731,7 @@ const createKeyAndCredentialsWithFileTest = async (
   delete credentials.keyId;
   key = null;
 
-  const dataStr = JSON.stringify({credentials, addressBook: []});
+  const dataStr = JSON.stringify(credentials);
   console.log('---------- 模拟凭据完毕， 输出 dataStr : ', dataStr);
   const data = JSON.parse(dataStr);
 
@@ -1745,7 +1744,6 @@ const createKeyAndCredentialsWithFileTest = async (
           seedData: data.key,
         });
       }
-      addressBook = data.addressBook;
     } catch (err: any) {
       if (err && err.message === 'Bad Key version') {
         // Workaround for bad generated files. Fixed: https://github.com/bitpay/wallet/pull/11872
@@ -1778,7 +1776,6 @@ const createKeyAndCredentialsWithFileTest = async (
       let migrated = BWC.upgradeCredentialsV1(data);
       credentials = migrated.credentials;
       key = migrated.key;
-      addressBook = data.addressBook ? data.addressBook : {};
     } catch (error) {
       throw new Error(t('Old format. Could not import. Check input file.'));
     }
