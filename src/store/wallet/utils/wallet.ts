@@ -167,6 +167,7 @@ export const buildKeyObj = ({
     wallets,
     properties: key?.toObj(),
     methods: key,
+    backupMethods: key,
     totalBalance,
     totalBalanceLastDay,
     isPrivKeyEncrypted: key?.isPrivKeyEncrypted(),
