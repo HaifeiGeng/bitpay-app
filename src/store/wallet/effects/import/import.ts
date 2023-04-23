@@ -1553,7 +1553,7 @@ const createKeyAndCredentials = async (
           network,
           account,
           n,
-          xpub: opts.xPublicKey
+          xpub: opts.xPublicKey,
         }),
       );
       // 使用公钥创建只读钱包，需要把key移除，否则不会认定为read only
@@ -1566,7 +1566,7 @@ const createKeyAndCredentials = async (
   }
   let wallet;
   try {
-    wallet = await BWC.getClient(JSON.stringify(bwcClient.credentials));
+    wallet = BWC.getClient(JSON.stringify(bwcClient.credentials));
     console.log('---------- wallet 创建成功: ', JSON.stringify(wallet));
   } catch (e) {
     throw e;
