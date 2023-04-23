@@ -162,7 +162,7 @@ export const buildKeyObj = ({
   backupComplete?: boolean;
   hideKeyBalance?: boolean;
 }): Key => {
-  return {
+  const resultObj = {
     id: key?.id ? key.id : 'readonly',
     wallets,
     properties: key?.toObj(),
@@ -175,6 +175,8 @@ export const buildKeyObj = ({
     hideKeyBalance,
     isReadOnly: !key?.id,
   };
+  console.log('---------- buildKeyObj 最终的值:', JSON.stringify(resultObj));
+  return resultObj;
 };
 
 export const buildMigrationKeyObj = ({
