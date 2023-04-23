@@ -1557,7 +1557,7 @@ const createKeyAndCredentials = async (
         }),
       );
       // 使用公钥创建只读钱包，需要把key移除，否则不会认定为read only
-      key.id = null;
+      key = null;
     } catch (e) {
       throw e;
     }
