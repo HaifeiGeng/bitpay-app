@@ -173,7 +173,7 @@ export const buildKeyObj = ({
     backupComplete,
     keyName: key?.id ? 'My Key' : 'Read Only',
     hideKeyBalance,
-    isReadOnly: !key,
+    isReadOnly: !key?.id,
   };
 };
 
