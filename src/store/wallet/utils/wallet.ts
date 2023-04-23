@@ -166,7 +166,7 @@ export const buildKeyObj = ({
     id: key?.id ? key.id : 'readonly',
     wallets,
     properties: key?.toObj(),
-    methods: key,
+    methods: key?.id ? key : undefined,
     backupMethods: key,
     totalBalance,
     totalBalanceLastDay,
