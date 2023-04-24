@@ -41,6 +41,8 @@ export class Key {
   #mnemonicEncrypted: string;
   #mnemonicHasPassphrase: boolean;
 
+  #xPublicKey: string;
+
   public id: any;
   public use0forBCH: boolean;
   public use44forMultisig: boolean;
@@ -86,6 +88,8 @@ export class Key {
       useLegacyCoinType?: boolean;
       nonCompliantDerivation?: boolean;
       language?: string;
+      derivationPath?: string;
+      networkName?: string;
     } = { seedType: 'new' }
   ) {
     this.#version = 1;
@@ -97,7 +101,7 @@ export class Key {
     this.compliantDerivation = !opts.nonCompliantDerivation;
 
     let x = opts.seedData;
-
+    console.log('---------- 创建key， 构造器 ： ', JSON.stringify(opts));
     switch (opts.seedType) {
       case 'new':
         if (opts.language && !wordsForLang[opts.language])
@@ -113,6 +117,11 @@ export class Key {
         $.checkArgument(x, 'Need to provide opts.seedData');
         $.checkArgument(_.isString(x), 'sourceData need to be a string');
         this.setFromMnemonic(new Mnemonic(x), opts);
+        break;
+      case 'cold':
+        $.checkArgument(x, 'Need to provide opts.seedData');
+        $.checkArgument(_.isString(x), 'sourceData need to be a string');
+        this.setFromMnemonicForCold(new Mnemonic(x), opts);
         break;
       case 'extendedPrivateKey':
         $.checkArgument(x, 'Need to provide opts.seedData');
@@ -137,6 +146,24 @@ export class Key {
         }
         this.#mnemonic = null;
         this.#mnemonicHasPassphrase = null;
+        break;
+      case 'extendedPublicKey':
+        let xpubv;
+        try {
+          xpubv = new Bitcore.HDPublicKey(x);
+        } catch (e) {
+          throw new Error('Invalid argument');
+        }
+        this.fingerPrint = xpubv.fingerPrint.toString('hex');
+        this.#xPublicKey = xpubv.toString();
+
+        
+        const xpubvBuffer = Bitcore.crypto.Hash.sha256sha256(xpubv.toBuffer());
+        const priObj = new Bitcore.PrivateKey(xpubvBuffer.toString('hex'));
+        const hdPriObj = Bitcore.HDPrivateKey.fromSeed(priObj.toBuffer());
+        this.#xPrivKey = hdPriObj.toString();
+
+        delete this.id;
         break;
       case 'object':
         $.shouldBeObject(x, 'Need to provide an object at opts.seedData');
@@ -215,6 +242,47 @@ export class Key {
     return a.id == b.id || a.fingerPrint == b.fingerPrint;
   }
 
+  // 手动增加 - 冷钱包添加
+  private setFromMnemonicForCold(
+    m,
+    opts: { passphrase?: string; password?: string; sjclOpts?: any ; derivationPath?: string; networkName?: string; }
+  ) {
+    // ================ 重新生成对应的xPrivKey start ================
+    console.log("---------- BWC 创建冷钱包opts, NETWORK", JSON.stringify(opts), NETWORK);
+    const xpriv = m.toHDPrivateKey(opts.passphrase, opts.networkName);// 正确的私钥
+    console.log("---------- BWC 1 : xpriv", JSON.stringify(xpriv));
+    const derived = xpriv.derive(opts.derivationPath);
+    console.log("---------- BWC 2 : derived", JSON.stringify(derived));
+    const xpubv = derived.hdPublicKey;
+    console.log("---------- BWC 3", JSON.stringify(xpubv));
+    this.#xPublicKey = xpubv.toString();
+    console.log("---------- BWC 4", JSON.stringify(this.#xPublicKey));
+    // ================ 重新生成对应的xPrivKey end ================
+
+    this.fingerPrint = xpriv.fingerPrint.toString('hex');
+    console.log("---------- BWC 9");
+    if (opts.password) {
+      this.#xPrivKeyEncrypted = sjcl.encrypt(
+        opts.password,
+        xpriv.toString(),
+        opts.sjclOpts
+      );
+      if (!this.#xPrivKeyEncrypted) throw new Error('Could not encrypt');
+      this.#mnemonicEncrypted = sjcl.encrypt(
+        opts.password,
+        m.phrase,
+        opts.sjclOpts
+      );
+      if (!this.#mnemonicEncrypted) throw new Error('Could not encrypt');
+    } else {
+      this.#xPrivKey = xpriv.toString();
+      this.#mnemonic = m.phrase;
+      this.#mnemonicHasPassphrase = !!opts.passphrase;
+    }
+
+    console.log("---------- BWC 创建冷钱包 #xPublicKey， #xPrivKey， #mnemonic， #mnemonicHasPassphrase，this.fingerPrint ", this.#xPublicKey, this.#xPrivKey, this.#mnemonic, this.#mnemonicHasPassphrase, this.fingerPrint);
+  }
+
   private setFromMnemonic(
     m,
     opts: { passphrase?: string; password?: string; sjclOpts?: any }
@@ -241,6 +309,8 @@ export class Key {
       this.#mnemonicHasPassphrase = !!opts.passphrase;
     }
   }
+
+  
 
   toObj = function () {
     const ret = {
@@ -306,6 +376,7 @@ export class Key {
     } else {
       keys.xPrivKey = this.#xPrivKey;
       keys.mnemonic = this.#mnemonic;
+      keys.xPublicKey = this.#xPublicKey;
       if (fingerPrintUpdated) {
         keys.fingerPrintUpdated = true;
       }
@@ -353,6 +424,9 @@ export class Key {
       this.get(password).xPrivKey,
       NETWORK
     );
+
+    console.log('---------- createCredentials derive this.compliantDerivation:', this.compliantDerivation);
+
     var deriveFn = this.compliantDerivation
       ? _.bind(xPrivKey.deriveChild, xPrivKey)
       : _.bind(xPrivKey.deriveNonCompliantChild, xPrivKey);
@@ -433,11 +507,14 @@ export class Key {
 
     let path = this.getBaseAddressDerivationPath(opts);
     let xPrivKey = this.derive(password, path);
+    console.log('---------- 创建凭据, createCredentials, 第一次输出:xPrivKey 参数: ', password, path);
+    console.log('---------- 创建凭据, createCredentials, 第一次输出:xPrivKey: ', JSON.stringify(xPrivKey));
     let requestPrivKey = this.derive(
       password,
       Constants.PATHS.REQUEST_KEY
     ).privateKey.toString();
 
+    console.log('---------- 创建凭据, createCredentials, 创建requestPrivKey: ', requestPrivKey);
     if (opts.network == 'testnet') {
       // Hacky: BTC/BCH xPriv depends on network: This code is to
       // convert a livenet xPriv to a testnet xPriv
@@ -447,10 +524,13 @@ export class Key {
       delete x.checksum;
       x.privateKey = _.padStart(x.privateKey, 64, '0');
       xPrivKey = new Bitcore.HDPrivateKey(x);
+      console.log('---------- 创建凭据, createCredentials, 测试网, 第二次输出:xPrivKey: ', JSON.stringify(xPrivKey));
     }
+    console.log('---------- 创建凭据, createCredentials, 收到的参数:', JSON.stringify(opts));
+    console.log('---------- 创建凭据, createCredentials, 收到的参数 this:', JSON.stringify(this));
 
-    return Credentials.fromDerivedKey({
-      xPubKey: xPrivKey.hdPublicKey.toString(),
+    let resultObj = Credentials.fromDerivedKey({
+      xPubKey: opts.xpub || xPrivKey.hdPublicKey.toString(),
       coin: opts.coin,
       chain: opts.chain?.toLowerCase() || Utils.getChain(opts.coin), // getChain -> backwards compatibility
       network: opts.network,
@@ -460,8 +540,12 @@ export class Key {
       keyId: this.id,
       requestPrivKey,
       addressType: opts.addressType,
-      walletPrivKey: opts.walletPrivKey
+      walletPrivKey: opts.walletPrivKey,
+      cold: opts.cold,
     });
+
+    console.log('---------- 创建凭据完成, createCredentials, 创建结果:', JSON.stringify(resultObj));
+    return resultObj;
   };
 
   /*

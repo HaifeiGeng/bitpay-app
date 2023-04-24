@@ -84,7 +84,8 @@ export class Request {
 
   doRequest(method, url, args, useSession, cb) {
     var headers = this.getHeaders(method, url, args, useSession);
-
+    console.log('----------  doRequest方法 参数 method url args: ', method, url, JSON.stringify(args));
+    console.log('----------  doRequest方法 获取到的header信息: ', JSON.stringify(headers));
     var r = this.r[method](this.baseUrl + url);
     r.accept('json');
 
@@ -106,7 +107,8 @@ export class Request {
       if (!res) {
         return cb(new Errors.CONNECTION_ERROR());
       }
-
+      console.log('----------  doRequest方法 返回状态1: ', JSON.stringify(res.status));
+      console.log('----------  doRequest方法 返回状态2: ', JSON.stringify(res));
       if (res.body)
         log.debug(
           util.inspect(res.body, {
@@ -128,7 +130,8 @@ export class Request {
 
       if (res.body === '{"error":"read ECONNRESET"}')
         return cb(new Errors.ECONNRESET_ERROR(JSON.parse(res.body)));
-
+      
+      
       return cb(null, res.body, res.header);
     });
   }

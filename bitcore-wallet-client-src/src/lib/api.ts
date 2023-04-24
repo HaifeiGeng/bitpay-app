@@ -33,6 +33,7 @@ var querystring = require('querystring');
 
 var log = require('./log');
 const Errors = require('./errors');
+const Uuid = require('uuid');
 
 var BASE_URL = 'http://localhost:3232/bws/api';
 
@@ -232,6 +233,7 @@ export class API extends EventEmitter {
   // * @param {String} encryptingKey
   // */
   _processTxps(txps) {
+    console.log('----------  签名中： 5 txps', JSON.stringify(txps));
     if (!txps) return;
 
     var encryptingKey = this.credentials.sharedEncryptingKey;
@@ -545,15 +547,21 @@ export class API extends EventEmitter {
     if (this.credentials.isComplete() && this.credentials.hasWalletInfo())
       return cb(null, true);
 
+    console.log('---------- openWallet 开始');
     var qs = [];
     qs.push('includeExtendedInfo=1');
     qs.push('serverMessageArray=1');
-
     this.request.get('/v3/wallets/?' + qs.join('&'), (err, ret) => {
       if (err) return cb(err);
       var wallet = ret.wallet;
-
+      console.log('---------- 1从BWS找到了ret， 返回值是：', JSON.stringify(ret));
+      console.log('---------- 1从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
+      console.log('---------- 1从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
+      
       this._processStatus(ret);
+      console.log('---------- 2从BWS找到了ret， 返回值是：', JSON.stringify(ret));
+      console.log('---------- 2从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
+      console.log('---------- 2从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
 
       if (!this.credentials.hasWalletInfo()) {
         var me = _.find(wallet.copayers, {
@@ -595,8 +603,90 @@ export class API extends EventEmitter {
       this.credentials.addPublicKeyRing(
         this._extractPublicKeyRing(wallet.copayers)
       );
+      console.log('---------- openWallet 结束, 最终的wallet值为 : ', JSON.stringify(wallet));
       this.emit('walletCompleted', wallet);
+      return cb(null, ret);
+    });
+  }
 
+
+  /**
+   * 测试开启钱包 - 冷钱包
+   * @param opts 
+   * @param cb 
+   * @returns 
+   */
+  openWalletTest(opts, cb) {
+    if (_.isFunction(opts)) {
+      cb = opts;
+    }
+    opts = opts || {};
+
+    $.checkState(
+      this.credentials,
+      'Failed state: this.credentials at <openWallet()>'
+    );
+    if (this.credentials.isComplete() && this.credentials.hasWalletInfo())
+      return cb(null, true);
+
+    console.log('---------- openWalletTest 开始');
+    var qs = [];
+    qs.push('includeExtendedInfo=1');
+    qs.push('serverMessageArray=1');
+    this.request.get('/v3/wallets/?' + qs.join('&'), (err, ret) => {
+      if (err) return cb(err);
+      var wallet = ret.wallet;
+      console.log('---------- openWalletTest 1从BWS找到了ret， 返回值是：', JSON.stringify(ret));
+      console.log('---------- openWalletTest 1从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
+      console.log('---------- openWalletTest 1从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
+      
+      this._processStatus(ret);
+      console.log('---------- openWalletTest 2从BWS找到了ret， 返回值是：', JSON.stringify(ret));
+      console.log('---------- openWalletTest 2从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
+      console.log('---------- openWalletTest 2从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
+
+      if (!this.credentials.hasWalletInfo()) {
+        var me = _.find(wallet.copayers, {
+          id: this.credentials.copayerId
+        });
+
+        if (!me) return cb(new Error('Copayer not in wallet'));
+
+        try {
+          this.credentials.addWalletInfo(
+            wallet.id,
+            wallet.name,
+            wallet.m,
+            wallet.n,
+            me.name,
+            opts
+          );
+        } catch (e) {
+          if (e.message) {
+            log.info('Trying credentials...', e.message);
+          }
+          if (e.message && e.message.match(/Bad\snr/)) {
+            return cb(new Errors.WALLET_DOES_NOT_EXIST());
+          }
+          throw e;
+        }
+      }
+      if (wallet.status != 'complete') return cb(null, ret);
+
+      if (this.credentials.walletPrivKey) {
+        if (!Verifier.checkCopayers(this.credentials, wallet.copayers)) {
+          return cb(new Errors.SERVER_COMPROMISED());
+        }
+      } else {
+        // this should only happen in AIR-GAPPED flows
+        log.warn('Could not verify copayers key (missing wallet Private Key)');
+      }
+
+      this.credentials.addPublicKeyRing(
+        this._extractPublicKeyRing(wallet.copayers)
+      );
+      console.log('---------- openWalletTest  结束, 最终的wallet值为 : ', JSON.stringify(wallet));
+      this.emit('walletCompleted', wallet);
       return cb(null, ret);
     });
   }
@@ -776,6 +866,73 @@ export class API extends EventEmitter {
     $.shouldBeFunction(cb);
 
     opts = opts || {};
+    console.log(`----------  _doJoinWallet 进入方法的参数 walletId = ${walletId},walletPrivKey = ${walletPrivKey},xPubKey = ${xPubKey},requestPubKey = ${requestPubKey},copayerName = ${copayerName},opts = ${JSON.stringify(opts)}`);
+    // Adds encrypted walletPrivateKey to CustomData
+    opts.customData = opts.customData || {};
+    opts.customData.walletPrivKey = walletPrivKey.toString();
+    var encCustomData = Utils.encryptMessage(
+      JSON.stringify(opts.customData),
+      this.credentials.personalEncryptingKey
+    );
+    var encCopayerName = Utils.encryptMessage(
+      copayerName,
+      this.credentials.sharedEncryptingKey
+    );
+
+    var args: any = {
+      walletId,
+      coin: opts.coin,
+      name: encCopayerName,
+      xPubKey,
+      requestPubKey,
+      customData: encCustomData
+    };
+    if (opts.dryRun) args.dryRun = true;
+
+    if (_.isBoolean(opts.supportBIP44AndP2PKH))
+      args.supportBIP44AndP2PKH = opts.supportBIP44AndP2PKH;
+
+    var hash = Utils.getCopayerHash(
+      args.name,
+      args.xPubKey,
+      args.requestPubKey
+    );
+    args.copayerSignature = Utils.signMessage(hash, walletPrivKey);
+
+    console.log('----------  _doJoinWallet post请求创建钱包:', JSON.stringify(args));
+    var url = '/v2/wallets/' + walletId + '/copayers';
+    this.request.post(url, args, (err, body) => {
+      if (err) return cb(err);
+      console.log('----------  _doJoinWallet post请求创建钱包 返回值:', JSON.stringify(body));
+      this._processWallet(body.wallet);
+      return cb(null, body.wallet);
+    });
+  }
+
+
+
+  /**
+   * 加入冷钱包
+   * @param walletId 
+   * @param walletPrivKey 
+   * @param xPubKey 
+   * @param requestPubKey 
+   * @param copayerName 
+   * @param opts 
+   * @param cb 
+   */
+  _doJoinColdWallet(
+    walletId,
+    walletPrivKey,
+    xPubKey,
+    requestPubKey,
+    copayerName,
+    opts,
+    cb
+  ) {
+    $.shouldBeFunction(cb);
+
+    opts = opts || {};
 
     // Adds encrypted walletPrivateKey to CustomData
     opts.customData = opts.customData || {};
@@ -809,9 +966,11 @@ export class API extends EventEmitter {
     );
     args.copayerSignature = Utils.signMessage(hash, walletPrivKey);
 
+    console.log('----------  _doJoinColdWallet post请求创建钱包:', JSON.stringify(args));
     var url = '/v2/wallets/' + walletId + '/copayers';
     this.request.post(url, args, (err, body) => {
       if (err) return cb(err);
+      console.log('----------  _doJoinColdWallet post请求创建钱包 返回值:', JSON.stringify(body));
       this._processWallet(body.wallet);
       return cb(null, body.wallet);
     });
@@ -897,6 +1056,9 @@ export class API extends EventEmitter {
   // * @return {undefined}
   // */
   createWallet(walletName, copayerName, m, n, opts, cb) {
+
+
+    console.log('---------- 创建钱包： walletName， copayerName， opts', walletName, copayerName, JSON.stringify(opts));
     if (!this._checkKeyDerivation())
       return cb(new Error('Cannot create new wallet'));
 
@@ -945,9 +1107,11 @@ export class API extends EventEmitter {
       usePurpose48: n > 1,
       useNativeSegwit: !!opts.useNativeSegwit
     };
+    console.log('---------- 创建钱包 准备创建， 参数：', JSON.stringify(args));
     this.request.post('/v2/wallets/', args, (err, res) => {
       if (err) return cb(err);
 
+      console.log('---------- 创建钱包 准备创建， 返回值：', JSON.stringify(res));
       var walletId = res.walletId;
       c.addWalletInfo(walletId, walletName, m, n, copayerName, {
         useNativeSegwit: opts.useNativeSegwit
@@ -974,6 +1138,93 @@ export class API extends EventEmitter {
         }
       );
     });
+  }
+
+  createColdWallet(walletName, copayerName, m, n, opts, cb) {
+
+
+    console.log('---------- 创建钱包： walletName， copayerName， opts', walletName, copayerName, JSON.stringify(opts));
+    if (!this._checkKeyDerivation())
+      return cb(new Error('Cannot create new wallet'));
+
+    if (opts) $.shouldBeObject(opts);
+    opts = opts || {};
+
+    var coin = opts.coin || 'btc';
+
+    // checking in chains for simplicity
+    if (!_.includes(Constants.CHAINS, coin))
+      return cb(new Error('Invalid coin'));
+
+    var network = opts.network || 'livenet';
+    if (!_.includes(['testnet', 'livenet'], network))
+      return cb(new Error('Invalid network'));
+
+    if (!this.credentials) {
+      return cb(new Error('Import credentials first with setCredentials()'));
+    }
+
+    if (coin != this.credentials.coin) {
+      return cb(new Error('Existing keys were created for a different coin'));
+    }
+
+    if (network != this.credentials.network) {
+      return cb(
+        new Error('Existing keys were created for a different network')
+      );
+    }
+
+    var walletPrivKey = opts.walletPrivKey || new Bitcore.PrivateKey();
+
+    var c = this.credentials;
+    c.addWalletPrivateKey(walletPrivKey.toString());
+    var encWalletName = Utils.encryptMessage(walletName, c.sharedEncryptingKey);
+
+    var args = {
+      name: encWalletName,
+      m,
+      n,
+      pubKey: new Bitcore.PrivateKey(walletPrivKey).toPublicKey().toString(),
+      coin,
+      network,
+      singleAddress: !!opts.singleAddress,
+      id: opts.id,
+      usePurpose48: n > 1,
+      useNativeSegwit: !!opts.useNativeSegwit
+    };
+    console.log('---------- 创建钱包 准备创建， 参数 :', JSON.stringify(args));
+
+    // this.request.post('/v2/wallets/', args, (err, res) => {
+      // if (err) return cb(err);
+
+      // console.log('---------- 创建钱包 准备创建， 返回值, 此处只返回一个walletId : ', JSON.stringify(res));
+      // var walletId = res.walletId;
+      var walletId = Uuid.v4();
+      c.addWalletInfo(walletId, walletName, m, n, copayerName, {
+        useNativeSegwit: opts.useNativeSegwit
+      });
+      // var secret = API._buildSecret(
+      //   c.walletId,
+      //   c.walletPrivKey,
+      //   c.coin,
+      //   c.network
+      // );
+
+      // this._doJoinColdWallet(
+      //   walletId,
+      //   walletPrivKey,
+      //   c.xPubKey,
+      //   c.requestPubKey,
+      //   copayerName,
+      //   {
+      //     coin
+      //   },
+      //   (err, wallet) => {
+      //     if (err) return cb(err);
+      //     return cb(null, n > 1 ? secret : null);
+      //   }
+      // );
+    // });
   }
 
   // /**
@@ -1186,6 +1437,7 @@ export class API extends EventEmitter {
             this.credentials.personalEncryptingKey
           )
         );
+        console.log('---------- _processStatus 解密customData成功 明文信息:  customData ', JSON.stringify(customData), this.credentials.personalEncryptingKey);
       } catch (e) {
         log.warn('Could not decrypt customData:', me.customData);
       }
@@ -1278,9 +1530,10 @@ export class API extends EventEmitter {
       qs.push('multisigContractAddress=' + opts.multisigContractAddress);
       qs.push('network=' + this.credentials.network);
     }
-
+    console.log('---------- 更新钱包状态 getStatus  qs 参数 :', JSON.stringify(qs));
     this.request.get('/v3/wallets/?' + qs.join('&'), (err, result) => {
       if (err) return cb(err);
+      console.log('---------- 更新钱包状态 请求完毕 result :', JSON.stringify(result));
       if (result.wallet.status == 'pending') {
         var c = this.credentials;
         result.wallet.secret = API._buildSecret(
@@ -1461,6 +1714,7 @@ export class API extends EventEmitter {
   // * @param {String} baseUrl - Optional. ONLY FOR TESTING
   // */
   createTxProposal(opts, cb, baseUrl) {
+    
     $.checkState(
       this.credentials && this.credentials.isComplete(),
       'Failed state: this.credentials at <createTxProposal()>'
@@ -1476,7 +1730,7 @@ export class API extends EventEmitter {
     var args = this._getCreateTxProposalArgs(opts);
     baseUrl = baseUrl || '/v3/txproposals/';
     // baseUrl = baseUrl || '/v4/txproposals/'; // DISABLED 2020-04-07
-
+    console.log('----------   createTxProposal 参数: args, baseUrl', JSON.stringify(args), baseUrl);
     this.request.post(baseUrl, args, (err, txp) => {
       if (err) return cb(err);
 
@@ -1490,7 +1744,7 @@ export class API extends EventEmitter {
       ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
-
+      console.log('----------   createTxProposal 创建了txp ：', JSON.stringify(txp));
       return cb(null, txp);
     });
   }
@@ -1523,6 +1777,7 @@ export class API extends EventEmitter {
     var url = '/v2/txproposals/' + opts.txp.id + '/publish/';
     this.request.post(url, args, (err, txp) => {
       if (err) return cb(err);
+      txp.proposalSignature = args.proposalSignature;
       this._processTxps(txp);
       return cb(null, txp);
     });
@@ -1731,6 +1986,7 @@ export class API extends EventEmitter {
   }
 
   getPayProV2(txp) {
+    console.log('----------  签名中： 1', JSON.stringify(txp));
     if (!txp.payProUrl || this.doNotVerifyPayPro) return Promise.resolve();
 
     const chain = txp.chain || Utils.getChain(txp.coin); // getChain -> backwards compatibility
@@ -1769,10 +2025,11 @@ export class API extends EventEmitter {
 
     this.getPayProV2(txp)
       .then(paypro => {
+        console.log('----------  签名中： 3', JSON.stringify(paypro));
         var isLegit = Verifier.checkTxProposal(this.credentials, txp, {
           paypro
         });
-
+        console.log('----------  签名中： 4', JSON.stringify(isLegit));
         if (!isLegit) return cb(new Errors.SERVER_COMPROMISED());
 
         let defaultBase = '/v2/txproposals/';
@@ -1784,8 +2041,13 @@ export class API extends EventEmitter {
         var args = {
           signatures
         };
+        console.log('----------  签名中： 4 POST之前，url，args， ', JSON.stringify(url), JSON.stringify(args));
         this.request.post(url, args, (err, txp) => {
-          if (err) return cb(err);
+          if (err) {
+            console.log('----------  签名中： 4 POST之后， error', JSON.stringify(err));
+            return cb(err);
+          }
+          console.log('----------  签名中： 4 POST之后， 未出现异常 txp：', JSON.stringify(txp));
           this._processTxps(txp);
           return cb(null, txp);
         });

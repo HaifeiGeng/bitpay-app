@@ -127,7 +127,7 @@ export class Utils {
   static verifyMessage(message: Array<string> | string, signature, pubKey) {
     $.checkArgument(message);
     $.checkArgument(pubKey);
-
+    console.log('----------  签名中： 3。2。2。1 失败 ：', JSON.stringify(message), JSON.stringify(signature), JSON.stringify(pubKey));
     if (!signature) return false;
 
     var pub = new PublicKey(pubKey);
@@ -135,8 +135,11 @@ export class Utils {
     const hash = this.hashMessage(flattenedMessage);
     try {
       var sig = new crypto.Signature.fromString(signature);
-      return crypto.ECDSA.verify(hash, sig, pub, 'little');
+      var resultFlag = crypto.ECDSA.verify(hash, sig, pub, 'little');
+      console.log('----------  签名中： 3。2。2。2 失败 pub，flattenedMessage，hash，sig：', JSON.stringify(pub), JSON.stringify(flattenedMessage), JSON.stringify(hash), JSON.stringify(sig));
+      return resultFlag;
     } catch (e) {
+      console.log('----------  签名中： 3。2。2。3 失败 ：', JSON.stringify(e));
       return false;
     }
   }

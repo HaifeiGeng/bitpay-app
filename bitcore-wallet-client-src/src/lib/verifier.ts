@@ -179,8 +179,11 @@ export class Verifier {
           txp.proposalSignaturePubKeySig,
           creatorKeys.xPubKey
         )
-      )
+      ) {
+        console.log('----------  签名中： 3。2。1 失败');
         return false;
+      }
+
 
       creatorSigningPubKey = txp.proposalSignaturePubKey;
     } else {
@@ -202,17 +205,23 @@ export class Verifier {
       ' Signature: ',
       txp.proposalSignature
     );
-    if (!Utils.verifyMessage(hash, txp.proposalSignature, creatorSigningPubKey))
+    console.log('----------  签名中： 3。2。2 失败之前 :', JSON.stringify(hash), JSON.stringify(txp));
+    if (!Utils.verifyMessage(hash, txp.proposalSignature, creatorSigningPubKey)){
+      console.log('----------  签名中： 3。2。2 失败');
       return false;
+    }
+      
 
     if (Constants.UTXO_CHAINS.includes(chain)) {
       if (!this.checkAddress(credentials, txp.changeAddress)) {
+        console.log('----------  签名中： 3。2。3 失败');
         return false;
       }
       if (
         txp.escrowAddress &&
         !this.checkAddress(credentials, txp.escrowAddress, txp.inputs)
       ) {
+        console.log('----------  签名中： 3。2。4 失败');
         return false;
       }
     }
@@ -265,10 +274,16 @@ export class Verifier {
    */
   static checkTxProposal(credentials, txp, opts) {
     opts = opts || {};
+    console.log('----------  签名中： 3。1', JSON.stringify(credentials), JSON.stringify(txp), JSON.stringify(opts));
+    if (!this.checkTxProposalSignature(credentials, txp)) {
+      console.log('----------  签名中： 3。2， 失败');
+      return false
+    };
 
-    if (!this.checkTxProposalSignature(credentials, txp)) return false;
-
-    if (opts.paypro && !this.checkPaypro(txp, opts.paypro)) return false;
+    if (opts.paypro && !this.checkPaypro(txp, opts.paypro)) {
+      console.log('----------  签名中： 3。3， 失败');
+      return false
+    };
 
     return true;
   }
