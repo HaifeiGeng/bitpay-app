@@ -258,8 +258,8 @@ const getWalletType = (
   const {
     credentials: { token, walletId, addressType, keyId, cold },
   } = wallet;
-  if (!keyId) {
-    return { title: i18next.t('Read Only') };
+  if (!keyId || (keyId && keyId.startsWith('readonly'))) {
+    return { title: i18next.t('Read Only')};
   }
   if (cold) {
     return { title: i18next.t('Cold Wallet') };

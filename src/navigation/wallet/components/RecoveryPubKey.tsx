@@ -553,8 +553,9 @@ const RecoveryPubKey = () => {
 
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
       console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
-      const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
-      // const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
+      // const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
+      const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
+      console.log('----------  初次创建key', JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
