@@ -66,9 +66,10 @@
     "@walletconnect/client": "1.7.1",
     "asyncstorage-down": "4.2.0",
     "axios": "0.21.1",
+    "bc-bech32": "file:src/utils/qr/bc-bech32",
     "bitauth": "0.4.1",
     "bitcoinjs-lib": "6.0.2",
-    "bitcore-wallet-client": "10.0.0",
+    "bitcore-wallet-client": "git@g.b-bug.org:canpay/bitcore-wallet-client.git",
     "buffer": "4.9.2",
     "countries-list": "2.6.1",
     "eth-sig-util": "3.0.1",
@@ -160,8 +161,7 @@
     "styled-components": "5.3.3",
     "url": "0.10.3",
     "victory-native": "36.3.1",
-    "yup": "0.32.11",
-    "bc-bech32": "file:src/utils/qr/bc-bech32"
+    "yup": "0.32.11"
   },
   "devDependencies": {
     "@babel/core": "7.18.13",
@@ -240,17 +240,17 @@
     "vm": "vm-browserify"
   },
   "browser": {
+    "_stream_duplex": "readable-stream/duplex",
+    "_stream_passthrough": "readable-stream/passthrough",
+    "_stream_readable": "readable-stream/readable",
+    "_stream_transform": "readable-stream/transform",
+    "_stream_writable": "readable-stream/writable",
     "crypto": "react-native-crypto",
+    "fs": "react-native-level-fs",
     "http": "@tradle/react-native-http",
     "https": "https-browserify",
     "os": "react-native-os",
     "path": "path-browserify",
-    "fs": "react-native-level-fs",
-    "_stream_transform": "readable-stream/transform",
-    "_stream_readable": "readable-stream/readable",
-    "_stream_writable": "readable-stream/writable",
-    "_stream_duplex": "readable-stream/duplex",
-    "_stream_passthrough": "readable-stream/passthrough",
     "stream": "stream-browserify",
     "vm": "vm-browserify"
   }
