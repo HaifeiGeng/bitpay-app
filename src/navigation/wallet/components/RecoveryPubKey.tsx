@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import styled from 'styled-components/native';
 import {
   Caution,
@@ -7,6 +7,7 @@ import {
   SlateDark,
   White,
 } from '../../../styles/colors';
+import ScanSvg from '../../../../assets/img/onboarding/scan.svg';
 import {
   ActiveOpacity,
   AdvancedOptions,
@@ -18,6 +19,7 @@ import {
   HeaderContainer,
   ImportTextInput,
   Row,
+  ScanContainer,
   ScreenGutter,
   SheetContainer,
 } from '../../../components/styled/Containers';
@@ -43,11 +45,16 @@ import BoxInput from '../../../components/form/BoxInput';
 import {useLogger} from '../../../utils/hooks/useLogger';
 import {Key, KeyOptions} from '../../../store/wallet/wallet.models';
 import {
+  startCreateKeyWithOpts,
+  startCreateKeyWithOptsTest,
   startGetRates,
+  startImportMnemonic,
+  startImportWithDerivationPath,
   startImportPublicKey,
-  startImportFileTest,
+  startImportFileTest
 } from '../../../store/wallet/effects';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {ImportObj} from '../../../store/scan/scan.models';
 import {RouteProp} from '@react-navigation/core';
 import {WalletStackParamList} from '../WalletStack';
 import {startOnGoingProcessModal} from '../../../store/app/app.effects';
@@ -82,6 +89,10 @@ import {
 import {useTranslation} from 'react-i18next';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+
+
+
+
 
 const ScrollViewContainer = styled(KeyboardAwareScrollView)`
   margin-top: 20px;
@@ -265,6 +276,46 @@ const RecoveryPubKey = () => {
     }
   };
 
+  const isValidPhrase = (words: string) => {
+    return words && words.trim().split(/[\u3000\s]+/).length % 3 === 0;
+  };
+
+  const processImportQrCode = (code: string): void => {
+    try {
+      const parsedCode = code.split('|');
+      const recoveryObj: ImportObj = {
+        type: parsedCode[0],
+        data: parsedCode[1],
+        hasPassphrase: parsedCode[4] === 'true' ? true : false,
+      };
+
+      if (!isValidPhrase(recoveryObj.data)) {
+        showErrorModal(new Error(t('The recovery phrase is invalid.')));
+        return;
+      }
+      if (recoveryObj.type === '1' && recoveryObj.hasPassphrase) {
+        dispatch(
+          showBottomNotificationModal({
+            type: 'info',
+            title: t('Password required'),
+            message: t('Make sure to enter your password in advanced options'),
+            enableBackdropDismiss: true,
+            actions: [
+              {
+                text: t('OK'),
+                action: () => {},
+                primary: true,
+              },
+            ],
+          }),
+        );
+      }
+      setValue('text', recoveryObj.data);
+    } catch (err) {
+      showErrorModal(new Error('The recovery phrase is invalid.'));
+    }
+  };
+
   const setKeyOptions = (
     keyOpts: Partial<KeyOptions>,
     advancedOpts: {
@@ -340,6 +391,14 @@ const RecoveryPubKey = () => {
     let keyOpts: Partial<KeyOptions> = {};
     keyOpts.includeTestnetWallets = includeTestnetWallets;
     keyOpts.includeLegacyWallets = includeLegacyWallets;
+    console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
+    try {
+      setKeyOptions(keyOpts, advancedOptions);
+    } catch (e: any) {
+      logger.error(e.message);
+      showErrorModal(e);
+      return;
+    }
     console.log("---------- 使用公钥导入", text);
     const xPublicKey = text;
     importWallet({xPublicKey}, keyOpts);
@@ -354,14 +413,11 @@ const RecoveryPubKey = () => {
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
-      // const key = ((await dispatch<any>(startImportFileTest(importData.xPublicKey, opts))) as Key);
-      const key = (await dispatch<any>(
-        startImportPublicKey(importData, opts),
-      )) as Key;
+      const key = ((await dispatch<any>(startImportPublicKey(importData, opts))) as Key);
       console.log("---------- 执行完毕startImportFileTest 最后的key = ", JSON.stringify(key));
-      dispatch(startGetRates({}));
-      dispatch(startUpdateAllWalletStatusForKey({ key, force: true }));
-      dispatch(updatePortfolioBalance());
+      await dispatch(startGetRates({}));
+      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
+      await dispatch(updatePortfolioBalance());
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
       backupRedirect({
         context: route.params?.context,
@@ -384,6 +440,71 @@ const RecoveryPubKey = () => {
       return;
     }
   };
+
+  const setOptsAndCreate = async (
+    text: string,
+    advancedOpts: {
+      derivationPath: string;
+      coin: string;
+      chain: string;
+      passphrase: string | undefined;
+      isMultisig: boolean;
+    },
+  ): Promise<void> => {
+    try {
+      let keyOpts: Partial<KeyOptions> = {
+        name: dispatch(GetName(advancedOpts.coin!, advancedOpts.chain)),
+      };
+
+      try {
+        setKeyOptions(keyOpts, advancedOpts);
+      } catch (e: any) {
+        logger.error(e.message);
+        showErrorModal(e);
+        return;
+      }
+
+      if (text.includes('xprv') || text.includes('tprv')) {
+        keyOpts.extendedPrivateKey = text;
+        keyOpts.seedType = 'extendedPrivateKey';
+      } else {
+        keyOpts.mnemonic = text;
+        keyOpts.seedType = 'mnemonic';
+        if (!isValidPhrase(text)) {
+          logger.error('Incorrect words length');
+          showErrorModal(new Error(t('The recovery phrase is invalid.')));
+          return;
+        }
+      }
+
+      await dispatch(startOnGoingProcessModal('CREATING_KEY'));
+
+      const key = (await dispatch<any>(startCreateKeyWithOpts(keyOpts))) as Key;
+      await dispatch(startGetRates({}));
+      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
+      await sleep(1000);
+      await dispatch(updatePortfolioBalance());
+
+      dispatch(setHomeCarouselConfig({id: key.id, show: true}));
+
+      backupRedirect({
+        context: route.params?.context,
+        navigation,
+        walletTermsAccepted,
+        key,
+      });
+      dispatch(dismissOnGoingProcessModal());
+      setRecreateWallet(false);
+    } catch (e: any) {
+      logger.error(e.message);
+      dispatch(dismissOnGoingProcessModal());
+      await sleep(500);
+      showErrorModal(e);
+      setRecreateWallet(false);
+      return;
+    }
+  };
+
 
   /**
    * 使用公钥导入，找不到用户后重新创建
@@ -423,18 +544,21 @@ const RecoveryPubKey = () => {
       } else {
         keyOpts.mnemonic = text;
         keyOpts.seedType = 'mnemonic';
+        if (!isValidPhrase(text)) {
+          logger.error('Incorrect words length');
+          showErrorModal(new Error(t('The recovery phrase is invalid.')));
+          return;
+        }
       }
 
-      dispatch(startOnGoingProcessModal('CREATING_KEY'));
+      await dispatch(startOnGoingProcessModal('CREATING_KEY'));
       console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
+      const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       // const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
-      const key = (await dispatch<any>(
-        startImportFileTest(text, keyOpts),
-      )) as Key;
-      dispatch(startGetRates({}));
-      dispatch(startUpdateAllWalletStatusForKey({ key, force: true }));
+      await dispatch(startGetRates({}));
+      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
-      dispatch(updatePortfolioBalance());
+      await dispatch(updatePortfolioBalance());
 
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
 
@@ -475,6 +599,12 @@ const RecoveryPubKey = () => {
           derivationPath,
         };
         setAdvancedOptions(advancedOpts);
+
+        // is trying to create wallet in bws
+        if (recreateWallet) {
+          const {text} = getValues();
+          setOptsAndCreate(text, advancedOpts);
+        }
       };
 
       return (
@@ -496,6 +626,12 @@ const RecoveryPubKey = () => {
     ],
   );
 
+  useEffect(() => {
+    if (route.params?.importQrCodeData) {
+      processImportQrCode(route.params.importQrCodeData);
+    }
+  }, []);
+
   return (
     <ScrollViewContainer
       extraScrollHeight={90}
@@ -509,6 +645,26 @@ const RecoveryPubKey = () => {
 
         <HeaderContainer>
           <ImportTitle>{t('Public Key')}</ImportTitle>
+
+          <ScanContainer
+            activeOpacity={ActiveOpacity}
+            onPress={() => {
+              dispatch(
+                Analytics.track('Open Scanner', {
+                  context: 'RecoveryPubKey',
+                }),
+              );
+              navigation.navigate('Scan', {
+                screen: 'Root',
+                params: {
+                  onScanComplete: data => {
+                    processImportQrCode(data);
+                  },
+                },
+              });
+            }}>
+            <ScanSvg />
+          </ScanContainer>
         </HeaderContainer>
 
         <Controller

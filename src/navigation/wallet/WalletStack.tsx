@@ -79,7 +79,7 @@ import CurrencyTokenSelectionScreen, {
 import EnterBuyerProvidedEmail from './screens/send/EnterBuyerProvidedEmail';
 import ExportTransactionHistory from './screens/wallet-settings/ExportTransactionHistory';
 import ImportPubKey, { ImportPubKeyParamList } from './screens/ImportPubKey';
-import ImportColdWallet from './screens/ImportColdWallet';
+import ImportColdWallet, {ImportColdWalletParamList} from './screens/ImportColdWallet';
 
 export type WalletStackParamList = {
   CurrencySelection: CurrencySelectionParamList;

@@ -44,6 +44,7 @@ export interface Key {
   wallets: Wallet[];
   properties: KeyProperties | undefined;
   methods: KeyMethods | undefined;
+  backupMethods?: KeyMethods | undefined;
   backupComplete?: boolean;
   show?: boolean;
   totalBalance: number;
