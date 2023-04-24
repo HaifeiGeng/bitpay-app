@@ -1264,9 +1264,9 @@ export const startImportWithDerivationPath =
         //   }
         // });
         let wallets = [wallet];
-        console.log('----------    文件导入: wallet _key', JSON.stringify(wallet), JSON.stringify(_key));
+        console.log('----------    文件导入: wallet, _key, opts', JSON.stringify(wallet), JSON.stringify(_key), JSON.stringify(opts));
         console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
-        const matchedKey = _key ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
+        const matchedKey = _key.id ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
 
         console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
 
@@ -1427,23 +1427,24 @@ export const startImportWithDerivationPath =
           console.log("---------- 使用公钥导入: matchedKey", JSON.stringify(matchedKey));
           console.log("---------- 使用公钥导入: currencyAbbreviation currencyName tokenOpts ", currencyAbbreviation, currencyName, JSON.stringify(tokenOpts));
           if (matchedKey) {
+            return reject(new Error(t('Wallet already exists')));
             // To avoid duplicate key creation when importing
-            wallet.credentials.keyId = wallet.keyId = matchedKey.id;
-            key = await findKeyByKeyId(matchedKey.id, WALLET.keys);
-            key.wallets.push(
-              merge(
-                wallet,
-                buildWalletObj(
-                  {
-                    ...wallet.credentials,
-                    currencyAbbreviation,
-                    currencyName,
-                  },
-                  tokenOpts,
-                ),
-              ),
-            );
-            console.log("---------- 使用公钥导入: if 最后的key ", JSON.stringify(key));
+            // wallet.credentials.keyId = wallet.keyId = matchedKey.id;
+            // key = await findKeyByKeyId(matchedKey.id, WALLET.keys);
+            // key.wallets.push(
+            //   merge(
+            //     wallet,
+            //     buildWalletObj(
+            //       {
+            //         ...wallet.credentials,
+            //         currencyAbbreviation,
+            //         currencyName,
+            //       },
+            //       tokenOpts,
+            //     ),
+            //   ),
+            // );
+            // console.log("---------- 使用公钥导入: if 最后的key ", JSON.stringify(key));
           } else {
             key = buildKeyObj({
               key: _key,
@@ -1557,7 +1558,7 @@ const createKeyAndCredentials = async (
         }),
       );
       // 使用公钥创建只读钱包，需要把key移除，否则不会认定为read only
-      key = null;
+      key.id = null;
     } catch (e) {
       throw e;
     }
@@ -1730,7 +1731,7 @@ const createKeyAndCredentialsWithFileTest = async (
 
   let {credentials} = wallet;
   delete credentials.keyId;
-  key = null;
+  key.id = null;
 
   const dataStr = JSON.stringify({credentials, addressBook: []});
   console.log('---------- 模拟凭据完毕， 输出 dataStr : ', dataStr);

@@ -626,7 +626,8 @@ export const startCreateKeyWithOpts =
             currencyName,
           }),
         ) as Wallet;
-
+        
+        _key.id = null;
         const key = buildKeyObj({
           key: _key,
           wallets: [wallet],
@@ -842,6 +843,7 @@ export const createWalletWithOpts = (params: {
           account: opts.account || 0,
           n: opts.n || 1,
           m: opts.m || 1,
+          xpub: opts.extendedPublicKey || '',
         }),
       );
       bwcClient.createWallet(
