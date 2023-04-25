@@ -404,7 +404,7 @@ const TransactionProposalNotifications = () => {
               <ListItemSubText>
                 {currencyAbbreviation.toUpperCase()}{' '}
                 {n > 1 ? `- Multisig ${m}/${n}` : null}
-                {keyId === 'readonly' ? '- Read Only' : null}
+                {keyId === 'readonly' || keyId.startsWith('readonly') ? '- Read Only' : null}
               </ListItemSubText>
             </CurrencyColumn>
             {item.needSign && item.txps.length > 1 ? (

@@ -1266,29 +1266,29 @@ export const startImportWithDerivationPath =
         let wallets = [wallet];
         console.log('----------    文件导入: wallet, _key, opts', JSON.stringify(wallet), JSON.stringify(_key), JSON.stringify(opts));
         console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
-        const matchedKey = _key.id ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
+        // const matchedKey = _key.id ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
 
-        console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
+        // console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
 
-        if (matchedKey && !opts?.keyId) {
-          _key = matchedKey.methods;
-          opts.keyId = null;
-          if (isMatchedWallet(wallets[0], matchedKey.wallets)) {
-            throw new Error(t('The wallet is already in the app.'));
-          }
-          wallets[0].keyId = matchedKey.id;
-          wallets = wallets.concat(matchedKey.wallets);
-        }
+        // if (matchedKey && !opts?.keyId) {
+        //   _key = matchedKey.methods;
+        //   opts.keyId = null;
+        //   if (isMatchedWallet(wallets[0], matchedKey.wallets)) {
+        //     throw new Error(t('The wallet is already in the app.'));
+        //   }
+        //   wallets[0].keyId = matchedKey.id;
+        //   wallets = wallets.concat(matchedKey.wallets);
+        // }
 
         // To clear encrypt password
-        if (opts.keyId && matchedKey) {
-          let filteredKeys = matchedKey.wallets.filter(
-            w => w.credentials.walletId !== wallets[0].credentials.walletId,
-          );
-          filteredKeys.forEach(w => (w.credentials.keyId = w.keyId = _key.id));
-          wallets = wallets.concat(filteredKeys);
-          dispatch(deleteKey({keyId: opts.keyId}));
-        }
+        // if (opts.keyId && matchedKey) {
+        //   let filteredKeys = matchedKey.wallets.filter(
+        //     w => w.credentials.walletId !== wallets[0].credentials.walletId,
+        //   );
+        //   filteredKeys.forEach(w => (w.credentials.keyId = w.keyId = _key.id));
+        //   wallets = wallets.concat(filteredKeys);
+        //   dispatch(deleteKey({keyId: opts.keyId}));
+        // }
 
         const key = buildKeyObj({
           key: _key,
@@ -1558,7 +1558,7 @@ const createKeyAndCredentials = async (
         }),
       );
       // 使用公钥创建只读钱包，需要把key移除，否则不会认定为read only
-      key.id = null;
+      // key.id = null;
     } catch (e) {
       throw e;
     }
@@ -1672,7 +1672,7 @@ const createKeyAndCredentialsWithFileTest = async (
   // let credentials;
   let key;
   const Key = BWC.getKey();
-  opts.name = 'Read Only';
+  // opts.name = 'Read Only';
   opts.xPublicKey = decryptBackupText;
   console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 decryptBackupText', decryptBackupText);
   console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 opts', JSON.stringify(opts));
@@ -1730,7 +1730,7 @@ const createKeyAndCredentialsWithFileTest = async (
 
   let {credentials} = wallet;
   delete credentials.keyId;
-  key.id = null;
+  // key.id = null;
 
   const dataStr = JSON.stringify(credentials);
   console.log('---------- 模拟凭据完毕， 输出 dataStr : ', dataStr);

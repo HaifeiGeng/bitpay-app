@@ -627,7 +627,6 @@ export const startCreateKeyWithOpts =
           }),
         ) as Wallet;
         
-        _key.id = null;
         const key = buildKeyObj({
           key: _key,
           wallets: [wallet],

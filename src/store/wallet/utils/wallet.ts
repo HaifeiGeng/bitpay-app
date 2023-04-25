@@ -121,7 +121,8 @@ export const buildWalletObj = (
     currencyAbbreviation,
     chain,
   );
-  return {
+
+  const resultObj = {
     id: walletId,
     currencyName,
     currencyAbbreviation,
@@ -144,6 +145,8 @@ export const buildWalletObj = (
     hideBalance,
     pendingTxps,
   };
+  console.log('---------- buildWalletObj 最终的值:', JSON.stringify(resultObj));
+  return resultObj;
 };
 
 // Formatted key Obj
@@ -166,15 +169,14 @@ export const buildKeyObj = ({
     id: key?.id ? key.id : 'readonly',
     wallets,
     properties: key?.toObj(),
-    methods: key?.id ? key : undefined,
-    backupMethods: key,
+    methods: key,
     totalBalance,
     totalBalanceLastDay,
     isPrivKeyEncrypted: key?.isPrivKeyEncrypted(),
     backupComplete,
-    keyName: key?.id ? 'My Key' : 'Read Only',
+    keyName: key?.id && !key?.id.startsWith('readonly') ? 'My Key' : 'Read Only',
     hideKeyBalance,
-    isReadOnly: !key?.id,
+    isReadOnly: (!key || !key.id || key.id.startsWith('readonly')) ? true : false,
   };
   console.log('---------- buildKeyObj 最终的值:', JSON.stringify(resultObj));
   return resultObj;
