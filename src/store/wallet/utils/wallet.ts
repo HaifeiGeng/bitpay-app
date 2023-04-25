@@ -165,14 +165,11 @@ export const buildKeyObj = ({
   backupComplete?: boolean;
   hideKeyBalance?: boolean;
 }): Key => {
-
-
   const resultObj = {
     id: key?.id ? key.id : 'readonly',
     wallets,
     properties: key?.toObj(),
-    methods: !key?.id.startsWith('readonly') ? key : undefined,
-    backupMethods: key,
+    methods: key,
     totalBalance,
     totalBalanceLastDay,
     isPrivKeyEncrypted: key?.isPrivKeyEncrypted(),

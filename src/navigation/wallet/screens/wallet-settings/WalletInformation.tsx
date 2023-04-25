@@ -305,7 +305,7 @@ const WalletInformation = () => {
             </InfoSettingsRow>
             <Hr />
 
-            {!keyId ? (
+            {!keyId || (keyId && keyId.startsWith('readonly')) ? (
               <>
                 <InfoSettingsRow>
                   <SettingTitle>{t('Read Only Wallet')}</SettingTitle>
