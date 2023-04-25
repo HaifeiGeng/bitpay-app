@@ -8,7 +8,7 @@ import {
 } from '../../utils/wallet';
 import {successCreateKey, successAddWallet} from '../../wallet.actions';
 import {Key, KeyOptions, Wallet} from '../../wallet.models';
-import {createWalletWithOpts} from '../create/create';
+import {createWalletWithOpts, createReadonlyWalletWithOpts} from '../create/create';
 import {
   subscribePushNotifications,
   subscribeEmailNotifications,
@@ -140,6 +140,74 @@ export const addWalletMultisig =
           ),
         );
 
+        key.wallets.push(
+          merge(
+            newWallet,
+            buildWalletObj({
+              ...newWallet.credentials,
+              currencyAbbreviation,
+              currencyName,
+            }),
+          ) as Wallet,
+        );
+
+        dispatch(successAddWallet({key}));
+
+        resolve(newWallet);
+      } catch (err) {
+        const errorStr =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        dispatch(LogActions.error(`Error adding multisig wallet: ${errorStr}`));
+        reject(err);
+      }
+    });
+  };
+
+
+  export const addReadonlyWalletMultisig =
+  ({key, opts}: {key: Key; opts: Partial<KeyOptions>}): Effect =>
+  async (dispatch, getState): Promise<Wallet> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log('---------- 多签 addReadonlyWalletMultisig 参数: ', JSON.stringify(key), JSON.stringify(opts));
+        const {
+          APP: {
+            notificationsAccepted,
+            emailNotifications,
+            brazeEid,
+            defaultLanguage,
+          },
+        } = getState();
+        const newWallet = (await createReadonlyWalletWithOpts({
+          key: key.methods!,
+          opts,
+        })) as Wallet;
+        console.log('---------- 多签 addReadonlyWalletMultisig 凭据创建完毕 newWallet: ', JSON.stringify(newWallet));
+        // subscribe new wallet to push notifications
+        if (notificationsAccepted) {
+          dispatch(subscribePushNotifications(newWallet, brazeEid!));
+        }
+        // subscribe new wallet to email notifications
+        if (
+          emailNotifications &&
+          emailNotifications.accepted &&
+          emailNotifications.email
+        ) {
+          const prefs = {
+            email: emailNotifications.email,
+            language: defaultLanguage,
+            unit: 'btc', // deprecated
+          };
+          dispatch(subscribeEmailNotifications(newWallet, prefs));
+        }
+
+        const {currencyAbbreviation, currencyName} = dispatch(
+          mapAbbreviationAndName(
+            newWallet.credentials.coin,
+            newWallet.credentials.chain,
+          ),
+        );
+        console.log('---------- 多签 addReadonlyWalletMultisig 准备push : newWallet.credentials', JSON.stringify(newWallet));
         key.wallets.push(
           merge(
             newWallet,

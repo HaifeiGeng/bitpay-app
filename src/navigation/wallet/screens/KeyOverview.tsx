@@ -659,7 +659,7 @@ const KeyOverview = () => {
                 });
               }}>
               <Icons.Add />
-              <WalletListFooterText>{t('Add Wallet')}</WalletListFooterText>
+              <WalletListFooterText>{t('Add Wallet') + '1'}</WalletListFooterText>
             </WalletListFooter>
           );
         }}

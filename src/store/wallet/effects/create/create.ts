@@ -892,6 +892,73 @@ export const createWalletWithOpts = (params: {
   });
 };
 
+export const createReadonlyWalletWithOpts = (params: {
+  key: KeyMethods;
+  opts: Partial<KeyOptions>;
+}): Promise<API> => {
+  return new Promise((resolve, reject) => {
+    const bwcClient = BWC.getClient();
+    const {key, opts} = params;
+    try {
+      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 params: ', JSON.stringify(params));
+      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 bwcClient: ', JSON.stringify(bwcClient));
+      bwcClient.fromString(
+        key.createCredentials(opts.password, {
+          coin: opts.coin || 'btc',
+          chain: opts.coin || 'btc', // chain === coin for stored clients
+          network: opts.networkName || 'livenet',
+          account: opts.account || 0,
+          n: opts.n || 1,
+          m: opts.m || 1,
+        }),
+      );
+      bwcClient.createWallet(
+        opts.name,
+        opts.myName || 'me',
+        opts.m || 1,
+        opts.n || 1,
+        {
+          network: opts.networkName,
+          singleAddress: opts.singleAddress,
+          coin: opts.coin,
+          useNativeSegwit: opts.useNativeSegwit,
+        },
+        (err: Error) => {
+          if (err) {
+            switch (err.name) {
+              case 'bwc.ErrorCOPAYER_REGISTERED': {
+                const account = opts.account || 0;
+                if (account >= 20) {
+                  return reject(
+                    new Error(
+                      t(
+                        '20 Wallet limit from the same coin and network has been reached.',
+                      ),
+                    ),
+                  );
+                }
+                return resolve(
+                  createWalletWithOpts({
+                    key,
+                    opts: {...opts, account: account + 1},
+                  }),
+                );
+              }
+            }
+
+            reject(err);
+          } else {
+            LogActions.info(`Added Coin ${opts.coin || 'btc'}`);
+            resolve(bwcClient);
+          }
+        },
+      );
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 export const getDecryptPassword =
   (key: Key): Effect<Promise<string>> =>
   async dispatch => {

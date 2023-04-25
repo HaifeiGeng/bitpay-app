@@ -490,7 +490,7 @@ const CreateReadonlyMultisig = () => {
             </OptionContainer>
           )}
           name="totalCopayers"
-          defaultValue={3}
+          defaultValue={2}
         />
 
         {errors?.totalCopayers?.message && (

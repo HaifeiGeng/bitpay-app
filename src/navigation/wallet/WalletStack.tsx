@@ -39,6 +39,7 @@ import AmountScreen, {AmountScreenParamList} from './screens/AmountScreen';
 import SendTo from './screens/send/SendTo';
 import Confirm, {ConfirmParamList} from './screens/send/confirm/Confirm';
 import CreateMultisig, {CreateMultisigProps} from './screens/CreateMultisig';
+import CreateReadonlyMultisig, {CreateReadonlyMultisigProps} from './screens/CreateReadonlyMultisig';
 import JoinMultisig, {JoinMultisigParamList} from './screens/JoinMultisig';
 import Copayers from './screens/Copayers';
 import AddingOptions, {AddingOptionsParamList} from './screens/AddingOptions';
@@ -116,6 +117,7 @@ export type WalletStackParamList = {
   PayProConfirm: PayProConfirmParamList;
   PayProConfirmTwoFactor: PayProConfirmTwoFactorParamList;
   CreateMultisig: CreateMultisigProps;
+  CreateReadonlyMultisig: CreateReadonlyMultisigProps;
   JoinMultisig: JoinMultisigParamList | undefined;
   Copayers: {wallet: WalletModel; status: _Credentials};
   AddingOptions: AddingOptionsParamList;
@@ -182,6 +184,7 @@ export enum WalletScreens {
   PAY_PRO_CONFIRM = 'PayProConfirm',
   PAY_PRO_CONFIRM_TWO_FACTOR = 'PayProConfirmTwoFactor',
   CREATE_MULTISIG = 'CreateMultisig',
+  CREATE_READONLY_MULTISIG = 'CreateReadonlyMultisig',
   JOIN_MULTISIG = 'JoinMultisig',
   COPAYERS = 'Copayers',
   ADDING_OPTIONS = 'AddingOptions',
@@ -344,6 +347,15 @@ const WalletStack = () => {
           }}
           name={WalletScreens.CREATE_MULTISIG}
           component={CreateMultisig}
+        />
+        <Wallet.Screen
+          options={{
+            headerTitle: () => (
+              <HeaderTitle>{t('Create Multisig Wallet(Read Only)')}</HeaderTitle>
+            ),
+          }}
+          name={WalletScreens.CREATE_READONLY_MULTISIG}
+          component={CreateReadonlyMultisig}
         />
         <Wallet.Screen
           options={{
