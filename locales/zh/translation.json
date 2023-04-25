@@ -1148,5 +1148,7 @@
   "Sign": "签名",
   "Create a Shared Wallet(Read Only)": "创建共享钱包(只读)",
   "Create Readonly Wallet": "创建只读钱包",
-  "Create Multisig Wallet(Read Only)": "创建多重签名钱包(只读)"
+  "Create Multisig Wallet(Read Only)": "创建多重签名钱包(只读)",
+  "Join a Shared Wallet(Read Only)": "加入共享钱包(只读)",
+  "Join(Read Only)": "加入(只读)"
 }

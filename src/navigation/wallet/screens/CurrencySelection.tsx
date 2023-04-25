@@ -60,7 +60,7 @@ type CurrencySelectionScreenProps = StackScreenProps<
 >;
 
 type CurrencySelectionContextWithoutKey = 'onboarding' | 'createNewKey';
-type CurrencySelectionContextWithKey = 'addWallet' | 'addWalletMultisig';
+type CurrencySelectionContextWithKey = 'addWallet' | 'addWalletMultisig' | 'addReadonlyWalletMultisig';
 export type CurrencySelectionParamList =
   | {
       context: CurrencySelectionContextWithoutKey;
@@ -198,7 +198,7 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
   // Initialize supported currencies and tokens into row item format.
   // Resets if tokenOptions or tokenData updates.
   useEffect(() => {
-    if (context === 'addWalletMultisig') {
+    if (context === 'addWalletMultisig' || context === 'addReadonlyWalletMultisig') {
       const items = SupportedMultisigCurrencyOptions.map(currency => {
         const item: CurrencySelectionListItem = {
           currency: {
@@ -512,6 +512,28 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
 
             navigation.navigate('Wallet', {
               screen: 'CreateMultisig',
+              params: {
+                currency: selectedCurrencies[0].currencyAbbreviation,
+                key,
+              },
+            });
+          },
+          selectedCurrencies,
+        };
+      }
+      case 'addReadonlyWalletMultisig': {
+        return {
+          selectionMode: 'single',
+          headerTitle: t('Select Currency'),
+          ctaTitle: t('Create Readonly Wallet'),
+          onCtaPress: async () => {
+            if (!selectedCurrencies.length) {
+              showErrorModal(t('Select a currency'));
+              return;
+            }
+
+            navigation.navigate('Wallet', {
+              screen: 'CreateReadonlyMultisig',
               params: {
                 currency: selectedCurrencies[0].currencyAbbreviation,
                 key,
