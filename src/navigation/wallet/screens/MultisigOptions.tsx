@@ -83,6 +83,24 @@ const MultisigOptions = ({
       },
       imgSrc: MultisigJoinOptionImage[themeType],
     },
+    {
+      title: t('Join a Shared Wallet(Read Only)'),
+      description: t(
+        "Joining another user's multisig wallet requires an invitation to join",
+      ),
+      onPress: () => {
+        dispatch(
+          Analytics.track('Clicked Join Multisig Wallet', {
+            context: walletKey ? 'AddingOptions' : 'CreationOptions',
+          }),
+        );
+        navigation.navigate('Wallet', {
+          screen: 'JoinReadonlyMultisig',
+          params: {key: walletKey},
+        });
+      },
+      imgSrc: MultisigJoinOptionImage[themeType],
+    },
   ];
 
   return (

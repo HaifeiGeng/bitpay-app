@@ -41,6 +41,7 @@ import Confirm, {ConfirmParamList} from './screens/send/confirm/Confirm';
 import CreateMultisig, {CreateMultisigProps} from './screens/CreateMultisig';
 import CreateReadonlyMultisig, {CreateReadonlyMultisigProps} from './screens/CreateReadonlyMultisig';
 import JoinMultisig, {JoinMultisigParamList} from './screens/JoinMultisig';
+import JoinReadonlyMultisig, {JoinReadonlyMultisigParamList} from './screens/JoinReadonlyMultisig';
 import Copayers from './screens/Copayers';
 import AddingOptions, {AddingOptionsParamList} from './screens/AddingOptions';
 import UpdateKeyOrWalletName from './screens/UpdateKeyOrWalletName';
@@ -119,6 +120,7 @@ export type WalletStackParamList = {
   CreateMultisig: CreateMultisigProps;
   CreateReadonlyMultisig: CreateReadonlyMultisigProps;
   JoinMultisig: JoinMultisigParamList | undefined;
+  JoinReadonlyMultisig: JoinReadonlyMultisigParamList | undefined;
   Copayers: {wallet: WalletModel; status: _Credentials};
   AddingOptions: AddingOptionsParamList;
   RequestSpecificAmountQR: {wallet: WalletModel; requestAmount: number};
@@ -186,6 +188,7 @@ export enum WalletScreens {
   CREATE_MULTISIG = 'CreateMultisig',
   CREATE_READONLY_MULTISIG = 'CreateReadonlyMultisig',
   JOIN_MULTISIG = 'JoinMultisig',
+  JOIN_READONLY_MULTISIG = 'JoinReadonlyMultisig',
   COPAYERS = 'Copayers',
   ADDING_OPTIONS = 'AddingOptions',
   REQUEST_SPECIFIC_AMOUNT_QR = 'RequestSpecificAmountQR',
@@ -365,6 +368,15 @@ const WalletStack = () => {
           }}
           name={WalletScreens.JOIN_MULTISIG}
           component={JoinMultisig}
+        />
+        <Wallet.Screen
+          options={{
+            headerTitle: () => (
+              <HeaderTitle>{t('Join a Shared Wallet(Read Only)')}</HeaderTitle>
+            ),
+          }}
+          name={WalletScreens.JOIN_READONLY_MULTISIG}
+          component={JoinReadonlyMultisig}
         />
         <Wallet.Screen
           options={{
