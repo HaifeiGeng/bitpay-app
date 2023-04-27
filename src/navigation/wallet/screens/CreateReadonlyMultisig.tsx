@@ -49,6 +49,7 @@ import {WalletStackParamList} from '../WalletStack';
 import {openUrlWithInAppBrowser} from '../../../store/app/app.effects';
 import {
   startCreateKeyMultisig,
+  startCreateReadonlyKeyMultisig,
   addReadonlyWalletMultisig,
   getDecryptPassword,
 } from '../../../store/wallet/effects';
@@ -63,6 +64,26 @@ import {URL} from '../../../constants';
 import {useAppDispatch} from '../../../utils/hooks';
 import {useTranslation} from 'react-i18next';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+
+import ScanSvg from '../../../../assets/img/onboarding/scan.svg';
+
+import {ImportObj} from '../../../store/scan/scan.models';
+import {backupRedirect} from '../screens/Backup';
+
+
+import {
+  ActiveOpacity,
+  HeaderContainer,
+  ScanContainer,
+  ImportTextInput,
+} from '../../../components/styled/Containers';
+
+import {
+  ImportTitle,
+} from '../../../components/styled/Text';
+
+import {useSelector} from 'react-redux';
+import {RootState} from '../../../store';
 
 export interface CreateReadonlyMultisigProps {
   currency: string;
@@ -178,6 +199,9 @@ const CtaContainer = styled(_CtaContainer)`
 `;
 
 const CreateReadonlyMultisig = () => {
+  const walletTermsAccepted = useSelector(
+    ({WALLET}: RootState) => WALLET.walletTermsAccepted,
+  );
   const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const logger = useLogger();
@@ -188,7 +212,7 @@ const CreateReadonlyMultisig = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [testnetEnabled, setTestnetEnabled] = useState(false);
   const [options, setOptions] = useState({
-    useNativeSegwit: segwitSupported,
+    useNativeSegwit: false,
     networkName: 'livenet',
     singleAddress: false,
   });
@@ -226,8 +250,9 @@ const CreateReadonlyMultisig = () => {
     myName: string;
     requiredSignatures: number;
     totalCopayers: number;
+    pubKey: string;
   }) => {
-    const {name, myName, requiredSignatures, totalCopayers} = formData;
+    const {name, myName, requiredSignatures, totalCopayers, pubKey} = formData;
 
     let opts: Partial<KeyOptions> = {};
     opts.name = name;
@@ -238,6 +263,8 @@ const CreateReadonlyMultisig = () => {
     opts.networkName = options.networkName;
     opts.singleAddress = options.singleAddress;
     opts.coin = currency?.toLowerCase();
+    // 使用公钥创建多签钱包
+    opts.extendedPublicKey = pubKey;
     console.log('---------- 多签 创建多签，提交按钮， 参数: ', JSON.stringify(key),JSON.stringify(opts));
     CreateReadonlyMultisigWallet(opts);
   };
@@ -315,10 +342,11 @@ const CreateReadonlyMultisig = () => {
           },
         );
       } else {
-        console.log('---------- 进入else: ', JSON.stringify(key));
+        console.log('---------- 进入else: ', JSON.stringify(opts));
+
         await dispatch(startOnGoingProcessModal('CREATING_KEY'));
         const multisigKey = (await dispatch<any>(
-          startCreateKeyMultisig(opts),
+          startCreateReadonlyKeyMultisig(opts),
         )) as Key;
 
         dispatch(
@@ -337,10 +365,11 @@ const CreateReadonlyMultisig = () => {
         );
 
         dispatch(setHomeCarouselConfig({id: multisigKey.id, show: true}));
-
-        navigation.navigate('Wallet', {
-          screen: 'BackupKey',
-          params: {context: 'createNewMultisigKey', key: multisigKey},
+        backupRedirect({
+          context: 'createNewMultisigKey',
+          navigation,
+          walletTermsAccepted: true,
+          key: multisigKey,
         });
         dispatch(dismissOnGoingProcessModal());
       }
@@ -364,6 +393,23 @@ const CreateReadonlyMultisig = () => {
       ...options,
       networkName: _testnetEnabled ? 'testnet' : 'livenet',
     });
+  };
+
+  const processImportQrCode = (code: string): void => {
+    try {
+      console.log('扫码信息：', JSON.stringify(code));
+      if(!code){
+        console.error('扫码导入公钥出现空值...');
+        return;
+      }
+      if ((!code.startsWith('xpub') && !code.startsWith('tpub')) && code.length !== 111) {
+        showErrorModal(t('The public key is invalid.'));
+        return;
+      }
+      setValue('pubKey', code);
+    } catch (err) {
+      showErrorModal(t('The public key is invalid.'));
+    }
   };
 
   return (
@@ -408,6 +454,49 @@ const CreateReadonlyMultisig = () => {
             defaultValue=""
           />
         </InputContainer>
+
+        <HeaderContainer>
+          <ImportTitle>{t('Recovery phrase') + '- 公钥'}</ImportTitle>
+
+          <ScanContainer
+            activeOpacity={ActiveOpacity}
+            onPress={() => {
+              dispatch(
+                Analytics.track('Open Scanner', {
+                  context: 'RecoveryColdWallet',
+                }),
+              );
+              navigation.navigate('Scan', {
+                screen: 'Root',
+                params: {
+                  onScanComplete: data => {
+                    processImportQrCode(data);
+                  },
+                },
+              });
+            }}>
+            <ScanSvg />
+          </ScanContainer>
+        </HeaderContainer>
+
+        <Controller
+          control={control}
+          render={({field: {onChange, onBlur, value}}) => (
+            <ImportTextInput
+              multiline
+              autoCapitalize={'none'}
+              numberOfLines={3}
+              onChangeText={(text: string) => onChange(text)}
+              onBlur={onBlur}
+              value={value}
+              autoCorrect={false}
+              spellCheck={false}
+              textContentType={'password'}
+            />
+          )}
+          name="pubKey"
+          defaultValue=""
+        />
 
         <Controller
           control={control}

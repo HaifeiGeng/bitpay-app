@@ -71,7 +71,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
   const [coin, setCoin] = useState('');
   // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
   const fragmentsEncoded = encodeUR(
-    Buffer.from(JSON.stringify(dynamicQrCodeData.txp), 'ascii').toString('hex'),
+    Buffer.from(JSON.stringify({txp: dynamicQrCodeData.txp, rootPath: dynamicQrCodeData.wallet.credentials.rootPath}), 'ascii').toString('hex'),
     80,
   );
 

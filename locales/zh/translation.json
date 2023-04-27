@@ -1150,5 +1150,8 @@
   "Create Readonly Wallet": "创建只读钱包",
   "Create Multisig Wallet(Read Only)": "创建多重签名钱包(只读)",
   "Join a Shared Wallet(Read Only)": "加入共享钱包(只读)",
-  "Join(Read Only)": "加入(只读)"
+  "Join(Read Only)": "加入(只读)",
+  "Receiving Address": "收款地址",
+  "Must be a read-only wallet created with a public key to create a read-only multi-signature wallet": "必须是通过公钥创建的只读钱包, 才能创建只读的多签钱包",
+  "The public key is invalid.": "公钥无效"
 }

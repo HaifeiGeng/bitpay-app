@@ -531,7 +531,6 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
               showErrorModal(t('Select a currency'));
               return;
             }
-
             navigation.navigate('Wallet', {
               screen: 'CreateReadonlyMultisig',
               params: {

@@ -18,10 +18,12 @@ import {
   CtaContainer as _CtaContainer,
   HeaderContainer,
   ScanContainer,
+  ImportTextInput,
 } from '../../../components/styled/Containers';
 import {
   startJoinMultisig,
   addWalletJoinReadonlyMultisig,
+  startJoinReadonlyMultisig,
   getDecryptPassword,
 } from '../../../store/wallet/effects';
 import {startOnGoingProcessModal} from '../../../store/app/app.effects';
@@ -39,6 +41,8 @@ import {
 import {useAppDispatch} from '../../../utils/hooks';
 import {useTranslation} from 'react-i18next';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import {backupRedirect} from '../screens/Backup';
+
 
 export type JoinReadonlyMultisigParamList = {
   key?: Key;
@@ -88,12 +92,13 @@ const JoinReadonlyMultisig = () => {
     [dispatch],
   );
 
-  const onSubmit = (formData: {invitationCode: string; myName: string}) => {
-    const {invitationCode, myName} = formData;
+  const onSubmit = (formData: {invitationCode: string; myName: string, pubKey: string}) => {
+    const {invitationCode, myName, pubKey} = formData;
     let opts: Partial<KeyOptions> = {};
     opts.invitationCode = invitationCode;
     opts.myName = myName;
-
+    opts.extendedPublicKey = pubKey;
+    console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
     JoinReadonlyMultisigWallet(opts);
   };
 
@@ -101,6 +106,7 @@ const JoinReadonlyMultisig = () => {
     opts: Partial<KeyOptions>,
   ): Promise<void> => {
     try {
+      console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
       if (key) {
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
@@ -196,7 +202,7 @@ const JoinReadonlyMultisig = () => {
         dispatch(startOnGoingProcessModal('JOIN_WALLET'));
 
         const multisigKey = (await dispatch<any>(
-          startJoinMultisig(opts),
+          startJoinReadonlyMultisig(opts),
         )) as Key;
 
         dispatch(
@@ -207,9 +213,11 @@ const JoinReadonlyMultisig = () => {
 
         dispatch(setHomeCarouselConfig({id: multisigKey.id, show: true}));
 
-        navigation.navigate('Wallet', {
-          screen: 'BackupKey',
-          params: {context: 'createNewKey', key: multisigKey},
+        backupRedirect({
+          context: 'createNewMultisigKey',
+          navigation,
+          walletTermsAccepted: true,
+          key: multisigKey,
         });
         dispatch(dismissOnGoingProcessModal());
       }
@@ -227,6 +235,41 @@ const JoinReadonlyMultisig = () => {
         );
       }
       return;
+    }
+  };
+
+  const showErrorModal = (e: string) => {
+    dispatch(
+      showBottomNotificationModal({
+        type: 'warning',
+        title: t('Something went wrong'),
+        message: e,
+        enableBackdropDismiss: true,
+        actions: [
+          {
+            text: t('OK'),
+            action: () => {},
+            primary: true,
+          },
+        ],
+      }),
+    );
+  };
+
+  const processImportQrCode = (code: string): void => {
+    try {
+      console.log('扫码信息：', JSON.stringify(code));
+      if(!code){
+        console.error('扫码导入公钥出现空值...');
+        return;
+      }
+      if ((!code.startsWith('xpub') && !code.startsWith('tpub')) && code.length !== 111) {
+        showErrorModal(t('The public key is invalid.'));
+        return;
+      }
+      setValue('pubKey', code);
+    } catch (err) {
+      showErrorModal(t('The public key is invalid.'));
     }
   };
 
@@ -286,6 +329,49 @@ const JoinReadonlyMultisig = () => {
           )}
           name="invitationCode"
           defaultValue={invitationCode}
+        />
+
+        <HeaderContainer>
+          <ImportTitle>{t('Recovery phrase') + '- 公钥'}</ImportTitle>
+
+          <ScanContainer
+            activeOpacity={ActiveOpacity}
+            onPress={() => {
+              dispatch(
+                Analytics.track('Open Scanner', {
+                  context: 'RecoveryColdWallet',
+                }),
+              );
+              navigation.navigate('Scan', {
+                screen: 'Root',
+                params: {
+                  onScanComplete: data => {
+                    processImportQrCode(data);
+                  },
+                },
+              });
+            }}>
+            <ScanSvg />
+          </ScanContainer>
+        </HeaderContainer>
+
+        <Controller
+          control={control}
+          render={({field: {onChange, onBlur, value}}) => (
+            <ImportTextInput
+              multiline
+              autoCapitalize={'none'}
+              numberOfLines={3}
+              onChangeText={(text: string) => onChange(text)}
+              onBlur={onBlur}
+              value={value}
+              autoCorrect={false}
+              spellCheck={false}
+              textContentType={'password'}
+            />
+          )}
+          name="pubKey"
+          defaultValue=""
         />
 
         <CtaContainer>

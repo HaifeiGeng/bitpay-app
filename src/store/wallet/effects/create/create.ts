@@ -902,6 +902,21 @@ export const createReadonlyWalletWithOpts = (params: {
     try {
       console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 params: ', JSON.stringify(params));
       console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 bwcClient: ', JSON.stringify(bwcClient));
+
+      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 xpub = ', key.id);
+      // TODO 必须是通过公钥创建的只读钱包， 用这个钱包创建的只读多签钱包才可以走此方法。
+      if(!key.id.startsWith('readonly-tpub')){
+        return reject(
+                    new Error(
+                      t(
+                        'Must be a read-only wallet created with a public key to create a read-only multi-signature wallet',
+                      ),
+                    ),
+                  );
+      }
+      // 下标为1，则是公钥
+      const arr = key.id.split('-');
+
       bwcClient.fromString(
         key.createCredentials(opts.password, {
           coin: opts.coin || 'btc',
@@ -910,6 +925,7 @@ export const createReadonlyWalletWithOpts = (params: {
           account: opts.account || 0,
           n: opts.n || 1,
           m: opts.m || 1,
+          xpub: arr[1],
         }),
       );
       bwcClient.createWallet(

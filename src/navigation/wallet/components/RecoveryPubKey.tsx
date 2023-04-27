@@ -562,7 +562,7 @@ const RecoveryPubKey = () => {
       await dispatch(updatePortfolioBalance());
 
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
-
+      console.log('----------  公钥导入钱包创建完毕， 跳转参数：route.params?.context， navigation， walletTermsAccepted， key', JSON.stringify(route.params?.context), JSON.stringify(navigation), JSON.stringify(walletTermsAccepted), JSON.stringify(key));
       backupRedirect({
         context: route.params?.context,
         navigation,

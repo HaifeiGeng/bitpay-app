@@ -69,6 +69,7 @@ import {
   SendToPillContainer,
 } from './send/confirm/Shared';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import DynamicQrCode from '../components/DynamicQrCode';
 
 const TxsDetailsContainer = styled.SafeAreaView`
   flex: 1;
@@ -178,6 +179,12 @@ const TimelineList = ({actions}: {actions: TxActions[]}) => {
 };
 
 const TransactionProposalDetails = () => {
+
+  // 是否开启动态二维码窗口
+  const [showDynamicQrCodeModal, setShowDynamicQrCodeModal] = useState(false);
+  const [dynamicQrCodeData, setDynamicQrCodeData] = useState({});
+
+
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
@@ -244,6 +251,10 @@ const TransactionProposalDetails = () => {
       <DefaultSvg width={18} height={18} />
     );
   };
+
+  const onShowPaymentSent = () => {
+    setShowPaymentSentModal(true);
+  }
 
   const removePaymentProposal = async () => {
     try {
@@ -495,9 +506,9 @@ const TransactionProposalDetails = () => {
         </ScrollView>
       ) : null}
 
-      {txs && !txs.removed && txs.pendingForUs && !key.isReadOnly ? (
+      {txs && !txs.removed && txs.pendingForUs && (!key.isReadOnly || key.id.startsWith('readonly-')) ? (
         <SwipeButton
-          title={lastSigner ? t('Slide to send') : t('Slide to accept')}
+          title={lastSigner ? t('Slide to send') + '123' : t('Slide to accept')}
           forceReset={resetSwipeButton}
           onSwipeComplete={async () => {
             try {
@@ -506,17 +517,27 @@ const TransactionProposalDetails = () => {
                   lastSigner ? 'SENDING_PAYMENT' : 'ACCEPTING_PAYMENT',
                 ),
               );
+
+              console.log('---------- SwipeButton的最终返回值 txs key wallet', JSON.stringify(txs), JSON.stringify(key));
               await sleep(400);
-              await dispatch(publishAndSign({txp: txs, key, wallet}));
+              // const broadcastedTx = await dispatch(publishAndSign({txp: txs, key, wallet}));
+              // console.log('---------- SwipeButton的最终返回值 broadcastedTx ', JSON.stringify(broadcastedTx));
               dispatch(dismissOnGoingProcessModal());
-              dispatch(
-                Analytics.track('Sent Crypto', {
-                  context: 'Transaction Proposal Details',
-                  coin: currencyAbbreviation || '',
-                }),
-              );
-              await sleep(400);
-              setShowPaymentSentModal(true);
+              // 将按钮恢复到未滑动状态
+              setResetSwipeButton(true);
+              // dispatch(
+              //   Analytics.track('Sent Crypto', {
+              //     context: 'Transaction Proposal Details',
+              //     coin: currencyAbbreviation || '',
+              //   }),
+              // );
+              setDynamicQrCodeData({txp: txs, wallet});
+              setShowDynamicQrCodeModal(true);
+              await sleep(500);
+              console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
+              console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
+              // await sleep(400);
+              // setShowPaymentSentModal(true);
             } catch (err) {
               dispatch(dismissOnGoingProcessModal());
               await sleep(500);
@@ -542,6 +563,18 @@ const TransactionProposalDetails = () => {
           }}
         />
       ) : null}
+
+      {
+        showDynamicQrCodeModal &&
+        (
+          <DynamicQrCode 
+            isVisible={showDynamicQrCodeModal} 
+            closeModal={() => setShowDynamicQrCodeModal(false)} 
+            dynamicQrCodeData={dynamicQrCodeData} 
+            onShowPaymentSent={() => {onShowPaymentSent()}}
+          />
+        )
+      }
 
       <PaymentSent
         isVisible={showPaymentSentModal}

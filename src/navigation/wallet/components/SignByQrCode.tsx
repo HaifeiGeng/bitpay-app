@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
-import {signTx} from '../../../store/wallet/effects/send/send';
+import {signTxForCold, signTx} from '../../../store/wallet/effects/send/send';
 import { useAppSelector } from '../../../utils/hooks';
 import { Key, Wallet } from '../../../store/wallet/wallet.models';
 
@@ -58,8 +58,7 @@ interface Props {
 }
 let decoder: BlueURDecoder | undefined;
 const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => {
-  console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
-  console.log("---------------- key" + JSON.stringify(keyObj));
+
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
   // 动态二维码
@@ -172,13 +171,15 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
         //   cancelable: true,
         // });
+        console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
+        console.log("---------------- key" + JSON.stringify(keyObj));
 
-        const textObj = JSON.parse(parseData);
+        const {txp, rootPath} = JSON.parse(parseData);
 
         // const key = useAppSelector(({WALLET}) => WALLET.keys[keyId]) as Key;
         // const wallet = findWalletById(key.wallets, walletId) as Wallet;
-
-        const signature = await signTx(fullWalletObj, keyObj, textObj);
+        console.log('----------  扫描到的数据：解构出来的数据', JSON.stringify(txp), JSON.stringify(rootPath));
+        const signature = await signTxForCold(rootPath, keyObj, txp);
         
         console.log('----------  扫描到的签名：', JSON.stringify(signature));
         handleCopy(signature.join(','));

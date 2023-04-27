@@ -552,6 +552,13 @@ const Confirm = () => {
           try {
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
             await sleep(500);
+
+            console.log('---------- 确认页面 - 滑动以发送: key : ', JSON.stringify(key));
+            console.log('---------- 确认页面 - 滑动以发送: wallet : ', JSON.stringify(wallet));
+            // console.log('---------- 确认页面 - 滑动以发送: txp : ', JSON.stringify(txp));
+            // console.log('---------- 确认页面 - 滑动以发送: recipient : ', JSON.stringify(recipient));
+            
+
             const txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
             console.log('---------- SwipeButton的最终返回值 txpResult', JSON.stringify(txpResult));
             dispatch(dismissOnGoingProcessModal());

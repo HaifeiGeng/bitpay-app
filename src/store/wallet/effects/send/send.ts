@@ -1150,6 +1150,7 @@ export const signTx = (
     try {
       const rootPath = wallet.getRootPath();
       const signatures = key.methods!.sign(rootPath, txp, password);
+      console.log('----------  签名完成，签名所需参数，', JSON.stringify(rootPath), typeof rootPath);
       resolve(signatures);
       // wallet.pushSignatures(
       //   txp,
@@ -1162,6 +1163,22 @@ export const signTx = (
       //   },
       //   null,
       // );
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
+export const signTxForCold = (
+  rootPath: string,
+  key: Key,
+  txp: any,
+  password?: string,
+): Promise<Partial<TransactionProposal>> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const signatures = key.methods!.sign(rootPath, txp, password);
+      resolve(signatures);
     } catch (err) {
       reject(err);
     }
