@@ -572,6 +572,7 @@ const TransactionProposalDetails = () => {
             closeModal={() => setShowDynamicQrCodeModal(false)} 
             dynamicQrCodeData={dynamicQrCodeData} 
             onShowPaymentSent={() => {onShowPaymentSent()}}
+            lastSigner={lastSigner}
           />
         )
       }

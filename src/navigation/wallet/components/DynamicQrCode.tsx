@@ -63,9 +63,10 @@ interface Props {
   closeModal: () => void;
   dynamicQrCodeData: any;
   onShowPaymentSent: () => void;
+  lastSigner?: boolean;
 }
 let decoder: BlueURDecoder | undefined;
-const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentSent}: Props) => {
+const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentSent, lastSigner = false}: Props) => {
   const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
@@ -184,8 +185,11 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
               console.log('----------  签名返回值： 失败', JSON.stringify(err));
             }
             console.log('----------  签名返回值： 成功1', JSON.stringify(signedTxp));
-            let broadcastedTx = await broadcastTx(dynamicQrCodeData.wallet, signedTxp);
-            console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
+            if(lastSigner){
+              // 如果是最后一个人签名，需要进行广播
+              let broadcastedTx = await broadcastTx(dynamicQrCodeData.wallet, signedTxp);
+              console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
+            }
             dispatch(
               Analytics.track('Sent Crypto', {
                 context: 'Confirm',
