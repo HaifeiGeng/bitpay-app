@@ -85,16 +85,16 @@ const TabsStack = () => {
         },
       })}>
       <Tab.Screen name={TabsScreens.HOME} component={HomeRoot} />
-      <Tab.Screen name={TabsScreens.SHOP} component={ShopRoot} />
-      <Tab.Screen
+      {/* <Tab.Screen name={TabsScreens.SHOP} component={ShopRoot} /> */}
+      {/* <Tab.Screen
         name={TabsScreens.TRANSACT_BUTTON}
         component={TransactionButton}
         options={{
           tabBarIcon: () => <TransactModal />,
           tabBarButton: props => <View {...props} />,
         }}
-      />
-      <Tab.Screen name={TabsScreens.CARD} component={CardStack} />
+      /> */}
+      {/* <Tab.Screen name={TabsScreens.CARD} component={CardStack} /> */}
       <Tab.Screen name={TabsScreens.SETTINGS} component={SettingsRoot} />
     </Tab.Navigator>
   );

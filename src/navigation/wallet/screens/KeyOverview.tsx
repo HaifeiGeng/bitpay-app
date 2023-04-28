@@ -646,22 +646,23 @@ const KeyOverview = () => {
           );
         }}
         ListFooterComponent={() => {
-          return (
-            <WalletListFooter
-              activeOpacity={ActiveOpacity}
-              onPress={() => {
-                haptic('impactLight');
-                navigation.navigate('Wallet', {
-                  screen: 'AddingOptions',
-                  params: {
-                    key,
-                  },
-                });
-              }}>
-              <Icons.Add />
-              <WalletListFooterText>{t('Add Wallet') + '1'}</WalletListFooterText>
-            </WalletListFooter>
-          );
+          return null;
+          // return (
+          //   <WalletListFooter
+          //     activeOpacity={ActiveOpacity}
+          //     onPress={() => {
+          //       haptic('impactLight');
+          //       navigation.navigate('Wallet', {
+          //         screen: 'AddingOptions',
+          //         params: {
+          //           key,
+          //         },
+          //       });
+          //     }}>
+          //     <Icons.Add />
+          //     <WalletListFooterText>{t('Add Wallet') + '33'}</WalletListFooterText>
+          //   </WalletListFooter>
+          // );
         }}
         data={memorizedWalletList}
         renderItem={memoizedRenderItem}

@@ -310,6 +310,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const walletType = getWalletType(key, fullWalletObj);
   const [showSignatureBottomModal, setShowSignatureBottomModal] = useState(false);
 
+  const cold = fullWalletObj.credentials.cold;
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
@@ -402,9 +404,11 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
 
   const onRefresh = async () => {
     // 如果是冷钱包， 不走刷新功能
-    // const cold = fullWalletObj.credentials.cold;
+    if(cold){
+      setRefreshing(false);
+      return;
+    }
     // console.log('---------- 如果是冷钱包， 不走刷新功能', JSON.stringify(fullWalletObj.credentials));
-    // return;
     setRefreshing(true);
     await sleep(1000);
 
@@ -491,6 +495,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if (!loadMore && !refresh) {
       return;
     }
+    // 如果是冷钱包， 不走刷新功能
+    if(cold){
+      return;
+    }
     try {
       batch(() => {
         setIsLoading(!refresh);
@@ -537,11 +545,19 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   loadHistoryRef.current = loadHistory;
 
   const updateWalletStatusAndProfileBalance = async () => {
+    // 如果是冷钱包， 不走刷新功能
+    if(cold){
+      return;
+    }
     await dispatch(startUpdateWalletStatus({ key, wallet: fullWalletObj }));
     dispatch(updatePortfolioBalance);
   };
 
   useEffect(() => {
+    // 如果是冷钱包， 不走刷新功能
+    if(cold){
+      return;
+    }
     dispatch(
       Analytics.track('View Wallet', {
         coin: fullWalletObj?.currencyAbbreviation,
@@ -560,6 +576,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   }, [key]);
 
   useEffect(() => {
+    // 如果是冷钱包， 不走刷新功能
+    if(cold){
+      return;
+    }
     if (!skipInitializeHistory) {
       loadHistoryRef.current();
     }

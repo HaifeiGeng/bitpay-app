@@ -191,18 +191,18 @@ const LinkingButtons = ({buy, receive, send, swap, sign}: Props) => {
         },
   );
   const buttonsList: Array<ButtonListProps> = [
-    {
-      label: t('buy'),
-      img: <BuySvg />,
-      cta: buyCryptoCta,
-      hide: !!buy?.hide,
-    },
-    {
-      label: t('swap'),
-      img: <SwapSvg />,
-      cta: swapCryptoCta,
-      hide: !!swap?.hide,
-    },
+    // {
+    //   label: t('buy'),
+    //   img: <BuySvg />,
+    //   cta: buyCryptoCta,
+    //   hide: !!buy?.hide,
+    // },
+    // {
+    //   label: t('swap'),
+    //   img: <SwapSvg />,
+    //   cta: swapCryptoCta,
+    //   hide: !!swap?.hide,
+    // },
     {
       label: receive.label || t('receive'),
       img: <ReceiveSvg />,

@@ -226,14 +226,14 @@ export const createHomeCardList = ({
 
   defaults.push({id: 'createWallet', component: <CreateWallet />});
 
-  if (hasCoinbase) {
-    list.push({
-      id: 'coinbaseBalanceCard',
-      component: <CoinbaseBalanceCard layout={homeCarouselLayoutType} />,
-    });
-  } else {
-    defaults.push({id: 'connectToCoinbase', component: <ConnectCoinbase />});
-  }
+  // if (hasCoinbase) {
+  //   list.push({
+  //     id: 'coinbaseBalanceCard',
+  //     component: <CoinbaseBalanceCard layout={homeCarouselLayoutType} />,
+  //   });
+  // } else {
+  //   defaults.push({id: 'connectToCoinbase', component: <ConnectCoinbase />});
+  // }
 
   if (hasGiftCards) {
     // TODO
@@ -351,7 +351,7 @@ const Crypto = () => {
           <Row style={{justifyContent: 'space-between'}}>
             <HomeSectionSubtext style={{width: '75%'}}>
               {t(
-                'View your wallets, card balance, connect to Coinbase and more.',
+                'View your wallets, card balance',
               )}
             </HomeSectionSubtext>
             <TouchableOpacity

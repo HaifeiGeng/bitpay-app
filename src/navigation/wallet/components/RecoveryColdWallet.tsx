@@ -427,14 +427,9 @@ const RecoveryColdWallet = () => {
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
-      // // const key = ((await dispatch<any>(startImportFileTest(importData.xPublicKey, opts))) as Key);
-      // // const key = ((await dispatch<any>(startImportColdWallet(importData, opts))) as Key);
       const key = (await dispatch<any>(startCreateKeyWithOptsCold(opts))) as Key;
       
       console.log("---------- 执行完毕startImportFileTest 最后的key = ", JSON.stringify(key));
-      // await dispatch(startGetRates({}));
-      // await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
-      // await dispatch(updatePortfolioBalance());
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
       backupRedirect({
         context: route.params?.context,
@@ -571,7 +566,6 @@ const RecoveryColdWallet = () => {
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
       // console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
       const key = (await dispatch<any>(startCreateKeyWithOptsCold(keyOpts))) as Key;
-      // const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
@@ -857,64 +851,11 @@ const RecoveryColdWallet = () => {
                 </InputContainer>
               </AdvancedOptions>
             )}
-
-            {/* {
-              showAdvancedOptions &&
-              derivationPathEnabled &&
-              advancedOptions.derivationPath ===
-                DefaultDerivationPath.defaultBTC && (
-                <AdvancedOptions>
-                  <RowContainer
-                    activeOpacity={1}
-                    onPress={() => {
-                      setAdvancedOptions({
-                        ...advancedOptions,
-                        isMultisig: !advancedOptions.isMultisig,
-                      });
-                    }}>
-                    <Column>
-                      <OptionTitle>{t('Shared Wallet')}</OptionTitle>
-                    </Column>
-                    <CheckBoxContainer>
-                      <Checkbox
-                        checked={advancedOptions.isMultisig}
-                        onPress={() => {
-                          setAdvancedOptions({
-                            ...advancedOptions,
-                            isMultisig: !advancedOptions.isMultisig,
-                          });
-                        }}
-                      />
-                    </CheckBoxContainer>
-                  </RowContainer>
-                </AdvancedOptions>
-              )
-            } */}
-
-            {/* {showAdvancedOptions && (
-              <AdvancedOptions>
-                <InputContainer>
-                  <BoxInput
-                    placeholder={'strongPassword123'}
-                    type={'password'}
-                    onChangeText={(text: string) =>
-                      setAdvancedOptions({...advancedOptions, passphrase: text})
-                    }
-                    value={advancedOptions.passphrase}
-                  />
-                </InputContainer>
-                <PasswordParagraph>
-                  {t(
-                    "This field is only for users who, in previous versions (it's not supported anymore), set a password to protect their recovery phrase. This field is not for your encrypt password.",
-                  )}
-                </PasswordParagraph>
-              </AdvancedOptions>
-            )} */}
           </AdvancedOptionsContainer>
         </CtaContainer>
 
         <Button buttonStyle={'primary'} onPress={handleSubmit(onSubmit)}>
-          {t('Import Cold Wallet') + '11'}
+          {t('Import Cold Wallet')}
         </Button>
       </ContentView>
     </ScrollViewContainer>

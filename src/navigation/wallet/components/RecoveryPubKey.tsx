@@ -552,8 +552,6 @@ const RecoveryPubKey = () => {
       }
 
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
-      // console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
-      // const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
       // console.log('----------  初次创建key', JSON.stringify(key));
       await dispatch(startGetRates({}));
@@ -841,64 +839,11 @@ const RecoveryPubKey = () => {
                 </InputContainer>
               </AdvancedOptions>
             )}
-
-            {/* {
-              showAdvancedOptions &&
-              derivationPathEnabled &&
-              advancedOptions.derivationPath ===
-                DefaultDerivationPath.defaultBTC && (
-                <AdvancedOptions>
-                  <RowContainer
-                    activeOpacity={1}
-                    onPress={() => {
-                      setAdvancedOptions({
-                        ...advancedOptions,
-                        isMultisig: !advancedOptions.isMultisig,
-                      });
-                    }}>
-                    <Column>
-                      <OptionTitle>{t('Shared Wallet')}</OptionTitle>
-                    </Column>
-                    <CheckBoxContainer>
-                      <Checkbox
-                        checked={advancedOptions.isMultisig}
-                        onPress={() => {
-                          setAdvancedOptions({
-                            ...advancedOptions,
-                            isMultisig: !advancedOptions.isMultisig,
-                          });
-                        }}
-                      />
-                    </CheckBoxContainer>
-                  </RowContainer>
-                </AdvancedOptions>
-              )
-            } */}
-
-            {/* {showAdvancedOptions && (
-              <AdvancedOptions>
-                <InputContainer>
-                  <BoxInput
-                    placeholder={'strongPassword123'}
-                    type={'password'}
-                    onChangeText={(text: string) =>
-                      setAdvancedOptions({...advancedOptions, passphrase: text})
-                    }
-                    value={advancedOptions.passphrase}
-                  />
-                </InputContainer>
-                <PasswordParagraph>
-                  {t(
-                    "This field is only for users who, in previous versions (it's not supported anymore), set a password to protect their recovery phrase. This field is not for your encrypt password.",
-                  )}
-                </PasswordParagraph>
-              </AdvancedOptions>
-            )} */}
           </AdvancedOptionsContainer>
         </CtaContainer>
 
         <Button buttonStyle={'primary'} onPress={handleSubmit(onSubmit)}>
-          {t('Import Watch Wallet') + '123'}
+          {t('Import Watch Wallet')}
         </Button>
       </ContentView>
     </ScrollViewContainer>

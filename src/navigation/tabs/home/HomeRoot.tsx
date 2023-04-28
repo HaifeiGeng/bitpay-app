@@ -114,13 +114,16 @@ const HomeRoot = () => {
   const memoizedExchangeRates: Array<ExchangeRateItemProps> = useMemo(
     () =>
       priceHistory.reduce((ratesList, history) => {
-        const option = SupportedCoinsOptions.find(
-          ({currencyAbbreviation}) => currencyAbbreviation === history.coin,
-        );
+        console.log('----------  汇率: ', JSON.stringify(priceHistory), );
+        const option = SupportedCoinsOptions.find(({currencyAbbreviation}) => {
+          if(currencyAbbreviation === 'btc' || currencyAbbreviation === 'eth'){
+            return currencyAbbreviation === history.coin
+          }
+        });
 
         if (option) {
           const {id, img, currencyName, currencyAbbreviation} = option;
-
+          
           ratesList.push({
             id,
             img,
@@ -246,7 +249,7 @@ const HomeRoot = () => {
           </HomeSection>
 
           {/* ////////////////////////////// SHOP WITH CRYPTO */}
-          {memoizedShopWithCryptoCards.length ? (
+          {/* {memoizedShopWithCryptoCards.length ? (
             <HomeSection
               title={t('Shop with Crypto')}
               action={t('See all')}
@@ -260,14 +263,14 @@ const HomeRoot = () => {
               }}>
               <OffersCarousel contentCards={memoizedShopWithCryptoCards} />
             </HomeSection>
-          ) : null}
+          ) : null} */}
 
           {/* ////////////////////////////// DO MORE */}
-          {memoizedDoMoreCards.length ? (
+          {/* {memoizedDoMoreCards.length ? (
             <HomeSection title={t('Do More')}>
               <AdvertisementsList contentCards={memoizedDoMoreCards} />
             </HomeSection>
-          ) : null}
+          ) : null} */}
 
           {/* ////////////////////////////// EXCHANGE RATES */}
           {memoizedExchangeRates.length ? (
@@ -280,11 +283,11 @@ const HomeRoot = () => {
           ) : null}
 
           {/* ////////////////////////////// QUICK LINKS - Leave feedback etc */}
-          {memoizedQuickLinks.length ? (
+          {/* {memoizedQuickLinks.length ? (
             <HomeSection title={t('Quick Links')}>
               <QuickLinksCarousel contentCards={memoizedQuickLinks} />
             </HomeSection>
-          ) : null}
+          ) : null} */}
         </ScrollView>
       )}
       <KeyMigrationFailureModal />

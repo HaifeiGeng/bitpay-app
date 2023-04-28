@@ -1153,5 +1153,7 @@
   "Join(Read Only)": "加入(只读)",
   "Receiving Address": "收款地址",
   "Must be a read-only wallet created with a public key to create a read-only multi-signature wallet": "必须是通过公钥创建的只读钱包, 才能创建只读的多签钱包",
-  "The public key is invalid.": "公钥无效"
+  "The public key is invalid.": "公钥无效",
+  "Export Transaction History": "导出历史交易",
+  "View your wallets, card balance": "查看您的钱包、卡余额。"
 }
