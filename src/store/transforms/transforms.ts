@@ -59,7 +59,7 @@ export const bootstrapKey = (
     return key;
   } else {
     try {
-      console.log('----------  bootstrapKey 收到的参数: key, id', JSON.stringify(key), id);
+      // console.log('----------  bootstrapKey 收到的参数: key, id', JSON.stringify(key), id);
       const _key = merge(key, {
         methods: BWCProvider.createKey({
           seedType: 'object',

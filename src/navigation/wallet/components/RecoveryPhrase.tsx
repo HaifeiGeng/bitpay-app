@@ -401,7 +401,7 @@ const RecoveryPhrase = () => {
         showErrorModal(new Error(t('The recovery phrase is invalid.')));
         return;
       }
-      console.log('---------- 助记词创建钱包参数  keyOpts  ： ', JSON.stringify(keyOpts));
+      // console.log('---------- 助记词创建钱包参数  keyOpts  ： ', JSON.stringify(keyOpts));
       importWallet({words}, keyOpts);
     }
   };

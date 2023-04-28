@@ -553,14 +553,14 @@ const Confirm = () => {
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
             await sleep(500);
 
-            console.log('---------- 确认页面 - 滑动以发送: key : ', JSON.stringify(key));
-            console.log('---------- 确认页面 - 滑动以发送: wallet : ', JSON.stringify(wallet));
+            // console.log('---------- 确认页面 - 滑动以发送: key : ', JSON.stringify(key));
+            // console.log('---------- 确认页面 - 滑动以发送: wallet : ', JSON.stringify(wallet));
             // console.log('---------- 确认页面 - 滑动以发送: txp : ', JSON.stringify(txp));
             // console.log('---------- 确认页面 - 滑动以发送: recipient : ', JSON.stringify(recipient));
             
 
             const txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
-            console.log('---------- SwipeButton的最终返回值 txpResult', JSON.stringify(txpResult));
+            // console.log('---------- SwipeButton的最终返回值 txpResult', JSON.stringify(txpResult));
             dispatch(dismissOnGoingProcessModal());
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);
@@ -575,8 +575,8 @@ const Confirm = () => {
             setDynamicQrCodeData({txp: txpResult, wallet});
             setShowDynamicQrCodeModal(true);
             await sleep(500);
-            console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
-            console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
+            // console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
+            // console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
           } catch (err) {
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);

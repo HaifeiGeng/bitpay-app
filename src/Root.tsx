@@ -315,7 +315,7 @@ export default () => {
   const debounceBoostrapAndSave = useMemo(
     () =>
       debounce((keys: Keys) => {
-        console.log('---------- 公钥导入钱包 debounceBoostrapAndSave  keys: ', JSON.stringify(keys));
+        // console.log('---------- 公钥导入钱包 debounceBoostrapAndSave  keys: ', JSON.stringify(keys));
         const newKeyBackup = {...keys};
         const keyIds = Object.keys(newKeyBackup);
         keyIds.forEach(keyId =>

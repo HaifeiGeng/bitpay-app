@@ -89,7 +89,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       if (intervalHandler) {
         clearInterval(intervalHandler);
       }
-      console.log('---------- SignByQrCode 组件已经卸载');
+      // console.log('---------- SignByQrCode 组件已经卸载');
     };
   }, []);
 
@@ -171,17 +171,17 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
         //   cancelable: true,
         // });
-        console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
-        console.log("---------------- key" + JSON.stringify(keyObj));
+        // console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
+        // console.log("---------------- key" + JSON.stringify(keyObj));
 
         const {txp, rootPath} = JSON.parse(parseData);
 
         // const key = useAppSelector(({WALLET}) => WALLET.keys[keyId]) as Key;
         // const wallet = findWalletById(key.wallets, walletId) as Wallet;
-        console.log('----------  扫描到的数据：解构出来的数据', JSON.stringify(txp), JSON.stringify(rootPath));
+        // console.log('----------  扫描到的数据：解构出来的数据', JSON.stringify(txp), JSON.stringify(rootPath));
         const signature = await signTxForCold(rootPath, keyObj, txp);
         
-        console.log('----------  扫描到的签名：', JSON.stringify(signature));
+        // console.log('----------  扫描到的签名：', JSON.stringify(signature));
         handleCopy(signature.join(','));
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
         buildQrData(signature.join(','));

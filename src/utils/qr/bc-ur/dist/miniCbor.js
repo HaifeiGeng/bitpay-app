@@ -42,25 +42,25 @@ exports.decodeSimpleCBOR = function (data) {
         throw new Error('input data is not valid');
     }
     var header = dataBuffer[0];
-    console.log('----------  decodeSimpleCBOR header = ', header);
+    // console.log('----------  decodeSimpleCBOR header = ', header);
     // console.log('----------  decodeSimpleCBOR dataBuffer = ', dataBuffer);
     if (header < 0x58) {
-        console.log('----------  decodeSimpleCBOR dataLength1 = ', dataLength);
+        // console.log('----------  decodeSimpleCBOR dataLength1 = ', dataLength);
         var dataLength = header - 0x40;
         return dataBuffer.slice(1, 1 + dataLength).toString('hex');
     }
     if (header == 0x58) {
-        console.log('----------  decodeSimpleCBOR dataLength2 = ', dataLength);
+        // console.log('----------  decodeSimpleCBOR dataLength2 = ', dataLength);
         var dataLength = dataBuffer.slice(1, 2).readUInt8();
         return dataBuffer.slice(2, 2 + dataLength).toString('hex');
     }
     if (header == 0x59) {
-        console.log('----------  decodeSimpleCBOR dataLength3 = ', dataLength);
+        // console.log('----------  decodeSimpleCBOR dataLength3 = ', dataLength);
         var dataLength = dataBuffer.slice(1, 3).readUInt16BE();
         return dataBuffer.slice(3, 3 + dataLength).toString('hex');
     }
     if (header == 0x60) {
-        console.log('----------  decodeSimpleCBOR dataLength4 = ', dataLength);
+        // console.log('----------  decodeSimpleCBOR dataLength4 = ', dataLength);
         var dataLength = dataBuffer.slice(1, 5).readUInt32BE();
         return dataBuffer.slice(5, 5 + dataLength).toString('hex');
     }

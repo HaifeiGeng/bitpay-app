@@ -172,7 +172,7 @@ export const startUpdateWalletStatus =
         } = getState();
 
         const {id, currencyAbbreviation, network} = wallet;
-        console.log('---------- 开始更新钱包状态 startUpdateWalletStatus  key  wallet:', JSON.stringify(key), JSON.stringify(wallet));
+        // console.log('---------- 开始更新钱包状态 startUpdateWalletStatus  key  wallet:', JSON.stringify(key), JSON.stringify(wallet));
         if (
           !isCacheKeyStale(balanceCacheKey[id], BALANCE_CACHE_DURATION) &&
           !force
@@ -275,7 +275,7 @@ export const startUpdateAllWalletStatusForKeys =
         dispatch(
           LogActions.info('starting [startUpdateAllWalletStatusForKeys]'),
         );
-        console.log('---------- 报错之前 startUpdateAllWalletStatusForKeys ', JSON.stringify(keys), force);
+        // console.log('---------- 报错之前 startUpdateAllWalletStatusForKeys ', JSON.stringify(keys), force);
         
         const {APP, RATE, WALLET} = getState();
         const {defaultAltCurrency} = APP;
@@ -632,7 +632,7 @@ const updateWalletStatus =
           ),
         );
       }
-      console.log('---------- 更新钱包状态 updateWalletStatus 参数:  wallet defaultAltCurrencyIsoCode rates lastDayRates:', JSON.stringify(wallet), JSON.stringify(defaultAltCurrencyIsoCode), JSON.stringify(rates), JSON.stringify(lastDayRates));
+      // console.log('---------- 更新钱包状态 updateWalletStatus 参数:  wallet defaultAltCurrencyIsoCode rates lastDayRates:', JSON.stringify(wallet), JSON.stringify(defaultAltCurrencyIsoCode), JSON.stringify(rates), JSON.stringify(lastDayRates));
       wallet.getStatus(
         {
           twoStep: true,

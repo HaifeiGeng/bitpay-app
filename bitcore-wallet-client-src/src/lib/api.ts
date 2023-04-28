@@ -233,7 +233,6 @@ export class API extends EventEmitter {
   // * @param {String} encryptingKey
   // */
   _processTxps(txps) {
-    console.log('----------  签名中： 5 txps', JSON.stringify(txps));
     if (!txps) return;
 
     var encryptingKey = this.credentials.sharedEncryptingKey;
@@ -547,22 +546,14 @@ export class API extends EventEmitter {
     if (this.credentials.isComplete() && this.credentials.hasWalletInfo())
       return cb(null, true);
 
-    console.log('---------- openWallet 开始');
+    
     var qs = [];
     qs.push('includeExtendedInfo=1');
     qs.push('serverMessageArray=1');
     this.request.get('/v3/wallets/?' + qs.join('&'), (err, ret) => {
       if (err) return cb(err);
       var wallet = ret.wallet;
-      console.log('---------- 1从BWS找到了ret， 返回值是：', JSON.stringify(ret));
-      console.log('---------- 1从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
-      console.log('---------- 1从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
-      
       this._processStatus(ret);
-      console.log('---------- 2从BWS找到了ret， 返回值是：', JSON.stringify(ret));
-      console.log('---------- 2从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
-      console.log('---------- 2从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
-
       if (!this.credentials.hasWalletInfo()) {
         var me = _.find(wallet.copayers, {
           id: this.credentials.copayerId
@@ -629,22 +620,13 @@ export class API extends EventEmitter {
     if (this.credentials.isComplete() && this.credentials.hasWalletInfo())
       return cb(null, true);
 
-    console.log('---------- openWalletTest 开始');
     var qs = [];
     qs.push('includeExtendedInfo=1');
     qs.push('serverMessageArray=1');
     this.request.get('/v3/wallets/?' + qs.join('&'), (err, ret) => {
       if (err) return cb(err);
       var wallet = ret.wallet;
-      console.log('---------- openWalletTest 1从BWS找到了ret， 返回值是：', JSON.stringify(ret));
-      console.log('---------- openWalletTest 1从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
-      console.log('---------- openWalletTest 1从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
-      
       this._processStatus(ret);
-      console.log('---------- openWalletTest 2从BWS找到了ret， 返回值是：', JSON.stringify(ret));
-      console.log('---------- openWalletTest 2从BWS找到了wallet， 返回值是：', JSON.stringify(wallet));
-      console.log('---------- openWalletTest 2从BWS找到了 this.credentials，值是：', JSON.stringify(this.credentials));
-
       if (!this.credentials.hasWalletInfo()) {
         var me = _.find(wallet.copayers, {
           id: this.credentials.copayerId
@@ -866,7 +848,6 @@ export class API extends EventEmitter {
     $.shouldBeFunction(cb);
 
     opts = opts || {};
-    console.log(`----------  _doJoinWallet 进入方法的参数 walletId = ${walletId},walletPrivKey = ${walletPrivKey},xPubKey = ${xPubKey},requestPubKey = ${requestPubKey},copayerName = ${copayerName},opts = ${JSON.stringify(opts)}`);
     // Adds encrypted walletPrivateKey to CustomData
     opts.customData = opts.customData || {};
     opts.customData.walletPrivKey = walletPrivKey.toString();
@@ -1986,7 +1967,6 @@ export class API extends EventEmitter {
   }
 
   getPayProV2(txp) {
-    console.log('----------  签名中： 1', JSON.stringify(txp));
     if (!txp.payProUrl || this.doNotVerifyPayPro) return Promise.resolve();
 
     const chain = txp.chain || Utils.getChain(txp.coin); // getChain -> backwards compatibility
@@ -2025,11 +2005,9 @@ export class API extends EventEmitter {
 
     this.getPayProV2(txp)
       .then(paypro => {
-        console.log('----------  签名中： 3', JSON.stringify(paypro));
         var isLegit = Verifier.checkTxProposal(this.credentials, txp, {
           paypro
         });
-        console.log('----------  签名中： 4', JSON.stringify(isLegit));
         if (!isLegit) return cb(new Errors.SERVER_COMPROMISED());
 
         let defaultBase = '/v2/txproposals/';
@@ -2041,13 +2019,10 @@ export class API extends EventEmitter {
         var args = {
           signatures
         };
-        console.log('----------  签名中： 4 POST之前，url，args， ', JSON.stringify(url), JSON.stringify(args));
         this.request.post(url, args, (err, txp) => {
           if (err) {
-            console.log('----------  签名中： 4 POST之后， error', JSON.stringify(err));
             return cb(err);
           }
-          console.log('----------  签名中： 4 POST之后， 未出现异常 txp：', JSON.stringify(txp));
           this._processTxps(txp);
           return cb(null, txp);
         });

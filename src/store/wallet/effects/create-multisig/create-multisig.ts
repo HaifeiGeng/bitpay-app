@@ -256,7 +256,7 @@ export const addWalletMultisig =
   async (dispatch, getState): Promise<Wallet> => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('---------- 多签 addReadonlyWalletMultisig 参数: ', JSON.stringify(key), JSON.stringify(opts));
+        // console.log('---------- 多签 addReadonlyWalletMultisig 参数: ', JSON.stringify(key), JSON.stringify(opts));
         const {
           APP: {
             notificationsAccepted,
@@ -269,7 +269,7 @@ export const addWalletMultisig =
           key: key.methods!,
           opts,
         })) as Wallet;
-        console.log('---------- 多签 addReadonlyWalletMultisig 凭据创建完毕 newWallet: ', JSON.stringify(newWallet));
+        // console.log('---------- 多签 addReadonlyWalletMultisig 凭据创建完毕 newWallet: ', JSON.stringify(newWallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(newWallet, brazeEid!));
@@ -294,7 +294,7 @@ export const addWalletMultisig =
             newWallet.credentials.chain,
           ),
         );
-        console.log('---------- 多签 addReadonlyWalletMultisig 准备push : newWallet.credentials', JSON.stringify(newWallet));
+        // console.log('---------- 多签 addReadonlyWalletMultisig 准备push : newWallet.credentials', JSON.stringify(newWallet));
         key.wallets.push(
           merge(
             newWallet,

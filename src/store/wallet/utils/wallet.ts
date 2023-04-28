@@ -145,7 +145,7 @@ export const buildWalletObj = (
     hideBalance,
     pendingTxps,
   };
-  console.log('---------- buildWalletObj 最终的值:', JSON.stringify(resultObj));
+  // console.log('---------- buildWalletObj 最终的值:', JSON.stringify(resultObj));
   return resultObj;
 };
 
@@ -178,7 +178,7 @@ export const buildKeyObj = ({
     hideKeyBalance,
     isReadOnly: (!key || !key.id || key.id.startsWith('readonly')) ? true : false,
   };
-  console.log('---------- buildKeyObj 最终的值:', JSON.stringify(resultObj));
+  // console.log('---------- buildKeyObj 最终的值:', JSON.stringify(resultObj));
   return resultObj;
 };
 

@@ -128,14 +128,14 @@ const ExportWallet = () => {
       return null;
     }
 
-    console.log('---------- 导出之前 wallet :', JSON.stringify(wallet));
+    // console.log('---------- 导出之前 wallet :', JSON.stringify(wallet));
     const opts = {
       noSign: dontIncludePrivateKey,
       addressBook: contacts,
       password,
     };
-    console.log('---------- 导出之前 opts :', JSON.stringify(opts));
-    console.log('---------- 我输入的密码是:', password);
+    // console.log('---------- 导出之前 opts :', JSON.stringify(opts));
+    // console.log('---------- 我输入的密码是:', password);
     let backup: any = {
       credentials: JSON.parse(wallet.toString(opts)),
     };
@@ -156,7 +156,7 @@ const ExportWallet = () => {
 
     backup = JSON.stringify(backup);
 
-    console.log('---------- 最终导出的明文是:', backup);
+    // console.log('---------- 最终导出的明文是:', backup);
 
     return BWC.getSJCL().encrypt(password, backup, {iter: 1000});
   };
@@ -165,7 +165,7 @@ const ExportWallet = () => {
     setCopyButtonState('loading');
     try {
       const _copyWallet = walletExport(password);
-      console.log('---------- 最终导出的密文是:', _copyWallet);
+      // console.log('---------- 最终导出的密文是:', _copyWallet);
       Clipboard.setString(_copyWallet);
       setCopyButtonState('success');
       await sleep(500);

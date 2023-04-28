@@ -108,7 +108,6 @@ export class Request {
         return cb(new Errors.CONNECTION_ERROR());
       }
       console.log('----------  doRequest方法 返回状态1: ', JSON.stringify(res.status));
-      console.log('----------  doRequest方法 返回状态2: ', JSON.stringify(res));
       if (res.body)
         log.debug(
           util.inspect(res.body, {

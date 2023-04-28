@@ -148,7 +148,7 @@ function decodeUR(arg) {
   try {
     return origDecodeUr(arg);
   } catch (error) {
-    console.log('----------  error 报错', error)
+    // console.log('----------  error 报错', error)
   }
 
   const decoder = new URDecoder();

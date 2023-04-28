@@ -835,11 +835,11 @@ export const startSendPayment =
   async dispatch => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log('----------   startSendPayment 参数 txp ： ', JSON.stringify(txp));
-        console.log('----------   startSendPayment 参数 key ： ', JSON.stringify(key));
-        console.log('----------   startSendPayment 参数 wallet ： ', JSON.stringify(wallet));
-        console.log('----------   startSendPayment 参数 recipient ： ', JSON.stringify(recipient));
-        console.log('----------   startSendPayment 参数 wallet.credentials.rootPath ： ', JSON.stringify(wallet.credentials.rootPath));
+        // console.log('----------   startSendPayment 参数 txp ： ', JSON.stringify(txp));
+        // console.log('----------   startSendPayment 参数 key ： ', JSON.stringify(key));
+        // console.log('----------   startSendPayment 参数 wallet ： ', JSON.stringify(wallet));
+        // console.log('----------   startSendPayment 参数 recipient ： ', JSON.stringify(recipient));
+        // console.log('----------   startSendPayment 参数 wallet.credentials.rootPath ： ', JSON.stringify(wallet.credentials.rootPath));
 
 
         wallet.createTxProposal(
@@ -857,7 +857,7 @@ export const startSendPayment =
                   recipient,
                 }),
               );
-              console.log('----------   startSendPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
+              // console.log('----------   startSendPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
               return resolve(broadcastedTx);
               // return resolve({txp: proposal,key,wallet,recipient,});
             } catch (e) {
@@ -897,12 +897,12 @@ export const publishAndSign =
         APP: {biometricLockActive},
       } = getState();
 
-      console.log('----------   publishAndSign 参数 txp ： ', JSON.stringify(txp));
-      console.log('----------   publishAndSign 参数 key ： ', JSON.stringify(key));
-      console.log('----------   publishAndSign 参数 wallet ： ', JSON.stringify(wallet));
-      console.log('----------   publishAndSign 参数 recipient ： ', JSON.stringify(recipient));
-      console.log('----------   publishAndSign 参数 password ： ', password);
-      console.log('----------   publishAndSign 参数 signingMultipleProposals ： ', signingMultipleProposals);
+      // console.log('----------   publishAndSign 参数 txp ： ', JSON.stringify(txp));
+      // console.log('----------   publishAndSign 参数 key ： ', JSON.stringify(key));
+      // console.log('----------   publishAndSign 参数 wallet ： ', JSON.stringify(wallet));
+      // console.log('----------   publishAndSign 参数 recipient ： ', JSON.stringify(recipient));
+      // console.log('----------   publishAndSign 参数 password ： ', password);
+      // console.log('----------   publishAndSign 参数 signingMultipleProposals ： ', signingMultipleProposals);
       if (biometricLockActive && !signingMultipleProposals) {
         try {
           await dispatch(checkBiometricForSending());
@@ -1150,7 +1150,7 @@ export const signTx = (
     try {
       const rootPath = wallet.getRootPath();
       const signatures = key.methods!.sign(rootPath, txp, password);
-      console.log('----------  签名完成，签名所需参数，', JSON.stringify(rootPath), typeof rootPath);
+      // console.log('----------  签名完成，签名所需参数，', JSON.stringify(rootPath), typeof rootPath);
       resolve(signatures);
       // wallet.pushSignatures(
       //   txp,

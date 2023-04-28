@@ -391,7 +391,7 @@ const RecoveryPubKey = () => {
     let keyOpts: Partial<KeyOptions> = {};
     keyOpts.includeTestnetWallets = includeTestnetWallets;
     keyOpts.includeLegacyWallets = includeLegacyWallets;
-    console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
+    // console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
     try {
       setKeyOptions(keyOpts, advancedOptions);
     } catch (e: any) {
@@ -399,7 +399,7 @@ const RecoveryPubKey = () => {
       showErrorModal(e);
       return;
     }
-    console.log("---------- 使用公钥导入", text);
+    // console.log("---------- 使用公钥导入", text);
     const xPublicKey = text;
     importWallet({xPublicKey}, keyOpts);
   };
@@ -409,12 +409,12 @@ const RecoveryPubKey = () => {
     opts: Partial<KeyOptions>,
   ): Promise<void> => {
     try {
-      console.log("---------- 使用公钥导入观察钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
+      // console.log("---------- 使用公钥导入观察钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
       const key = ((await dispatch<any>(startImportPublicKey(importData, opts))) as Key);
-      console.log("---------- 执行完毕startImportFileTest 最后的key = ", JSON.stringify(key));
+      // console.log("---------- 执行完毕startImportFileTest 最后的key = ", JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await dispatch(updatePortfolioBalance());
@@ -552,17 +552,17 @@ const RecoveryPubKey = () => {
       }
 
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
-      console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
+      // console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
       // const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
-      console.log('----------  初次创建key', JSON.stringify(key));
+      // console.log('----------  初次创建key', JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
       await dispatch(updatePortfolioBalance());
 
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
-      console.log('----------  公钥导入钱包创建完毕， 跳转参数：route.params?.context， navigation， walletTermsAccepted， key', JSON.stringify(route.params?.context), JSON.stringify(navigation), JSON.stringify(walletTermsAccepted), JSON.stringify(key));
+      // console.log('----------  公钥导入钱包创建完毕， 跳转参数：route.params?.context， navigation， walletTermsAccepted， key', JSON.stringify(route.params?.context), JSON.stringify(navigation), JSON.stringify(walletTermsAccepted), JSON.stringify(key));
       backupRedirect({
         context: route.params?.context,
         navigation,

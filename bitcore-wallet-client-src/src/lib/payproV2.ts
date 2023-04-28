@@ -208,7 +208,6 @@ export class PayProV2 {
     payload,
     unsafeBypassValidation = false
   }) {
-    console.log('----------  签名中： 2', JSON.stringify(paymentUrl));
     if (currency === 'USDP') currency = 'PAX'; // TODO workaround. Remove this when usdp is accepted as an option
     let { rawBody, headers } = await PayProV2._asyncRequest({
       url: paymentUrl,

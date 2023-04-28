@@ -297,7 +297,7 @@ const SelectInputs = () => {
         </>
       )}
       {
-        console.log('----------  所选账单：', JSON.stringify(inputs.filter(i => i.checked)))
+        // console.log('----------  所选账单：', JSON.stringify(inputs.filter(i => i.checked)))
       }
       <CtaContainer>
         <Button

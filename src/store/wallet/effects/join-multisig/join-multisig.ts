@@ -34,7 +34,7 @@ export const startJoinMultisig =
           WALLET: {keys},
         } = getState();
         const walletData = BWC.parseSecret(opts.invitationCode as string);
-        console.log('---------- 加入共享钱包 - 对方创建的多签钱包信息', JSON.stringify(walletData));
+        // console.log('---------- 加入共享钱包 - 对方创建的多签钱包信息', JSON.stringify(walletData));
         opts.networkName = walletData.network;
         opts.coin = walletData.coin;
         /* TODO: opts.n is just used to determinate if the wallet is multisig (m/48'/xx) or single sig (m/44')
@@ -120,7 +120,7 @@ export const startJoinMultisig =
           WALLET: {keys},
         } = getState();
         const walletData = BWC.parseSecret(opts.invitationCode as string);
-        console.log('---------- 加入共享钱包 - 对方创建的多签钱包信息', JSON.stringify(walletData));
+        // console.log('---------- 加入共享钱包 - 对方创建的多签钱包信息', JSON.stringify(walletData));
         opts.networkName = walletData.network;
         opts.coin = walletData.coin;
         /* TODO: opts.n is just used to determinate if the wallet is multisig (m/48'/xx) or single sig (m/44')
@@ -282,7 +282,7 @@ export const addWalletJoinMultisig =
         } = getState();
 
         const walletData = BWC.parseSecret(opts.invitationCode as string);
-        console.log('---------- 加入共享钱包  addWalletJoinReadonlyMultisig   walletData = ', JSON.stringify(walletData));
+        // console.log('---------- 加入共享钱包  addWalletJoinReadonlyMultisig   walletData = ', JSON.stringify(walletData));
         opts.networkName = walletData.network;
         opts.coin = walletData.coin;
         /* TODO: opts.n is just used to determinate if the wallet is multisig (m/48'/xx) or single sig (m/44')
@@ -293,7 +293,7 @@ export const addWalletJoinMultisig =
           key: key.methods!,
           opts,
         })) as Wallet;
-        console.log('---------- 加入共享钱包 新钱包创建完毕  addWalletJoinReadonlyMultisig   newWallet = ', JSON.stringify(newWallet));
+        // console.log('---------- 加入共享钱包 新钱包创建完毕  addWalletJoinReadonlyMultisig   newWallet = ', JSON.stringify(newWallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(newWallet, brazeEid!));
@@ -347,7 +347,7 @@ const joinMultisigReadonlyWallet = (params: {
     try {
       const bwcClient = BWC.getClient();
       const {key, opts} = params;
-      console.log('---------- 加入共享钱包 新钱包创建完毕  addWalletJoinReadonlyMultisig   key.id = ', JSON.stringify(key.id));
+      // console.log('---------- 加入共享钱包 新钱包创建完毕  addWalletJoinReadonlyMultisig   key.id = ', JSON.stringify(key.id));
       // TODO 必须是通过公钥创建的只读钱包， 用这个钱包创建的只读多签钱包才可以走此方法。
       if(!key.id.startsWith('readonly-tpub')){
         new Error(

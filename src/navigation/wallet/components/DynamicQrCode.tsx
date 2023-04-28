@@ -102,7 +102,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
     }
     return () => {
       if (intervalHandler) {
-        console.log('---------- DynamicQrCode 组件已经卸载');
+        // console.log('---------- DynamicQrCode 组件已经卸载');
         clearInterval(intervalHandler);
       }
     };
@@ -185,8 +185,8 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
               console.log('----------  签名返回值： 失败', JSON.stringify(err));
             }
             console.log('----------  签名返回值： 成功1', JSON.stringify(signedTxp));
-            if(lastSigner){
-              // 如果是最后一个人签名，需要进行广播
+            if(dynamicQrCodeData.wallet.n === 1 || lastSigner){
+              // 如果是单签， 或者是最后一个人签名，需要进行广播
               let broadcastedTx = await broadcastTx(dynamicQrCodeData.wallet, signedTxp);
               console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
             }

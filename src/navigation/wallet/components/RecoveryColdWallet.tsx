@@ -394,7 +394,7 @@ const RecoveryColdWallet = () => {
     let keyOpts: Partial<KeyOptions> = {};
     keyOpts.includeTestnetWallets = includeTestnetWallets;
     keyOpts.includeLegacyWallets = includeLegacyWallets;
-    console.log("---------- 导入冷钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
+    // console.log("---------- 导入冷钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
     try {
       setKeyOptions(keyOpts, advancedOptions);
     } catch (e: any) {
@@ -402,8 +402,8 @@ const RecoveryColdWallet = () => {
       showErrorModal(e);
       return;
     }
-    console.log("---------- 使用私钥导入冷钱包1", JSON.stringify(keyOpts));
-    console.log("---------- 使用私钥导入冷钱包2", text);
+    // console.log("---------- 使用私钥导入冷钱包1", JSON.stringify(keyOpts));
+    // console.log("---------- 使用私钥导入冷钱包2", text);
     const words = text;
     if (!isValidPhrase(words)) {
       logger.error('Incorrect words length');
@@ -423,7 +423,7 @@ const RecoveryColdWallet = () => {
       opts.seedType = 'cold';
       // 增加冷钱包标记
       opts.cold = '1';
-      console.log("---------- 使用私钥导入冷钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
+      // console.log("---------- 使用私钥导入冷钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
@@ -569,7 +569,7 @@ const RecoveryColdWallet = () => {
       }
 
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
-      console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
+      // console.log('----------  设置部分参数, 并且创建key, keyOpts:', JSON.stringify(keyOpts));
       const key = (await dispatch<any>(startCreateKeyWithOptsCold(keyOpts))) as Key;
       // const key = (await dispatch<any>(startImportFileTest(text, keyOpts))) as Key;
       await dispatch(startGetRates({}));

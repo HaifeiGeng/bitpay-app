@@ -92,7 +92,7 @@ const FileOrText = () => {
       await dispatch(startOnGoingProcessModal('IMPORTING'));
       // @ts-ignore
       const key = await dispatch<Key>(startImportFile(decryptBackupText, opts));
-      console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
+      // console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
 
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
@@ -131,15 +131,15 @@ const FileOrText = () => {
       // await dispatch(startOnGoingProcessModal('IMPORTING'));
       // @ts-ignore
       const key = await dispatch<Key>(startImportFileTest(decryptBackupText, opts));
-      console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
+      // console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
 
       await dispatch(startGetRates({}));
-      console.log('---------- startUpdateAllWalletStatusForKey -----------------------');
+      // console.log('---------- startUpdateAllWalletStatusForKey -----------------------');
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);
-      console.log('---------- updatePortfolioBalance -----------------------');
+      // console.log('---------- updatePortfolioBalance -----------------------');
       await dispatch(updatePortfolioBalance());
-      console.log('---------- setHomeCarouselConfig -----------------------');
+      // console.log('---------- setHomeCarouselConfig -----------------------');
       dispatch(setHomeCarouselConfig({id: key.id, show: true}));
 
       backupRedirect({
@@ -191,7 +191,7 @@ const FileOrText = () => {
     }
     let decryptBackupText: string;
     try {
-      console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
+      // console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
       decryptBackupText = BWCProvider.getSJCL().decrypt(password, text);
       console.log('---------- 解密结果: ', decryptBackupText);
     } catch (e: any) {
@@ -211,7 +211,7 @@ const FileOrText = () => {
     }
     let decryptBackupText: string;
     try {
-      console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
+      // console.log('---------- 结合输入的password与text 准备进行解密: ', password, text);
       // decryptBackupText = BWCProvider.getSJCL().decrypt(password, text);
       console.log('---------- 解密结果: ', text);
     } catch (e: any) {

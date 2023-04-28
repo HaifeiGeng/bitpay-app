@@ -265,7 +265,7 @@ const CreateReadonlyMultisig = () => {
     opts.coin = currency?.toLowerCase();
     // 使用公钥创建多签钱包
     opts.extendedPublicKey = pubKey;
-    console.log('---------- 多签 创建多签，提交按钮， 参数: ', JSON.stringify(key),JSON.stringify(opts));
+    // console.log('---------- 多签 创建多签，提交按钮， 参数: ', JSON.stringify(key),JSON.stringify(opts));
     CreateReadonlyMultisigWallet(opts);
   };
 
@@ -274,7 +274,7 @@ const CreateReadonlyMultisig = () => {
   ): Promise<void> => {
     try {
       if (key) {
-        console.log('---------- 进入if: ', JSON.stringify(key));
+        // console.log('---------- 进入if: ', JSON.stringify(key));
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -286,7 +286,7 @@ const CreateReadonlyMultisig = () => {
             opts,
           }),
         )) as Wallet;
-        console.log('---------- 进入if 多签 : ', JSON.stringify(wallet));
+        // console.log('---------- 进入if 多签 : ', JSON.stringify(wallet));
         dispatch(
           Analytics.track('Created Multisig Wallet', {
             coin: currency?.toLowerCase(),
@@ -342,7 +342,7 @@ const CreateReadonlyMultisig = () => {
           },
         );
       } else {
-        console.log('---------- 进入else: ', JSON.stringify(opts));
+        // console.log('---------- 进入else: ', JSON.stringify(opts));
 
         await dispatch(startOnGoingProcessModal('CREATING_KEY'));
         const multisigKey = (await dispatch<any>(

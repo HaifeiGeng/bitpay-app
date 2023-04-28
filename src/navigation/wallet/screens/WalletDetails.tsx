@@ -999,7 +999,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                 </BalanceContainer>
 
                 {
-                  console.log('---------- linking button 寻找冷钱包标记', JSON.stringify(fullWalletObj.credentials))
+                  // console.log('---------- linking button 寻找冷钱包标记', JSON.stringify(fullWalletObj.credentials))
                 }
                 {fullWalletObj ? (
                   <LinkingButtons

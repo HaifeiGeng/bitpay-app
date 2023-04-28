@@ -1043,10 +1043,10 @@ export const startImportWithDerivationPath =
               wallet.credentials.chain,
             ),
           );
-          console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
+          // console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
           let key;
           const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
-          console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
+          // console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
           if (matchedKey) {
             // To avoid duplicate key creation when importing
             wallet.credentials.keyId = wallet.keyId = matchedKey.id;
@@ -1079,7 +1079,7 @@ export const startImportWithDerivationPath =
               backupComplete: true,
             });
           }
-          console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
+          // console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
           dispatch(
             successImport({
               key,
@@ -1143,7 +1143,7 @@ export const startImportWithDerivationPath =
         // 增加冷钱包标记
         opts.cold = '1';
         const data = await createKeyAndCredentials(opts);
-        console.log("---------- 使用助记词导入冷钱包: data", JSON.stringify(data));
+        // console.log("---------- 使用助记词导入冷钱包: data", JSON.stringify(data));
         const {wallet, key: _key} = data;
         wallet.openWalletTest(async (err: Error) => {
           if (err) {
@@ -1175,10 +1175,10 @@ export const startImportWithDerivationPath =
               wallet.credentials.chain,
             ),
           );
-          console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
+          // console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
           let key;
           const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
-          console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
+          // console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
           if (matchedKey) {
             // To avoid duplicate key creation when importing
             wallet.credentials.keyId = wallet.keyId = matchedKey.id;
@@ -1211,7 +1211,7 @@ export const startImportWithDerivationPath =
               backupComplete: true,
             });
           }
-          console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
+          // console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
           dispatch(
             successImport({
               key,
@@ -1264,8 +1264,8 @@ export const startImportWithDerivationPath =
         //   }
         // });
         let wallets = [wallet];
-        console.log('----------    文件导入: wallet, _key, opts', JSON.stringify(wallet), JSON.stringify(_key), JSON.stringify(opts));
-        console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
+        // console.log('----------    文件导入: wallet, _key, opts', JSON.stringify(wallet), JSON.stringify(_key), JSON.stringify(opts));
+        // console.log('----------    文件导入: WALLET.keys', JSON.stringify(WALLET.keys));
         // const matchedKey = _key.id ? getMatchedKey(_key, Object.values(WALLET.keys)) : getReadOnlyKey(Object.values(WALLET.keys));
 
         // console.log('----------    文件导入: matchedKey', JSON.stringify(matchedKey));
@@ -1354,7 +1354,7 @@ export const startImportWithDerivationPath =
   async (dispatch, getState): Promise<Key> => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log("---------- startImportPublicKey 使用公钥导入 参数: importData, opts", JSON.stringify(importData), JSON.stringify(opts));
+        // console.log("---------- startImportPublicKey 使用公钥导入 参数: importData, opts", JSON.stringify(importData), JSON.stringify(opts));
         const {
           WALLET,
           APP: {
@@ -1387,9 +1387,9 @@ export const startImportWithDerivationPath =
             )}`,
           ),
         );
-        console.log("---------- startImportPublicKey : 准备执行createKeyAndCredentials", JSON.stringify(opts));
+        // console.log("---------- startImportPublicKey : 准备执行createKeyAndCredentials", JSON.stringify(opts));
         const data = await createKeyAndCredentials(opts);
-        console.log("----------使用公钥导入: 执行完毕, 返回data", JSON.stringify(data));
+        // console.log("----------使用公钥导入: 执行完毕, 返回data", JSON.stringify(data));
         const {wallet, key: _key} = data;
         wallet.openWallet(async (err: Error) => {
           if (err) {
@@ -1421,11 +1421,11 @@ export const startImportWithDerivationPath =
               wallet.credentials.chain,
             ),
           );
-          console.log("---------- 使用公钥导入: WALLET", JSON.stringify(WALLET));
+          // console.log("---------- 使用公钥导入: WALLET", JSON.stringify(WALLET));
           let key;
           const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
-          console.log("---------- 使用公钥导入: matchedKey", JSON.stringify(matchedKey));
-          console.log("---------- 使用公钥导入: currencyAbbreviation currencyName tokenOpts ", currencyAbbreviation, currencyName, JSON.stringify(tokenOpts));
+          // console.log("---------- 使用公钥导入: matchedKey", JSON.stringify(matchedKey));
+          // console.log("---------- 使用公钥导入: currencyAbbreviation currencyName tokenOpts ", currencyAbbreviation, currencyName, JSON.stringify(tokenOpts));
           if (matchedKey) {
             return reject(new Error(t('Wallet already exists')));
             // To avoid duplicate key creation when importing
@@ -1459,7 +1459,7 @@ export const startImportWithDerivationPath =
               ],
               backupComplete: true,
             });
-            console.log("---------- 使用公钥导入: else 最后的key ", JSON.stringify(key));
+            // console.log("---------- 使用公钥导入: else 最后的key ", JSON.stringify(key));
           }
           dispatch(
             successImport({
@@ -1469,7 +1469,7 @@ export const startImportWithDerivationPath =
           resolve(key);
         });
       } catch (e) {
-        console.log("---------- 使用公钥导入导入: 出错了", e);
+        // console.log("---------- 使用公钥导入导入: 出错了", e);
         dispatch(failedImport());
         reject(e);
       }
@@ -1490,7 +1490,7 @@ const createKeyAndCredentials = async (
   const n = opts.n || 1;
 
   const bwcClient = BWC.getClient(undefined);
-  console.log("---------- 准备创建 - 参数 opts: ", JSON.stringify(opts));
+  // console.log("---------- 准备创建 - 参数 opts: ", JSON.stringify(opts));
   if (opts.mnemonic) {
     try {
       opts.mnemonic = normalizeMnemonic(opts.mnemonic);
@@ -1546,7 +1546,7 @@ const createKeyAndCredentials = async (
         useLegacyCoinType: opts.useLegacyCoinType,
         useLegacyPurpose: opts.useLegacyPurpose,
       });
-      console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
+      // console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
       bwcClient.fromString(
         key.createCredentials(undefined, {
           coin,
@@ -1568,7 +1568,7 @@ const createKeyAndCredentials = async (
   let wallet;
   try {
     wallet = BWC.getClient(JSON.stringify(bwcClient.credentials));
-    console.log('---------- wallet 创建成功: ', JSON.stringify(wallet));
+    // console.log('---------- wallet 创建成功: ', JSON.stringify(wallet));
   } catch (e) {
     throw e;
   }
@@ -1675,16 +1675,16 @@ const createKeyAndCredentialsWithFileTest = async (
   const Key = BWC.getKey();
   // opts.name = 'Read Only';
   opts.xPublicKey = decryptBackupText;
-  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 decryptBackupText', decryptBackupText);
-  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 opts', JSON.stringify(opts));
-  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 生成的Key', JSON.stringify(Key));
+  // console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 decryptBackupText', decryptBackupText);
+  // console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 opts', JSON.stringify(opts));
+  // console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 生成的Key', JSON.stringify(Key));
   
   const coin = opts.coin as string;
   const network = opts.networkName || 'livenet';
   const account = opts.account || 0;
   const n = opts.n || 1;
 
-  console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 useLegacyCoinType useLegacyPurpose', opts.useLegacyCoinType, opts.useLegacyPurpose);
+  // console.log('---------- createKeyAndCredentialsWithFileTest 导入之后 收到的参数 useLegacyCoinType useLegacyPurpose', opts.useLegacyCoinType, opts.useLegacyPurpose);
 
   key = BWC.createKey({
     seedType: 'extendedPublicKey',
@@ -1692,7 +1692,7 @@ const createKeyAndCredentialsWithFileTest = async (
     useLegacyCoinType: opts.useLegacyCoinType,
     useLegacyPurpose: opts.useLegacyPurpose,
   });
-  console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
+  // console.log('---------- BWC key 创建成功: ', JSON.stringify(key));
 
   bwcClient.fromString(
     key.createCredentials(undefined, {
@@ -1719,14 +1719,14 @@ const createKeyAndCredentialsWithFileTest = async (
     },
     (err: Error) => {
       if (err) {
-        console.log('---------- 创建钱包时出错');
+        // console.log('---------- 创建钱包时出错');
         throw new Error(err.message);
       } 
     },
   );
   // 创建钱包 end
   let wallet = await BWC.getClient(JSON.stringify(bwcClient.credentials));
-  console.log('---------- 模拟凭据完毕， 输出 wallet : ', JSON.stringify(wallet));
+  // console.log('---------- 模拟凭据完毕， 输出 wallet : ', JSON.stringify(wallet));
 
 
   let {credentials} = wallet;
@@ -1734,7 +1734,7 @@ const createKeyAndCredentialsWithFileTest = async (
   // key.id = null;
 
   const dataStr = JSON.stringify({credentials, addressBook: []});
-  console.log('---------- 模拟凭据完毕， 输出 dataStr : ', dataStr);
+  // console.log('---------- 模拟凭据完毕， 输出 dataStr : ', dataStr);
   const data = JSON.parse(dataStr);
 
   if (data.credentials) {
@@ -1756,7 +1756,7 @@ const createKeyAndCredentialsWithFileTest = async (
           seedType: 'object',
           seedData: data.key,
         });
-        console.log('---------- createKeyAndCredentialsWithFile 导入之后 出现异常 data ， key', JSON.stringify(data), JSON.stringify(key));
+        // console.log('---------- createKeyAndCredentialsWithFile 导入之后 出现异常 data ， key', JSON.stringify(data), JSON.stringify(key));
       } else {
         throw new Error(t('New format. Could not import. Check input file.'));
       }
@@ -1810,9 +1810,9 @@ const createKeyAndCredentialsWithFileTest = async (
   }
 
   // TODO SETMETADATA ADDRESSBOOK
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的key', JSON.stringify(key));
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的credentials', JSON.stringify(credentials));
-  console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的bwcClient', JSON.stringify(bwcClient));
+  // console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的key', JSON.stringify(key));
+  // console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的credentials', JSON.stringify(credentials));
+  // console.log('---------- createKeyAndCredentialsWithFile 导入之后 最终的bwcClient', JSON.stringify(bwcClient));
   return Promise.resolve({wallet: bwcClient, key});
 };
 

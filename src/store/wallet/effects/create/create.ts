@@ -495,7 +495,7 @@ export const startCreateKeyWithOpts =
 
         const _wallet = await createWalletWithOpts({key: _key, opts});
 
-        console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
+        // console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(_wallet, brazeEid!));
@@ -589,9 +589,9 @@ export const startCreateKeyWithOpts =
           passphrase: opts.passphrase,
         });
 
-        console.log('---------- 钱包不存在, 准备创建钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
+        // console.log('---------- 钱包不存在, 准备创建钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
         const _wallet = await createWalletWithOpts({key: _key, opts});
-        console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
+        // console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(_wallet, brazeEid!));
@@ -685,26 +685,9 @@ export const startCreateKeyWithOpts =
           networkName: opts.networkName,
         });
 
-        console.log('---------- 钱包不存在, 准备创建 - 冷钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
+        // console.log('---------- 钱包不存在, 准备创建 - 冷钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
         const _wallet = await createColdWalletWithOpts({key: _key, opts});
-        console.log('---------- 钱包不存在，创建 - 冷钱包， _wallet : ', JSON.stringify(_wallet));
-        // subscribe new wallet to push notifications
-        // if (notificationsAccepted) {
-        //   dispatch(subscribePushNotifications(_wallet, brazeEid!));
-        // }
-        // subscribe new wallet to email notifications
-        // if (
-        //   emailNotifications &&
-        //   emailNotifications.accepted &&
-        //   emailNotifications.email
-        // ) {
-        //   const prefs = {
-        //     email: emailNotifications.email,
-        //     language: defaultLanguage,
-        //     unit: 'btc', // deprecated
-        //   };
-        //   dispatch(subscribeEmailNotifications(_wallet, prefs));
-        // }
+        // console.log('---------- 钱包不存在，创建 - 冷钱包， _wallet : ', JSON.stringify(_wallet));
 
         const {currencyAbbreviation, currencyName} = dispatch(
           mapAbbreviationAndName(
@@ -764,7 +747,7 @@ export const createColdWalletWithOpts = (params: {
   return new Promise((resolve, reject) => {
     const bwcClient = BWC.getClient();
     const {key, opts} = params;
-    console.log('---------- 创建冷钱包， createColdWalletWithOpts 参数 key, opts : ', JSON.stringify(key), JSON.stringify(opts));
+    // console.log('---------- 创建冷钱包， createColdWalletWithOpts 参数 key, opts : ', JSON.stringify(key), JSON.stringify(opts));
     try {
       bwcClient.fromString(
         key.createCredentials(opts.password, {
@@ -900,19 +883,19 @@ export const createReadonlyWalletWithOpts = (params: {
     const bwcClient = BWC.getClient();
     const {key, opts} = params;
     try {
-      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 params: ', JSON.stringify(params));
-      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 bwcClient: ', JSON.stringify(bwcClient));
+      // console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 params: ', JSON.stringify(params));
+      // console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 bwcClient: ', JSON.stringify(bwcClient));
 
-      console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 xpub = ', key.id);
+      // console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 xpub = ', key.id);
       // TODO 必须是通过公钥创建的只读钱包， 用这个钱包创建的只读多签钱包才可以走此方法。
       if(!key.id.startsWith('readonly-tpub')){
         return reject(
-                    new Error(
-                      t(
-                        'Must be a read-only wallet created with a public key to create a read-only multi-signature wallet',
-                      ),
-                    ),
-                  );
+          new Error(
+            t(
+              'Must be a read-only wallet created with a public key to create a read-only multi-signature wallet',
+            ),
+          ),
+        );
       }
       // 下标为1，则是公钥
       const arr = key.id.split('-');

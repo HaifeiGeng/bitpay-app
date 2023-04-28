@@ -92,7 +92,6 @@ export class Credentials {
     $.shouldBeString(opts.requestPrivKey, 'Invalid requestPrivKey');
     $.checkArgument(_.isUndefined(opts.nonCompliantDerivation));
     opts = opts || {};
-    console.log('---------- 创建凭据, createCredentials, 收到的参数 opts:', JSON.stringify(opts));
     var x: any = new Credentials();
     x.coin = opts.coin;
     x.chain = opts.chain;
@@ -125,7 +124,6 @@ export class Credentials {
     x.requestPrivKey = opts.requestPrivKey;
 
     const priv = Bitcore.PrivateKey(x.requestPrivKey);
-    console.log('---------- 创建凭据, createCredentials, 生成的priv :', JSON.stringify(priv));
     x.requestPubKey = priv.toPublicKey().toString();
 
     const prefix = 'personalKey';
@@ -142,7 +140,6 @@ export class Credentials {
         requestPubKey: x.requestPubKey
       }
     ];
-    console.log('---------- 创建凭据, createCredentials, 最终的返回值 :', JSON.stringify(x));
     return x;
   }
 
@@ -268,7 +265,6 @@ export class Credentials {
       x.xPrivKey || x.xPubKey || x.xPrivKeyEncrypted,
       'Failed State: x.xPrivKey | x.xPubkey | x.xPrivKeyEncrypted at fromObj'
     );
-    console.log('---------- 创建凭据完成, createCredentials fromObj, 创建结果 x :', JSON.stringify(x));
     return x;
   }
 
@@ -287,8 +283,6 @@ export class Credentials {
   }
 
   addWalletInfo(walletId, walletName, m, n, copayerName, opts) {
-
-    console.log('---------- addWalletInfo 添加钱包 参数 walletId, walletName, m, n, copayerName, opts :', walletId, walletName, m, n, copayerName, JSON.stringify(opts));
 
     opts = opts || {};
     this.walletId = walletId;

@@ -98,7 +98,7 @@ const JoinReadonlyMultisig = () => {
     opts.invitationCode = invitationCode;
     opts.myName = myName;
     opts.extendedPublicKey = pubKey;
-    console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
+    // console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
     JoinReadonlyMultisigWallet(opts);
   };
 
@@ -106,7 +106,7 @@ const JoinReadonlyMultisig = () => {
     opts: Partial<KeyOptions>,
   ): Promise<void> => {
     try {
-      console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
+      // console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
       if (key) {
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));

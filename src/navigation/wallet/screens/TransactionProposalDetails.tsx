@@ -518,7 +518,7 @@ const TransactionProposalDetails = () => {
                 ),
               );
 
-              console.log('---------- SwipeButton的最终返回值 txs key wallet', JSON.stringify(txs), JSON.stringify(key));
+              // console.log('---------- SwipeButton的最终返回值 txs key wallet', JSON.stringify(txs), JSON.stringify(key));
               await sleep(400);
               // const broadcastedTx = await dispatch(publishAndSign({txp: txs, key, wallet}));
               // console.log('---------- SwipeButton的最终返回值 broadcastedTx ', JSON.stringify(broadcastedTx));
@@ -534,8 +534,8 @@ const TransactionProposalDetails = () => {
               setDynamicQrCodeData({txp: txs, wallet});
               setShowDynamicQrCodeModal(true);
               await sleep(500);
-              console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
-              console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
+              // console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
+              // console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
               // await sleep(400);
               // setShowPaymentSentModal(true);
             } catch (err) {
