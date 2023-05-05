@@ -349,7 +349,7 @@ const joinMultisigReadonlyWallet = (params: {
       const {key, opts} = params;
       // console.log('---------- 加入共享钱包 新钱包创建完毕  addWalletJoinReadonlyMultisig   key.id = ', JSON.stringify(key.id));
       // TODO 必须是通过公钥创建的只读钱包， 用这个钱包创建的只读多签钱包才可以走此方法。
-      if(!key.id.startsWith('readonly-tpub')){
+      if(!key.id.startsWith('readonly-')){
         new Error(
           t(
             'Must be a read-only wallet created with a public key to create a read-only multi-signature wallet',

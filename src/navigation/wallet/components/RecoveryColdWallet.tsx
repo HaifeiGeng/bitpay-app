@@ -655,7 +655,7 @@ const RecoveryColdWallet = () => {
         </Paragraph>
 
         <HeaderContainer>
-          <ImportTitle>{t('Recovery phrase') + '- 冷钱包'}</ImportTitle>
+          <ImportTitle>{t('Recovery phrase')}</ImportTitle>
 
           <ScanContainer
             activeOpacity={ActiveOpacity}

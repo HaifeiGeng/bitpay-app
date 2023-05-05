@@ -888,7 +888,7 @@ export const createReadonlyWalletWithOpts = (params: {
 
       // console.log('---------- 多签 createReadonlyWalletWithOpts 创建凭据 xpub = ', key.id);
       // TODO 必须是通过公钥创建的只读钱包， 用这个钱包创建的只读多签钱包才可以走此方法。
-      if(!key.id.startsWith('readonly-tpub')){
+      if(!key.id.startsWith('readonly-')){
         return reject(
           new Error(
             t(

@@ -108,6 +108,8 @@ const JoinReadonlyMultisig = () => {
     try {
       // console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
       if (key) {
+
+        console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   key不为空 = ', JSON.stringify(key));
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -332,7 +334,7 @@ const JoinReadonlyMultisig = () => {
         />
 
         <HeaderContainer>
-          <ImportTitle>{t('Recovery phrase') + '- 公钥'}</ImportTitle>
+          <ImportTitle>{t('Public Key')}</ImportTitle>
 
           <ScanContainer
             activeOpacity={ActiveOpacity}

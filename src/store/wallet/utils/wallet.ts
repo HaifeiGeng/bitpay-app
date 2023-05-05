@@ -174,9 +174,9 @@ export const buildKeyObj = ({
     totalBalanceLastDay,
     isPrivKeyEncrypted: key?.isPrivKeyEncrypted(),
     backupComplete,
-    keyName: key?.id && !key?.id.startsWith('readonly') ? 'My Key' : 'Read Only',
+    keyName: key?.id && !key?.id.startsWith('readonly-') ? 'My Key' : 'Read Only',
     hideKeyBalance,
-    isReadOnly: (!key || !key.id || key.id.startsWith('readonly')) ? true : false,
+    isReadOnly: (!key || !key.id || key.id.startsWith('readonly-')) ? true : false,
   };
   // console.log('---------- buildKeyObj 最终的值:', JSON.stringify(resultObj));
   return resultObj;

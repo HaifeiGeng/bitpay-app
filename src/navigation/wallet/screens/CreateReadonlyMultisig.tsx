@@ -456,7 +456,7 @@ const CreateReadonlyMultisig = () => {
         </InputContainer>
 
         <HeaderContainer>
-          <ImportTitle>{t('Recovery phrase') + '- 公钥'}</ImportTitle>
+          <ImportTitle>{t('Public Key')}</ImportTitle>
 
           <ScanContainer
             activeOpacity={ActiveOpacity}

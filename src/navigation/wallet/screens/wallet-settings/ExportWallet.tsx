@@ -91,6 +91,11 @@ const ExportWallet = () => {
     params: {wallet, keyObj},
   } = useRoute<RouteProp<WalletStackParamList, 'ExportWallet'>>();
 
+//   console.log('---------- 导出之前 wallet :', JSON.stringify(wallet));
+//   console.log('---------- 导出之前 keyObj :', JSON.stringify(keyObj));
+
+  const keyId = wallet.credentials.keyId;
+
   const {network} = wallet;
 
   const navigation = useNavigation();
@@ -128,7 +133,6 @@ const ExportWallet = () => {
       return null;
     }
 
-    // console.log('---------- 导出之前 wallet :', JSON.stringify(wallet));
     const opts = {
       noSign: dontIncludePrivateKey,
       addressBook: contacts,
@@ -258,56 +262,59 @@ const ExportWallet = () => {
             />
           </PasswordInputContainer>
 
-          <CtaContainer>
-            <AdvancedOptionsContainer>
-              <AdvancedOptionsButton
-                activeOpacity={ActiveOpacity}
-                onPress={() => {
-                  Haptic('impactLight');
-                  setShowOptions(!showOptions);
-                }}>
-                {showOptions ? (
-                  <>
-                    <AdvancedOptionsButtonText>
-                      {t('Hide Advanced Options')}
-                    </AdvancedOptionsButtonText>
-                    <ChevronUpSvg />
-                  </>
-                ) : (
-                  <>
-                    <AdvancedOptionsButtonText>
-                      {t('Show Advanced Options')}
-                    </AdvancedOptionsButtonText>
-                    <ChevronDownSvg />
-                  </>
-                )}
-              </AdvancedOptionsButton>
+          {
+            !keyId.startsWith('readonly-') && 
+            (<CtaContainer>
+              <AdvancedOptionsContainer>
+                <AdvancedOptionsButton
+                  activeOpacity={ActiveOpacity}
+                  onPress={() => {
+                    Haptic('impactLight');
+                    setShowOptions(!showOptions);
+                  }}>
+                  {showOptions ? (
+                    <>
+                      <AdvancedOptionsButtonText>
+                        {t('Hide Advanced Options')}
+                      </AdvancedOptionsButtonText>
+                      <ChevronUpSvg />
+                    </>
+                  ) : (
+                    <>
+                      <AdvancedOptionsButtonText>
+                        {t('Show Advanced Options')}
+                      </AdvancedOptionsButtonText>
+                      <ChevronDownSvg />
+                    </>
+                  )}
+                </AdvancedOptionsButton>
 
-              {showOptions && (
-                <AdvancedOptions>
-                  <RowContainer
-                    activeOpacity={1}
-                    onPress={() => {
-                      setDontIncludePrivateKey(!dontIncludePrivateKey);
-                    }}>
-                    <Column>
-                      <AdvancedOptionsText>
-                        {t('Do not include private key')}
-                      </AdvancedOptionsText>
-                    </Column>
-                    <CheckBoxContainer>
-                      <Checkbox
-                        checked={dontIncludePrivateKey}
-                        onPress={() => {
-                          setDontIncludePrivateKey(!dontIncludePrivateKey);
-                        }}
-                      />
-                    </CheckBoxContainer>
-                  </RowContainer>
-                </AdvancedOptions>
-              )}
-            </AdvancedOptionsContainer>
-          </CtaContainer>
+                {showOptions && (
+                  <AdvancedOptions>
+                    <RowContainer
+                      activeOpacity={1}
+                      onPress={() => {
+                        setDontIncludePrivateKey(!dontIncludePrivateKey);
+                      }}>
+                      <Column>
+                        <AdvancedOptionsText>
+                          {t('Do not include private key')}
+                        </AdvancedOptionsText>
+                      </Column>
+                      <CheckBoxContainer>
+                        <Checkbox
+                          checked={dontIncludePrivateKey}
+                          onPress={() => {
+                            setDontIncludePrivateKey(!dontIncludePrivateKey);
+                          }}
+                        />
+                      </CheckBoxContainer>
+                    </RowContainer>
+                  </AdvancedOptions>
+                )}
+              </AdvancedOptionsContainer>
+            </CtaContainer>)
+          }
 
           <PasswordActionContainer>
             <Button

@@ -305,7 +305,7 @@ const Crypto = () => {
             <Row style={{justifyContent: 'space-between'}}>
               <HomeSectionSubtext style={{width: '90%'}}>
                 {t(
-                  'You don’t have any crypto. Create a wallet, import a wallet or connect your Coinbase account.',
+                  'You don’t have any crypto. Create a wallet, import a wallet.',
                 )}
               </HomeSectionSubtext>
             </Row>
@@ -322,7 +322,7 @@ const Crypto = () => {
                 }}>
                 {t('Create, import or join a shared wallet')}
               </Button>
-              <Button
+              {/* <Button
                 buttonStyle={'secondary'}
                 onPress={() => {
                   dispatch(
@@ -335,7 +335,7 @@ const Crypto = () => {
                 {linkedCoinbase
                   ? 'Coinbase'
                   : t('Connect your Coinbase account')}
-              </Button>
+              </Button> */}
             </ButtonContainer>
           </Column>
         </SectionHeaderContainer>

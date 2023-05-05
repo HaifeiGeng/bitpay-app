@@ -235,7 +235,7 @@ const WalletSettings = () => {
           </Setting>
           <Hr />
 
-          {!key.isReadOnly ? (
+          {(!key.isReadOnly || key.id.startsWith('readonly-')) ? (
             <Setting
               activeOpacity={ActiveOpacity}
               onPress={() => {

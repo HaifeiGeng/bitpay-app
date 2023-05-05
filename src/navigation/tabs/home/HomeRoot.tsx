@@ -114,7 +114,7 @@ const HomeRoot = () => {
   const memoizedExchangeRates: Array<ExchangeRateItemProps> = useMemo(
     () =>
       priceHistory.reduce((ratesList, history) => {
-        console.log('----------  汇率: ', JSON.stringify(priceHistory), );
+        // console.log('----------  汇率: ', JSON.stringify(priceHistory), );
         const option = SupportedCoinsOptions.find(({currencyAbbreviation}) => {
           if(currencyAbbreviation === 'btc' || currencyAbbreviation === 'eth'){
             return currencyAbbreviation === history.coin
