@@ -150,8 +150,8 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       await dispatch(
         showBottomNotificationModal({
           type: 'question',
-          title: t('finish?'),
-          message: t('Are you sure finish?'),
+          title: t('Finish'),
+          message: t('Are you sure?'),
           enableBackdropDismiss: true,
           actions: [
             {
