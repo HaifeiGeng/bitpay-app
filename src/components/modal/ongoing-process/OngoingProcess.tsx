@@ -36,7 +36,8 @@ export type OnGoingProcessMessages =
   | 'UPDATING_TXP'
   | 'CREATING_TXP'
   | 'SENDING_EMAIL'
-  | 'REDIRECTING';
+  | 'REDIRECTING'
+  | 'SIGNING';
 
 const OnGoingProcessContainer = styled.View`
   max-width: 60%;

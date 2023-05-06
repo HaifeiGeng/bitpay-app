@@ -13,15 +13,13 @@ import {
   StyleSheet,
   Dimensions,
   Text,
-  Alert,
-  Clipboard,
-  ToastAndroid,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
-import {signTxForCold, signTx} from '../../../store/wallet/effects/send/send';
-import { useAppSelector } from '../../../utils/hooks';
-import { Key, Wallet } from '../../../store/wallet/wallet.models';
+import {signTxForCold} from '../../../store/wallet/effects/send/send';
+import { sleep } from '../../../utils/helper-methods';
+import {useDispatch,} from 'react-redux';
+import { showBottomNotificationModal } from '../../../store/app/app.actions';
 
 const QRCodeContainer = styled.View`
   align-items: center;
@@ -64,16 +62,16 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
-  const [intervalHandler, setIntervalHandler] = useState<
-    NodeJS.Timeout | undefined
-  >();
+  const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
   const [displayQRCode, setDisplayQRCode] = useState(false);
   const [fragments, setFragments] = useState<string[]>([]);
   const [openCamera, setOpenCamera] = useState(true);
-  const [urTotal, setUrTotal] = useState(0);
-  const [urHave, setUrHave] = useState(0);
+  const [urTotal, setUrTotal] = useState<number>(0);
+  const [urHaveCount, setUrHaveCount] = useState<number>(0);
+  const [signing, setSigning] = useState<boolean>(false);
+  const dispatch = useDispatch();
 
-  const capacity = 200;
+  const win = Dimensions.get('window');
 
   useEffect(() => {
     try {
@@ -125,10 +123,10 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   const buildQrData = (data: string) => {
     const fragmentsEncoded = encodeUR(
       Buffer.from(data, 'ascii').toString('hex'),
-      80,
+      100,
     );
-    setFragments(fragmentsEncoded);
     setTotal(fragmentsEncoded.length);
+    setFragments(fragmentsEncoded);
   };
 
   const _closeModal = () => {
@@ -139,23 +137,42 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }, 500);
     if (intervalHandler) {
       clearInterval(intervalHandler);
+      setIntervalHandler(undefined);
     }
+    setFragments([]);
+    setTotal(0);
+    setUrHaveCount(0);
+    setUrTotal(0);
   };
 
-  const _nextStep = () => {
-    if (intervalHandler) {
-      clearInterval(intervalHandler);
+  const handleFinish = async () => {
+    try {
+      await dispatch(
+        showBottomNotificationModal({
+          type: 'question',
+          title: t('finish?'),
+          message: t('Are you sure finish?'),
+          enableBackdropDismiss: true,
+          actions: [
+            {
+              text: t('Ok'),
+              action: () => {
+                _closeModal();
+              },
+              primary: true,
+            },
+            {
+              text: t('Nevermind'),
+              action: () => {},
+              primary: false,
+            },
+          ],
+        }),
+      );
+    } catch (error) {
+      console.error('关闭失败:', error);
     }
-    setOpenCamera(false);
-    setDisplayQRCode(true);
-  };
-
-  const win = Dimensions.get('window');
-
-  const handleCopy = (dataString: string) => {
-    Clipboard.setString(JSON.stringify(dataString));
-    ToastAndroid.show('已复制到剪贴板', ToastAndroid.SHORT);
-  };
+  }
 
   const onBarCodeScanned = async ({data}: {data: string}) => {
     if (!decoder) {
@@ -166,29 +183,26 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
         console.log('----------  扫描到的数据：', parseData);
-        decoder = undefined;
-        _nextStep();
-        // Alert.alert('扫描完毕', JSON.stringify(parseData), [{text: 'Cancel'}], {
-        //   cancelable: true,
-        // });
-        // console.log("---------------- wallet" + JSON.stringify(fullWalletObj));
-        // console.log("---------------- key" + JSON.stringify(keyObj));
-
+        decoder = undefined; // nullify for future use (?)
+        if (intervalHandler) {
+          clearInterval(intervalHandler);
+        }
+        setOpenCamera(false);
+        setSigning(true);
         const {txp, rootPath} = JSON.parse(parseData);
-
-        // const key = useAppSelector(({WALLET}) => WALLET.keys[keyId]) as Key;
-        // const wallet = findWalletById(key.wallets, walletId) as Wallet;
-        // console.log('----------  扫描到的数据：解构出来的数据', JSON.stringify(txp), JSON.stringify(rootPath));
         const signature = await signTxForCold(rootPath, keyObj, txp);
-        
-        // console.log('----------  扫描到的签名：', JSON.stringify(signature));
-        // handleCopy(signature.join(','));
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
         buildQrData(signature.join(','));
-        // onBarScanned({ data });
+        await sleep(500);
+        setSigning(false);
+        setDisplayQRCode(true);
       } else {
-        setUrTotal(100);
-        setUrHave(Math.floor(decoder.estimatedPercentComplete() * 100));
+        setUrTotal(decoder.expectedPartCount());
+        setUrHaveCount(decoder.receivedPartIndexes().length || 0);
+        // setUrHave(parseFloat((decoder.getProgress() * 100).toFixed(2)));
+        // console.log('----------  扫描的数量', decoder.getProgress());
+        // console.log(`----------  解码相关数量打印：expectedPartCount = ${decoder.expectedPartCount()} expectedPartIndexes = ${decoder.expectedPartIndexes()} receivedPartIndexes = ${decoder.receivedPartIndexes()} lastPartIndexes = ${decoder.lastPartIndexes()} estimatedPercentComplete = ${decoder.estimatedPercentComplete()} getProgress = ${decoder.getProgress()}`);
+        // console.log(`----------  解码详细数量打印： 需要${decoder.expectedPartCount()}张二维码, 目前已经收到了${decoder.receivedPartIndexes().length || 0}张二维码 `);
       }
     } catch (error) {
       console.warn(error);
@@ -208,9 +222,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
           </QRCodeContainer>
         ) : coin === 'btc' && !displayQRCode && openCamera ? (
           <View style={styles.cameraContainer}>
-            <Text style={styles.title}>
-              {t('Scan the QRCode loop')} ({urHave}%)
-            </Text>
+            <Text style={styles.title}>{urHaveCount} / {urTotal}</Text>
             <RNCamera
               style={styles.root}
               type={RNCamera.Constants.Type.back}
@@ -225,10 +237,12 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
               </View>
             </RNCamera>
           </View>
+        ) : signing ? (
+          <H4 style={{textAlign: 'center', }}>{t('Signing...')}</H4>
         ) : (
-          <H4>只有比特币钱包需要签名</H4>
+          <H4></H4>
         )}
-
+        
         <View style={{flexDirection: 'row', marginTop: 50}}>
           <CloseButton onPress={_closeModal}>
             <CloseButtonText>{t('CLOSE')}</CloseButtonText>
@@ -239,7 +253,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
             </CloseButton>
           ) : null} */}
           {displayQRCode && (
-            <CloseButton onPress={_closeModal}>
+            <CloseButton onPress={handleFinish}>
               <CloseButtonText>{t('Finish')}</CloseButtonText>
             </CloseButton>
           )}

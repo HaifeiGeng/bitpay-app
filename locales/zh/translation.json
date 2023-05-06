@@ -455,7 +455,7 @@
   "Delete Contact": "删除联系人",
   "Are you sure?": "确定吗？",
   "Deleting this contact will remove them from your contacts.": "删除此联系人会将其从您的通讯录中移除。",
-  "Nevermind": "没关系",
+  "Nevermind": "算了",
   "Address": "地址",
   "Network": "网络",
   "Coin": "加密货币",
@@ -742,7 +742,7 @@
   "The amount of stored in this wallet that is allocated as inputs to your pending transaction proposals. The amount is determined using unspent transaction outputs associated with this wallet and may be more than the actual amounts associated with your pending transaction proposals.": "存入此钱包并被分配为待处理交易提案输入的 {{currencyName}} 的金额。该金额通过与此钱包相关的未使用交易输出确定，可能超出与您的待处理交易提案相关联的实际金额。",
   "Enter encryption password": "输入加密密码",
   "Warning!": "警告！",
-  "NEVERMIND": "没关系",
+  "NEVERMIND": "算了",
   "Something went wrong": "出错了",
   "Could not decrypt wallet.": "无法解密钱包。",
   "Please try again later.": "请稍后再试。",
@@ -1156,5 +1156,6 @@
   "The public key is invalid.": "公钥无效",
   "Export Transaction History": "导出历史交易",
   "View your wallets, card balance": "查看您的钱包、卡余额。",
-  "You don’t have any crypto. Create a wallet, import a wallet.": "您没有任何加密货币。创建钱包、导入钱包。"
+  "You don’t have any crypto. Create a wallet, import a wallet.": "您没有任何加密货币。创建钱包、导入钱包。",
+  "Signing...": "签名中..."
 }
