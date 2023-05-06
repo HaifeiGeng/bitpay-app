@@ -262,7 +262,7 @@ const SelectInputs = () => {
           <Hr />
         </SectionContainer>
         <SectionContainer>
-          <H5>{t('Total Selected Inputs') + '1'}</H5>
+          <H5>{t('Total Selected Inputs')}</H5>
           <Hr />
           <ItemRowContainer
             style={{

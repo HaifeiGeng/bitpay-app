@@ -62,7 +62,7 @@ const AddingOptions: React.FC = () => {
     },
     {
       id: 'multisig',
-      title: t('Multisig Wallet') + '123',
+      title: t('Multisig Wallet'),
       description: t(
         'Requires multiple people or devices and is the most secure',
       ),

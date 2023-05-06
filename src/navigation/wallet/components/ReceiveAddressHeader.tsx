@@ -116,7 +116,7 @@ const ReceiveAddressHeader = ({
     default:
       return (
         <Header>
-          <Title>{t('Address') + ' - 收款'}</Title>
+          <Title>{t('Address')}</Title>
           {showRefresh ? (
             <Refresh
               onPress={() => {

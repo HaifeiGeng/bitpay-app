@@ -508,7 +508,7 @@ const TransactionProposalDetails = () => {
 
       {txs && !txs.removed && txs.pendingForUs && (!key.isReadOnly || key.id.startsWith('readonly-')) ? (
         <SwipeButton
-          title={lastSigner ? t('Slide to send') + '123' : t('Slide to accept')}
+          title={lastSigner ? t('Slide to send') : t('Slide to accept')}
           forceReset={resetSwipeButton}
           onSwipeComplete={async () => {
             try {

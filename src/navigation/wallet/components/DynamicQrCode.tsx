@@ -176,7 +176,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
         closeModal();
         dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
         const signatureArray = parseData.split(',');
-        handleCopy(parseData);
+        // handleCopy(parseData);
         dynamicQrCodeData.wallet.pushSignatures(
           dynamicQrCodeData.txp,
           signatureArray,

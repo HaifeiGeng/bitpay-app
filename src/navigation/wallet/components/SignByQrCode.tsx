@@ -182,7 +182,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         const signature = await signTxForCold(rootPath, keyObj, txp);
         
         // console.log('----------  扫描到的签名：', JSON.stringify(signature));
-        handleCopy(signature.join(','));
+        // handleCopy(signature.join(','));
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
         buildQrData(signature.join(','));
         // onBarScanned({ data });
