@@ -61,7 +61,7 @@ const About = () => {
 
         <Button buttonType="pill">{APP_VERSION}</Button>
       </Setting>
-
+{/* 
       <Hr />
 
       {GIT_COMMIT_HASH ? (
@@ -126,7 +126,7 @@ const About = () => {
             {LINKS.length - 1 !== index && <Hr />}
           </View>
         );
-      })}
+      })} */}
     </SettingsComponent>
   );
 };

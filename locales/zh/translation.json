@@ -1157,5 +1157,7 @@
   "Export Transaction History": "导出历史交易",
   "View your wallets, card balance": "查看您的钱包、卡余额。",
   "You don’t have any crypto. Create a wallet, import a wallet.": "您没有任何加密货币。创建钱包、导入钱包。",
-  "Signing...": "签名中..."
+  "Signing...": "签名中...",
+  
+  "Add new wallet":"添加新的钱包"
 }

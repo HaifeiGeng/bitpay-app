@@ -137,7 +137,7 @@ const Notifications = () => {
 
       {/*----------------------------------------------------------------------*/}
 
-      <Setting
+      {/* <Setting
         activeOpacity={ActiveOpacity}
         onPress={() =>
           navigation.navigate('NotificationsSettings', {
@@ -146,7 +146,7 @@ const Notifications = () => {
         }>
         <SettingTitle>{t('Email Notifications')}</SettingTitle>
         <AngleRight />
-      </Setting>
+      </Setting> */}
     </SettingsComponent>
   );
 };

@@ -72,21 +72,21 @@ const PushNotifications = () => {
         }
       },
     },
-    {
-      title: t('Announcements'),
-      checked: annnouncements,
-      description: t('Updates on new features and other relevant news.'),
-      onPress: () => {
-        const accepted = !annnouncements;
-        setAnnouncements(accepted);
-        dispatch(AppEffects.setAnnouncementsNotifications(accepted));
-        if (!pushNotifications) {
-          DeviceEventEmitter.emit(DeviceEmitterEvents.PUSH_NOTIFICATIONS, {
-            accepted: true,
-          });
-        }
-      },
-    },
+    // {
+    //   title: t('Announcements'),
+    //   checked: annnouncements,
+    //   description: t('Updates on new features and other relevant news.'),
+    //   onPress: () => {
+    //     const accepted = !annnouncements;
+    //     setAnnouncements(accepted);
+    //     dispatch(AppEffects.setAnnouncementsNotifications(accepted));
+    //     if (!pushNotifications) {
+    //       DeviceEventEmitter.emit(DeviceEmitterEvents.PUSH_NOTIFICATIONS, {
+    //         accepted: true,
+    //       });
+    //     }
+    //   },
+    // },
   ];
 
   return (

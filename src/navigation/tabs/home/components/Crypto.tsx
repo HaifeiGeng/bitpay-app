@@ -63,7 +63,7 @@ const Row = styled.View`
 `;
 
 const ListViewContainer = styled.View`
-  padding: 20px 0 12px 0;
+  padding: 0 0 12px 0;
 `;
 
 const ButtonContainer = styled.View`
@@ -345,7 +345,7 @@ const Crypto = () => {
 
   return (
     <CryptoContainer>
-      <SectionHeaderContainer style={{marginBottom: 0}}>
+      {/* <SectionHeaderContainer style={{marginBottom: 0}}>
         <Column>
           <HomeSectionTitle>{t('My Crypto')}</HomeSectionTitle>
           <Row style={{justifyContent: 'space-between'}}>
@@ -366,7 +366,7 @@ const Crypto = () => {
             </TouchableOpacity>
           </Row>
         </Column>
-      </SectionHeaderContainer>
+      </SectionHeaderContainer> */}
       {/* ////////////////////////////// CAROUSEL/LISTVIEW */}
       {homeCarouselLayoutType === 'carousel' ? (
         <CarouselContainer style={{marginBottom: 22}}>
@@ -393,7 +393,7 @@ const Crypto = () => {
       <CarouselContainer>
         <SectionHeaderContainer style={{marginTop: 0, position: 'absolute'}}>
           <HomeSectionSubTitle>
-            {t('Expand your Portfolio')}
+            {t('Add new wallet')}
           </HomeSectionSubTitle>
         </SectionHeaderContainer>
         <Carousel

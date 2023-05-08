@@ -163,12 +163,12 @@ const SettingsHomeScreen: React.VFC<SettingsHomeProps> = ({route}) => {
         onPress: () => {},
         subListComponent: <Connections redirectTo={redirectTo} />,
       },
-      {
-        id: 'External Services',
-        title: t('External Services'),
-        onPress: () => {},
-        subListComponent: <ExternalServices />,
-      },
+      // {
+      //   id: 'External Services',
+      //   title: t('External Services'),
+      //   onPress: () => {},
+      //   subListComponent: <ExternalServices />,
+      // },
       {
         id: 'About BitPay',
         title: t('About BitPay'),
@@ -213,7 +213,7 @@ const SettingsHomeScreen: React.VFC<SettingsHomeProps> = ({route}) => {
   return (
     <SettingsContainer>
       <SettingsHome ref={scrollViewRef}>
-        <BitPayIdSettingsLink
+        {/* <BitPayIdSettingsLink
           style={{paddingHorizontal: 15}}
           onPress={() => {
             if (user) {
@@ -242,7 +242,7 @@ const SettingsHomeScreen: React.VFC<SettingsHomeProps> = ({route}) => {
           <SettingIcon suffix>
             <AngleRight />
           </SettingIcon>
-        </BitPayIdSettingsLink>
+        </BitPayIdSettingsLink> */}
 
         {memoizedSettingsList}
       </SettingsHome>

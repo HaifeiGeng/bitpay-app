@@ -44,7 +44,7 @@ const General = () => {
 
   return (
     <SettingsComponent>
-      <Setting
+      {/* <Setting
         activeOpacity={ActiveOpacity}
         onPress={() =>
           navigation.navigate('GeneralSettings', {screen: 'Theme'})
@@ -62,9 +62,9 @@ const General = () => {
             : t('System Default')}
         </Button>
       </Setting>
-      <Hr />
+      <Hr /> */}
       {/*----------------------------------------------------------------------*/}
-      <Setting
+      {/* <Setting
         activeOpacity={ActiveOpacity}
         onPress={() =>
           navigation.navigate('GeneralSettings', {screen: 'CustomizeHome'})
@@ -72,16 +72,16 @@ const General = () => {
         <SettingTitle>{t('Customize Home')}</SettingTitle>
         <AngleRight />
       </Setting>
-      <Hr />
+      <Hr /> */}
       {/*----------------------------------------------------------------------*/}
-      <Setting activeOpacity={1}>
+      {/* <Setting activeOpacity={1}>
         <SettingTitle>{t('Show Portfolio')}</SettingTitle>
         <ToggleSwitch
           onChange={value => dispatch(AppActions.showPortfolioValue(value))}
           isEnabled={showPortfolioValue}
         />
       </Setting>
-      <Hr />
+      <Hr /> */}
       {/*----------------------------------------------------------------------*/}
       <Setting
         activeOpacity={ActiveOpacity}
@@ -121,7 +121,7 @@ const General = () => {
       </Setting>
       <Hr />
       {/*----------------------------------------------------------------------*/}
-      <Setting
+      {/* <Setting
         activeOpacity={ActiveOpacity}
         onPress={() =>
           dispatch(
@@ -164,7 +164,7 @@ const General = () => {
           )
         }>
         <SettingTitle>{t('Reset All Settings')}</SettingTitle>
-      </Setting>
+      </Setting> */}
     </SettingsComponent>
   );
 };

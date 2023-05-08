@@ -63,14 +63,14 @@ const WalletsAndKeys = () => {
             </View>
           ))
         : null}
-      <Setting
+      {/* <Setting
         style={{justifyContent: 'center'}}
         onPress={() =>
           navigation.navigate('Wallet', {screen: 'CreationOptions'})
         }
         activeOpacity={ActiveOpacity}>
         <CreateOrImportLink>{t('Create or Import Key')}</CreateOrImportLink>
-      </Setting>
+      </Setting> */}
     </SettingsComponent>
   );
 };

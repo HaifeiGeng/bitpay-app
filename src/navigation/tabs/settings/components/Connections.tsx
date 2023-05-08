@@ -88,7 +88,7 @@ const Connections: React.VFC<ConnectionsProps> = props => {
 
   return (
     <SettingsComponent>
-      <Setting onPress={() => goToCoinbase()}>
+      {/* <Setting onPress={() => goToCoinbase()}>
         <ConnectionItemContainer>
           <ConnectionIconContainer>
             <CoinbaseSvg width={30} height={25} />
@@ -97,7 +97,7 @@ const Connections: React.VFC<ConnectionsProps> = props => {
         </ConnectionItemContainer>
         <AngleRight />
       </Setting>
-      <Hr />
+      <Hr /> */}
       <Setting
         onPress={() => {
           haptic('impactLight');
@@ -111,7 +111,7 @@ const Connections: React.VFC<ConnectionsProps> = props => {
         </ConnectionItemContainer>
         <AngleRight />
       </Setting>
-      <Hr />
+      {/* <Hr />
       <Setting
         onPress={() => {
           haptic('impactLight');
@@ -129,7 +129,7 @@ const Connections: React.VFC<ConnectionsProps> = props => {
           <SettingTitle>ZenLedger Taxes</SettingTitle>
         </ConnectionItemContainer>
         <AngleRight />
-      </Setting>
+      </Setting> */}
     </SettingsComponent>
   );
 };

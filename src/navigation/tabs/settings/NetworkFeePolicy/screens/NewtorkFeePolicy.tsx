@@ -312,7 +312,7 @@ const NetworkFeePolicy = () => {
               ) : null}
             </View>
 
-            <View>
+            {/* <View>
               {maticFeeOptions && maticFeeOptions.length > 0 ? (
                 <FeeOptions
                   feeOptions={maticFeeOptions}
@@ -320,7 +320,7 @@ const NetworkFeePolicy = () => {
                   currencyName={'Polygon'}
                 />
               ) : null}
-            </View>
+            </View> */}
           </>
         )}
       </ScrollView>

@@ -217,8 +217,8 @@ const HomeRoot = () => {
                 <ProposalBadge>{pendingTxps.length}</ProposalBadge>
               </ProposalBadgeContainer>
             ) : null}
-            <ScanButton />
-            <ProfileButton />
+            {/* <ScanButton />
+            <ProfileButton /> */}
           </HeaderContainer>
 
           {/* ////////////////////////////// PORTFOLIO BALANCE */}
