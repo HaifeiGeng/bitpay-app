@@ -158,40 +158,40 @@ const OnboardingStart: React.VFC<OnboardingStartScreenProps> = () => {
   const onLogoutPressRef = useRef(onLogoutPress);
   onLogoutPressRef.current = onLogoutPress;
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => null,
-      headerRight: () => (
-        <HeaderRightContainer>
-          {isPaired ? (
-            <Button buttonType="pill" onPress={onLogoutPressRef.current}>
-              {t('Log Out')}
-            </Button>
-          ) : (
-            <Button buttonType={'pill'} onPress={onLoginPressRef.current}>
-              {t('Log In')}
-            </Button>
-          )}
-        </HeaderRightContainer>
-      ),
-    });
-  }, [navigation, isPaired, t]);
+  // useLayoutEffect(() => {
+  //   navigation.setOptions({
+  //     headerLeft: () => null,
+  //     headerRight: () => (
+  //       <HeaderRightContainer>
+  //         {isPaired ? (
+  //           <Button buttonType="pill" onPress={onLogoutPressRef.current}>
+  //             {t('Log Out')}
+  //           </Button>
+  //         ) : (
+  //           <Button buttonType={'pill'} onPress={onLoginPressRef.current}>
+  //             {t('Log In')}
+  //           </Button>
+  //         )}
+  //       </HeaderRightContainer>
+  //     ),
+  //   });
+  // }, [navigation, isPaired, t]);
 
   const carouselRef = useRef(null);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [scrollHintHeight, setScrollHintHeight] = useState(0);
 
   const onboardingSlides = [
-    {
-      title: t('Turn crypto into dollars with our BitPay Card'),
-      text: t(
-        'Instantly reload your card balance with no conversion fees. Powered by our competitive exchange rates.',
-      ),
-      subText: t(
-        '*Currently available in the USA. More countries coming soon.',
-      ),
-      img: () => OnboardingImages.card[themeType],
-    },
+    // {
+    //   title: t('Turn crypto into dollars with our BitPay Card'),
+    //   text: t(
+    //     'Instantly reload your card balance with no conversion fees. Powered by our competitive exchange rates.',
+    //   ),
+    //   subText: t(
+    //     '*Currently available in the USA. More countries coming soon.',
+    //   ),
+    //   img: () => OnboardingImages.card[themeType],
+    // },
     {
       title: t('Spend crypto at your favorite places'),
       text: t(
@@ -202,7 +202,7 @@ const OnboardingStart: React.VFC<OnboardingStartScreenProps> = () => {
     {
       title: t('Keep your funds safe & secure'),
       text: t(
-        'Websites and exchanges get hacked. BitPay allows you to privately store, manage and use your crypto funds without having to trust a centralized bank or exchange.',
+        'Websites and exchanges get hacked. CanPay allows you to privately store, manage and use your crypto funds without having to trust a centralized bank or exchange.',
       ),
       img: () => OnboardingImages.wallet[themeType],
     },
@@ -266,7 +266,7 @@ const OnboardingStart: React.VFC<OnboardingStartScreenProps> = () => {
               inactiveDotScale={0.5}
             />
           </Column>
-          <Column>
+          {/* <Column>
             {!isPaired ? (
               <Button
                 buttonStyle={'primary'}
@@ -294,7 +294,7 @@ const OnboardingStart: React.VFC<OnboardingStartScreenProps> = () => {
                 {t('Continue')}
               </Button>
             )}
-          </Column>
+          </Column> */}
         </Row>
         {!isPaired ? (
           <Row>
@@ -302,10 +302,13 @@ const OnboardingStart: React.VFC<OnboardingStartScreenProps> = () => {
               <Button
                 buttonType={'link'}
                 onPress={() => {
+                  // askForTrackingThenNavigate(() => {
+                  //   navigation.navigate('Onboarding', {
+                  //     screen: 'Notifications',
+                  //   });
+                  // });
                   askForTrackingThenNavigate(() => {
-                    navigation.navigate('Onboarding', {
-                      screen: 'Notifications',
-                    });
+                    navigation.navigate('TermsOfUse', {context: 'TOUOnly'});
                   });
                 }}>
                 <LinkText>{t('Continue without an account')}</LinkText>

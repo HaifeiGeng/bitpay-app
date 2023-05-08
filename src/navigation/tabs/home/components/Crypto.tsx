@@ -301,15 +301,15 @@ const Crypto = () => {
       <CryptoContainer>
         <SectionHeaderContainer style={{marginBottom: 0}}>
           <Column>
-            <HomeSectionTitle>{t('My Crypto')}</HomeSectionTitle>
+            {/* <HomeSectionTitle>{t('My Crypto')}</HomeSectionTitle>
             <Row style={{justifyContent: 'space-between'}}>
               <HomeSectionSubtext style={{width: '90%'}}>
                 {t(
                   'You don’t have any crypto. Create a wallet, import a wallet.',
                 )}
               </HomeSectionSubtext>
-            </Row>
-            <ButtonContainer>
+            </Row> */}
+            {/* <ButtonContainer> */}
               <Button
                 style={{marginBottom: 15}}
                 onPress={() => {
@@ -336,7 +336,7 @@ const Crypto = () => {
                   ? 'Coinbase'
                   : t('Connect your Coinbase account')}
               </Button> */}
-            </ButtonContainer>
+            {/* </ButtonContainer> */}
           </Column>
         </SectionHeaderContainer>
       </CryptoContainer>
