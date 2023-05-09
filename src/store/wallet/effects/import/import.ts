@@ -1373,6 +1373,10 @@ export const startImportWithDerivationPath =
         opts.mnemonic = words;
         opts.extendedPrivateKey = xPrivKey;
         opts.xPublicKey = xPublicKey;
+        // 如果没有标识币种，默认btc
+        if(!opts.coin){
+          opts.coin = 'btc';
+        }
         const showOpts = Object.assign({}, opts);
         if (showOpts.extendedPrivateKey) {
           showOpts.extendedPrivateKey = '[hidden]';
