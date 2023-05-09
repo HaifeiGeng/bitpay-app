@@ -134,7 +134,7 @@ const SelectInputs = () => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => <HeaderTitle>{t('Select Inputs') + '1'}</HeaderTitle>,
+      headerTitle: () => <HeaderTitle>{t('Select Inputs')}</HeaderTitle>,
     });
   }, [navigation, t]);
 

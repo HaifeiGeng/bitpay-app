@@ -284,7 +284,7 @@ const SendTo = () => {
       navigation.navigate('Wallet', {
         screen: 'SendToOptions',
         params: {
-          title: t('Select Inputs') + '2',
+          title: t('Select Inputs'),
           wallet,
           context: 'selectInputs',
         },
