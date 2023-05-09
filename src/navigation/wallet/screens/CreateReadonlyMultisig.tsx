@@ -402,7 +402,7 @@ const CreateReadonlyMultisig = () => {
         console.error('扫码导入公钥出现空值...');
         return;
       }
-      if ((!code.startsWith('xpub') && !code.startsWith('tpub')) && code.length !== 111) {
+      if (!code.startsWith('xpub') && !code.startsWith('tpub')) {
         showErrorModal(t('The public key is invalid.'));
         return;
       }

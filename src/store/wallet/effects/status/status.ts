@@ -308,7 +308,7 @@ export const startUpdateAllWalletStatusForKeys =
           key.wallets
             .filter(wallet => {
               return (
-                !wallet.credentials.token && wallet.credentials.isComplete()
+                !wallet.credentials.token && wallet.credentials.isComplete() && !wallet.credentials.cold 
               );
             })
             .forEach(({credentials: {copayerId, multisigEthInfo}, tokens}) => {
@@ -327,7 +327,7 @@ export const startUpdateAllWalletStatusForKeys =
           const credentials = key.wallets
             .filter(
               wallet =>
-                !wallet.credentials.token && wallet.credentials.isComplete(),
+                !wallet.credentials.token && wallet.credentials.isComplete() && !wallet.credentials.cold ,
             )
             .map(wallet => wallet.credentials);
 

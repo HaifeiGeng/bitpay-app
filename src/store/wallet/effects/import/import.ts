@@ -1101,130 +1101,130 @@ export const startImportWithDerivationPath =
    * @param opts 
    * @returns 
    */
-  export const startImportColdWallet =
-  (
-    importData: {words?: string; xPrivKey?: string},
-    opts: Partial<KeyOptions>,
-  ): Effect =>
-  async (dispatch, getState): Promise<Key> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const {
-          WALLET,
-          APP: {
-            notificationsAccepted,
-            emailNotifications,
-            brazeEid,
-            defaultLanguage,
-          },
-        } = getState();
-        const tokenOpts = {
-          ...BitpaySupportedTokenOpts,
-          ...WALLET.tokenOptions,
-          ...WALLET.customTokenOptions,
-        };
-        const {words, xPrivKey} = importData;
-        opts.mnemonic = words;
-        opts.extendedPrivateKey = xPrivKey;
-        const showOpts = Object.assign({}, opts);
-        if (showOpts.extendedPrivateKey) {
-          showOpts.extendedPrivateKey = '[hidden]';
-        }
-        if (showOpts.mnemonic) {
-          showOpts.mnemonic = '[hidden]';
-        }
-        dispatch(
-          LogActions.info(
-            `Importing Wallet with derivation path: ${JSON.stringify(
-              showOpts,
-            )}`,
-          ),
-        );
-        // 增加冷钱包标记
-        opts.cold = '1';
-        const data = await createKeyAndCredentials(opts);
-        // console.log("---------- 使用助记词导入冷钱包: data", JSON.stringify(data));
-        const {wallet, key: _key} = data;
-        wallet.openWalletTest(async (err: Error) => {
-          if (err) {
-            if (err.message.indexOf('not found') > 0) {
-              err = new Error('WALLET_DOES_NOT_EXIST');
-            }
-            return reject(err);
-          }
-          // subscribe new wallet to push notifications
-          if (notificationsAccepted) {
-            dispatch(subscribePushNotifications(wallet, brazeEid!));
-          }
-          // subscribe new wallet to email notifications
-          if (
-            emailNotifications &&
-            emailNotifications.accepted &&
-            emailNotifications.email
-          ) {
-            const prefs = {
-              email: emailNotifications.email,
-              language: defaultLanguage,
-              unit: 'btc', // deprecated
-            };
-            dispatch(subscribeEmailNotifications(wallet, prefs));
-          }
-          const {currencyAbbreviation, currencyName} = dispatch(
-            mapAbbreviationAndName(
-              wallet.credentials.coin,
-              wallet.credentials.chain,
-            ),
-          );
-          // console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
-          let key;
-          const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
-          // console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
-          if (matchedKey) {
-            // To avoid duplicate key creation when importing
-            wallet.credentials.keyId = wallet.keyId = matchedKey.id;
-            key = await findKeyByKeyId(matchedKey.id, WALLET.keys);
-            key.wallets.push(
-              merge(
-                wallet,
-                buildWalletObj(
-                  {
-                    ...wallet.credentials,
-                    currencyAbbreviation,
-                    currencyName,
-                  },
-                  tokenOpts,
-                ),
-              ),
-            );
-          } else {
-            key = buildKeyObj({
-              key: _key,
-              wallets: [
-                merge(
-                  wallet,
-                  buildWalletObj(
-                    {...wallet.credentials, currencyAbbreviation, currencyName},
-                    tokenOpts,
-                  ),
-                ),
-              ],
-              backupComplete: true,
-            });
-          }
-          // console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
-          dispatch(
-            successImport({
-              key,
-            }),
-          );
-          resolve(key);
-        });
-      } catch (e) {
-        dispatch(failedImport());
-        reject(e);
-      }
-    });
-  };
+  // export const startImportColdWallet =
+  // (
+  //   importData: {words?: string; xPrivKey?: string},
+  //   opts: Partial<KeyOptions>,
+  // ): Effect =>
+  // async (dispatch, getState): Promise<Key> => {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       const {
+  //         WALLET,
+  //         APP: {
+  //           notificationsAccepted,
+  //           emailNotifications,
+  //           brazeEid,
+  //           defaultLanguage,
+  //         },
+  //       } = getState();
+  //       const tokenOpts = {
+  //         ...BitpaySupportedTokenOpts,
+  //         ...WALLET.tokenOptions,
+  //         ...WALLET.customTokenOptions,
+  //       };
+  //       const {words, xPrivKey} = importData;
+  //       opts.mnemonic = words;
+  //       opts.extendedPrivateKey = xPrivKey;
+  //       const showOpts = Object.assign({}, opts);
+  //       if (showOpts.extendedPrivateKey) {
+  //         showOpts.extendedPrivateKey = '[hidden]';
+  //       }
+  //       if (showOpts.mnemonic) {
+  //         showOpts.mnemonic = '[hidden]';
+  //       }
+  //       dispatch(
+  //         LogActions.info(
+  //           `Importing Wallet with derivation path: ${JSON.stringify(
+  //             showOpts,
+  //           )}`,
+  //         ),
+  //       );
+  //       // 增加冷钱包标记
+  //       opts.cold = '1';
+  //       const data = await createKeyAndCredentials(opts);
+  //       // console.log("---------- 使用助记词导入冷钱包: data", JSON.stringify(data));
+  //       const {wallet, key: _key} = data;
+  //       wallet.openWalletTest(async (err: Error) => {
+  //         if (err) {
+  //           if (err.message.indexOf('not found') > 0) {
+  //             err = new Error('WALLET_DOES_NOT_EXIST');
+  //           }
+  //           return reject(err);
+  //         }
+  //         // subscribe new wallet to push notifications
+  //         if (notificationsAccepted) {
+  //           dispatch(subscribePushNotifications(wallet, brazeEid!));
+  //         }
+  //         // subscribe new wallet to email notifications
+  //         if (
+  //           emailNotifications &&
+  //           emailNotifications.accepted &&
+  //           emailNotifications.email
+  //         ) {
+  //           const prefs = {
+  //             email: emailNotifications.email,
+  //             language: defaultLanguage,
+  //             unit: 'btc', // deprecated
+  //           };
+  //           dispatch(subscribeEmailNotifications(wallet, prefs));
+  //         }
+  //         const {currencyAbbreviation, currencyName} = dispatch(
+  //           mapAbbreviationAndName(
+  //             wallet.credentials.coin,
+  //             wallet.credentials.chain,
+  //           ),
+  //         );
+  //         // console.log("---------- 使用派生路径导入: WALLET", JSON.stringify(WALLET));
+  //         let key;
+  //         const matchedKey = getMatchedKey(_key, Object.values(WALLET.keys));
+  //         // console.log("---------- 使用派生路径导入: matchedKey", JSON.stringify(matchedKey));
+  //         if (matchedKey) {
+  //           // To avoid duplicate key creation when importing
+  //           wallet.credentials.keyId = wallet.keyId = matchedKey.id;
+  //           key = await findKeyByKeyId(matchedKey.id, WALLET.keys);
+  //           key.wallets.push(
+  //             merge(
+  //               wallet,
+  //               buildWalletObj(
+  //                 {
+  //                   ...wallet.credentials,
+  //                   currencyAbbreviation,
+  //                   currencyName,
+  //                 },
+  //                 tokenOpts,
+  //               ),
+  //             ),
+  //           );
+  //         } else {
+  //           key = buildKeyObj({
+  //             key: _key,
+  //             wallets: [
+  //               merge(
+  //                 wallet,
+  //                 buildWalletObj(
+  //                   {...wallet.credentials, currencyAbbreviation, currencyName},
+  //                   tokenOpts,
+  //                 ),
+  //               ),
+  //             ],
+  //             backupComplete: true,
+  //           });
+  //         }
+  //         // console.log("---------- 使用派生路径导入: 最后的key", JSON.stringify(key));
+  //         dispatch(
+  //           successImport({
+  //             key,
+  //           }),
+  //         );
+  //         resolve(key);
+  //       });
+  //     } catch (e) {
+  //       dispatch(failedImport());
+  //       reject(e);
+  //     }
+  //   });
+  // };
 
   /**
      * 使用此方法进行测试

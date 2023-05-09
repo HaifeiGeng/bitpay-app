@@ -177,7 +177,7 @@ const WalletInformation = () => {
         if (err) {
           const errStr =
             err instanceof Error ? err.message : JSON.stringify(err);
-          logger.error(`error [getStatus]: ${errStr}`);
+          logger.error(`error [getStatus]5: ${errStr}`);
           setIsLoading(false);
         } else if (status) {
           setCopayers(status.wallet.copayers);

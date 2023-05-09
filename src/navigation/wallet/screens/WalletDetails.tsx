@@ -1076,6 +1076,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                       },
                     }}
                     receive={{
+                      hide: fullWalletObj.credentials.cold,
                       cta: () => {
                         dispatch(
                           Analytics.track('Clicked Receive', {

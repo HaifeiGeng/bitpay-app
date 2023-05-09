@@ -45,13 +45,9 @@ import BoxInput from '../../../components/form/BoxInput';
 import {useLogger} from '../../../utils/hooks/useLogger';
 import {Key, KeyOptions} from '../../../store/wallet/wallet.models';
 import {
-  startCreateKeyWithOpts,
-  startCreateKeyWithOptsTest,
+  startCreateKeyWithOptsNew,
   startGetRates,
-  startImportMnemonic,
-  startImportWithDerivationPath,
   startImportPublicKey,
-  startImportFileTest
 } from '../../../store/wallet/effects';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {ImportObj} from '../../../store/scan/scan.models';
@@ -240,7 +236,7 @@ const RecoveryPubKey = () => {
                 await sleep(500);
                 if (derivationPathEnabled) {
                   const {text} = getValues();
-                  setOptsAndCreateTest(text, advancedOptions);
+                  setOptsAndCreateWithPubKey(text, advancedOptions);
                 } else {
                   // select coin to create
                   setRecreateWallet(true);
@@ -276,43 +272,53 @@ const RecoveryPubKey = () => {
     }
   };
 
-  const isValidPhrase = (words: string) => {
-    return words && words.trim().split(/[\u3000\s]+/).length % 3 === 0;
+  /**
+   * 校验公钥
+   * @param pubKey string
+   * @returns 
+   */
+  const isValidPhrasePublicKey = (pubKey: string) => {
+    if (pubKey.startsWith('xpub') || pubKey.startsWith('tpub')) {
+      return true;
+    }
+    return false;
   };
 
   const processImportQrCode = (code: string): void => {
     try {
-      const parsedCode = code.split('|');
-      const recoveryObj: ImportObj = {
-        type: parsedCode[0],
-        data: parsedCode[1],
-        hasPassphrase: parsedCode[4] === 'true' ? true : false,
-      };
+      // const parsedCode = code.split('|');
+      // const recoveryObj: ImportObj = {
+      //   type: parsedCode[0],
+      //   data: parsedCode[1],
+      //   hasPassphrase: parsedCode[4] === 'true' ? true : false,
+      // };
 
-      if (!isValidPhrase(recoveryObj.data)) {
-        showErrorModal(new Error(t('The recovery phrase is invalid.')));
+      if (!isValidPhrasePublicKey(code)) {
+        // showErrorModal(new Error(t('The recovery phrase is invalid.')));
+        showErrorModal(new Error(t('The public key is invalid.')));
         return;
       }
-      if (recoveryObj.type === '1' && recoveryObj.hasPassphrase) {
-        dispatch(
-          showBottomNotificationModal({
-            type: 'info',
-            title: t('Password required'),
-            message: t('Make sure to enter your password in advanced options'),
-            enableBackdropDismiss: true,
-            actions: [
-              {
-                text: t('OK'),
-                action: () => {},
-                primary: true,
-              },
-            ],
-          }),
-        );
-      }
-      setValue('text', recoveryObj.data);
+      // if (recoveryObj.type === '1' && recoveryObj.hasPassphrase) {
+      //   dispatch(
+      //     showBottomNotificationModal({
+      //       type: 'info',
+      //       title: t('Password required'),
+      //       message: t('Make sure to enter your password in advanced options'),
+      //       enableBackdropDismiss: true,
+      //       actions: [
+      //         {
+      //           text: t('OK'),
+      //           action: () => {},
+      //           primary: true,
+      //         },
+      //       ],
+      //     }),
+      //   );
+      // }
+      setValue('text', code);
     } catch (err) {
-      showErrorModal(new Error('The recovery phrase is invalid.'));
+      // showErrorModal(new Error('The recovery phrase is invalid.'));
+      showErrorModal(new Error(t('The public key is invalid.')));
     }
   };
 
@@ -393,6 +399,12 @@ const RecoveryPubKey = () => {
     keyOpts.includeLegacyWallets = includeLegacyWallets;
     // console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
     try {
+
+      if(!isValidPhrasePublicKey(text)){
+        logger.error('---------- 公钥有误，请检查');
+        showErrorModal(new Error(t('The public key is invalid.')));
+        return;
+      }
       setKeyOptions(keyOpts, advancedOptions);
     } catch (e: any) {
       logger.error(e.message);
@@ -441,69 +453,69 @@ const RecoveryPubKey = () => {
     }
   };
 
-  const setOptsAndCreate = async (
-    text: string,
-    advancedOpts: {
-      derivationPath: string;
-      coin: string;
-      chain: string;
-      passphrase: string | undefined;
-      isMultisig: boolean;
-    },
-  ): Promise<void> => {
-    try {
-      let keyOpts: Partial<KeyOptions> = {
-        name: dispatch(GetName(advancedOpts.coin!, advancedOpts.chain)),
-      };
+  // const setOptsAndCreate = async (
+  //   text: string,
+  //   advancedOpts: {
+  //     derivationPath: string;
+  //     coin: string;
+  //     chain: string;
+  //     passphrase: string | undefined;
+  //     isMultisig: boolean;
+  //   },
+  // ): Promise<void> => {
+  //   try {
+  //     let keyOpts: Partial<KeyOptions> = {
+  //       name: dispatch(GetName(advancedOpts.coin!, advancedOpts.chain)),
+  //     };
 
-      try {
-        setKeyOptions(keyOpts, advancedOpts);
-      } catch (e: any) {
-        logger.error(e.message);
-        showErrorModal(e);
-        return;
-      }
+  //     try {
+  //       setKeyOptions(keyOpts, advancedOpts);
+  //     } catch (e: any) {
+  //       logger.error(e.message);
+  //       showErrorModal(e);
+  //       return;
+  //     }
 
-      if (text.includes('xprv') || text.includes('tprv')) {
-        keyOpts.extendedPrivateKey = text;
-        keyOpts.seedType = 'extendedPrivateKey';
-      } else {
-        keyOpts.mnemonic = text;
-        keyOpts.seedType = 'mnemonic';
-        if (!isValidPhrase(text)) {
-          logger.error('Incorrect words length');
-          showErrorModal(new Error(t('The recovery phrase is invalid.')));
-          return;
-        }
-      }
+  //     if (text.includes('xprv') || text.includes('tprv')) {
+  //       keyOpts.extendedPrivateKey = text;
+  //       keyOpts.seedType = 'extendedPrivateKey';
+  //     } else {
+  //       keyOpts.mnemonic = text;
+  //       keyOpts.seedType = 'mnemonic';
+  //       if (!isValidPhrasePublicKey(text)) {
+  //         logger.error('Incorrect words length');
+  //         showErrorModal(new Error(t('The recovery phrase is invalid.')));
+  //         return;
+  //       }
+  //     }
 
-      await dispatch(startOnGoingProcessModal('CREATING_KEY'));
+  //     await dispatch(startOnGoingProcessModal('CREATING_KEY'));
 
-      const key = (await dispatch<any>(startCreateKeyWithOpts(keyOpts))) as Key;
-      await dispatch(startGetRates({}));
-      await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
-      await sleep(1000);
-      await dispatch(updatePortfolioBalance());
+  //     const key = (await dispatch<any>(startCreateKeyWithOpts(keyOpts))) as Key;
+  //     await dispatch(startGetRates({}));
+  //     await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
+  //     await sleep(1000);
+  //     await dispatch(updatePortfolioBalance());
 
-      dispatch(setHomeCarouselConfig({id: key.id, show: true}));
+  //     dispatch(setHomeCarouselConfig({id: key.id, show: true}));
 
-      backupRedirect({
-        context: route.params?.context,
-        navigation,
-        walletTermsAccepted,
-        key,
-      });
-      dispatch(dismissOnGoingProcessModal());
-      setRecreateWallet(false);
-    } catch (e: any) {
-      logger.error(e.message);
-      dispatch(dismissOnGoingProcessModal());
-      await sleep(500);
-      showErrorModal(e);
-      setRecreateWallet(false);
-      return;
-    }
-  };
+  //     backupRedirect({
+  //       context: route.params?.context,
+  //       navigation,
+  //       walletTermsAccepted,
+  //       key,
+  //     });
+  //     dispatch(dismissOnGoingProcessModal());
+  //     setRecreateWallet(false);
+  //   } catch (e: any) {
+  //     logger.error(e.message);
+  //     dispatch(dismissOnGoingProcessModal());
+  //     await sleep(500);
+  //     showErrorModal(e);
+  //     setRecreateWallet(false);
+  //     return;
+  //   }
+  // };
 
 
   /**
@@ -512,7 +524,7 @@ const RecoveryPubKey = () => {
    * @param advancedOpts 
    * @returns 
    */
-  const setOptsAndCreateTest = async (
+  const setOptsAndCreateWithPubKey = async (
     text: string,
     advancedOpts: {
       derivationPath: string;
@@ -535,24 +547,17 @@ const RecoveryPubKey = () => {
         return;
       }
 
-      if (text.includes('xprv') || text.includes('tprv')) {
-        keyOpts.extendedPrivateKey = text;
-        keyOpts.seedType = 'extendedPrivateKey';
-      } else if (text.includes('xpub') || text.includes('tpub')) {
+      if (text.includes('xpub') || text.includes('tpub')) {
         keyOpts.extendedPublicKey = text;
         keyOpts.seedType = 'extendedPublicKey';
       } else {
-        keyOpts.mnemonic = text;
-        keyOpts.seedType = 'mnemonic';
-        if (!isValidPhrase(text)) {
-          logger.error('Incorrect words length');
-          showErrorModal(new Error(t('The recovery phrase is invalid.')));
-          return;
-        }
+        logger.error(`---------- 公钥有误，请检查: pubkey = [${text}]`);
+        showErrorModal(new Error(t('The public key is invalid.')));
+        return;
       }
 
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
-      const key = (await dispatch<any>(startCreateKeyWithOptsTest(keyOpts))) as Key;
+      const key = (await dispatch<any>(startCreateKeyWithOptsNew(keyOpts))) as Key;
       // console.log('----------  初次创建key', JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
@@ -602,7 +607,8 @@ const RecoveryPubKey = () => {
         // is trying to create wallet in bws
         if (recreateWallet) {
           const {text} = getValues();
-          setOptsAndCreate(text, advancedOpts);
+          console.warn(`---------- 进入RecreateWallet方法  text = [${text}],  advancedOpts = [${advancedOpts}]`);
+          setOptsAndCreateWithPubKey(text, advancedOpts);
         }
       };
 

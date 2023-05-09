@@ -567,7 +567,7 @@ export const startCreateKeyWithOpts =
    * @param opts 
    * @returns 
    */
-  export const startCreateKeyWithOptsTest =
+  export const startCreateKeyWithOptsNew =
   (opts: Partial<KeyOptions>): Effect =>
   async (dispatch, getState): Promise<Key> => {
     return new Promise(async (resolve, reject) => {

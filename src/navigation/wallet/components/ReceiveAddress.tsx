@@ -129,10 +129,15 @@ const ReceiveAddress = ({isVisible, closeModal, wallet}: Props) => {
   };
 
   const setIsSingleAddress = () => {
+    console.log(`----------  isCold ? [${wallet?.credentials?.cold === '1'}] `);
+    if(wallet?.credentials?.cold === '1'){
+      // 如果是冷钱包， 不检查是否单一地址
+      return;
+    }
     wallet?.getStatus({network: wallet.network}, (err: any, status: Status) => {
       if (err) {
         const errStr = err instanceof Error ? err.message : JSON.stringify(err);
-        logger.error(`error [getStatus]: ${errStr}`);
+        logger.error(`error [getStatus]1: ${errStr}`);
       } else {
         setSingleAddress(status?.wallet?.singleAddress);
       }

@@ -447,7 +447,7 @@ const KeyOverview = () => {
           if (err) {
             const errStr =
               err instanceof Error ? err.message : JSON.stringify(err);
-            logger.error(`error [getStatus]: ${errStr}`);
+            logger.error(`error [getStatus]3: ${errStr}`);
           } else {
             navigation.navigate('Wallet', {
               screen: 'Copayers',
@@ -567,7 +567,7 @@ const KeyOverview = () => {
                   if (err) {
                     const errStr =
                       err instanceof Error ? err.message : JSON.stringify(err);
-                    logger.error(`error [getStatus]: ${errStr}`);
+                    logger.error(`error [getStatus]4: ${errStr}`);
                   } else {
                     if (status?.wallet?.status === 'complete') {
                       fullWalletObj.openWallet({}, () => {

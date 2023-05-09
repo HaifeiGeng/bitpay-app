@@ -46,13 +46,7 @@ import {useLogger} from '../../../utils/hooks/useLogger';
 import {Key, KeyOptions} from '../../../store/wallet/wallet.models';
 import {
   startCreateKeyWithOpts,
-  startCreateKeyWithOptsTest,
   startGetRates,
-  startImportMnemonic,
-  startImportWithDerivationPath,
-  startImportPublicKey,
-  startImportFileTest,
-  startImportColdWallet,
   startCreateKeyWithOptsCold
 } from '../../../store/wallet/effects';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -405,6 +399,7 @@ const RecoveryColdWallet = () => {
     // console.log("---------- 使用私钥导入冷钱包1", JSON.stringify(keyOpts));
     // console.log("---------- 使用私钥导入冷钱包2", text);
     const words = text;
+    // 校验助记词是否合法
     if (!isValidPhrase(words)) {
       logger.error('Incorrect words length');
       showErrorModal(new Error(t('The recovery phrase is invalid.')));
@@ -657,7 +652,7 @@ const RecoveryColdWallet = () => {
         <HeaderContainer>
           <ImportTitle>{t('Recovery phrase')}</ImportTitle>
 
-          <ScanContainer
+          {/* <ScanContainer
             activeOpacity={ActiveOpacity}
             onPress={() => {
               dispatch(
@@ -675,7 +670,7 @@ const RecoveryColdWallet = () => {
               });
             }}>
             <ScanSvg />
-          </ScanContainer>
+          </ScanContainer> */}
         </HeaderContainer>
 
         <Controller
