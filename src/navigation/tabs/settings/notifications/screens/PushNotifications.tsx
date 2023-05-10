@@ -36,9 +36,9 @@ const PushNotifications = () => {
   const [confirmedTx, setConfirmedTx] = useState(
     notificationsState.confirmedTx,
   );
-  const [annnouncements, setAnnouncements] = useState(
-    notificationsState.announcements,
-  );
+  // const [annnouncements, setAnnouncements] = useState(
+  //   notificationsState.announcements,
+  // );
   const [pushNotifications, setPushNotifications] = useState(
     notificationsState.pushNotifications,
   );
@@ -50,7 +50,7 @@ const PushNotifications = () => {
       onPress: async () => {
         const accepted = !pushNotifications;
         setPushNotifications(accepted);
-        setAnnouncements(accepted);
+        // setAnnouncements(accepted);
         setConfirmedTx(accepted);
         DeviceEventEmitter.emit(DeviceEmitterEvents.PUSH_NOTIFICATIONS, {
           accepted,
