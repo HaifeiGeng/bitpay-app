@@ -441,6 +441,7 @@ const KeyOverview = () => {
 
   useEffect(() => {
     if (context === 'createNewMultisigKey') {
+      // console.log(`---------- 多签创建完毕后 `);
       key?.wallets[0].getStatus(
         {network: key?.wallets[0].network},
         (err: any, status: Status) => {
@@ -449,13 +450,16 @@ const KeyOverview = () => {
               err instanceof Error ? err.message : JSON.stringify(err);
             logger.error(`error [getStatus]3: ${errStr}`);
           } else {
-            navigation.navigate('Wallet', {
-              screen: 'Copayers',
-              params: {
-                wallet: key?.wallets[0],
-                status: status?.wallet,
-              },
-            });
+            // console.log(`---------- 多签创建完毕后 回调函数的else 中 [${JSON.stringify(status?.wallet)}]`);
+            if (status?.wallet && status?.wallet?.status !== 'complete') {
+              navigation.navigate('Wallet', {
+                screen: 'Copayers',
+                params: {
+                  wallet: key?.wallets[0],
+                  status: status?.wallet,
+                },
+              });
+            }
           }
         },
       );
@@ -561,9 +565,11 @@ const KeyOverview = () => {
             haptic('impactLight');
             const fullWalletObj = key.wallets.find(k => k.id === item.id)!;
             if (!fullWalletObj.isComplete()) {
+              console.log(`---------- 点击钱包列表， 准备跳转钱包详情的时候 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
               fullWalletObj.getStatus(
                 {network: fullWalletObj.network},
                 (err: any, status: Status) => {
+                  console.log(`---------- 点击钱包列表， getStatus回调函数 status = [${JSON.stringify(status)}]`);
                   if (err) {
                     const errStr =
                       err instanceof Error ? err.message : JSON.stringify(err);

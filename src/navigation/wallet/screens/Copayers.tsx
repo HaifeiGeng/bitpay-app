@@ -97,6 +97,7 @@ const Copayers: React.FC<CopayersProps> = props => {
       wallet?.getStatus(
         {network: wallet?.network},
         (err: any, status: Status) => {
+          // console.log(`---------- 邀请界面，下拉刷新的时候， updateWalletStatus status = [${JSON.stringify(status)}]`);
           if (err) {
             const errStr =
               err instanceof Error ? err.message : JSON.stringify(err);

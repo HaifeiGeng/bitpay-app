@@ -108,8 +108,7 @@ const JoinReadonlyMultisig = () => {
     try {
       // console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
       if (key) {
-
-        console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   key不为空 = ', JSON.stringify(key));
+        // console.log(`---------- 加入共享钱包  JoinReadonlyMultisigWallet   key不为空 = [${JSON.stringify(key)}]`);
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -201,6 +200,7 @@ const JoinReadonlyMultisig = () => {
           },
         );
       } else {
+        // console.log(`---------- 加入共享钱包  JoinReadonlyMultisigWallet   key为空 opts = [${JSON.stringify(opts)}]`);
         dispatch(startOnGoingProcessModal('JOIN_WALLET'));
 
         const multisigKey = (await dispatch<any>(

@@ -274,7 +274,7 @@ const CreateReadonlyMultisig = () => {
   ): Promise<void> => {
     try {
       if (key) {
-        // console.log('---------- 进入if: ', JSON.stringify(key));
+        // console.log(`---------- 进入if 多签 : key = [${JSON.stringify(key)}]`);
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -286,7 +286,7 @@ const CreateReadonlyMultisig = () => {
             opts,
           }),
         )) as Wallet;
-        // console.log('---------- 进入if 多签 : ', JSON.stringify(wallet));
+        // console.log(`---------- 进入if 多签 : wallet = [${JSON.stringify(wallet)}]`);
         dispatch(
           Analytics.track('Created Multisig Wallet', {
             coin: currency?.toLowerCase(),
@@ -342,8 +342,7 @@ const CreateReadonlyMultisig = () => {
           },
         );
       } else {
-        // console.log('---------- 进入else: ', JSON.stringify(opts));
-
+        // console.log(`---------- 进入else 多签 : opts = [${JSON.stringify(opts)}]`);
         await dispatch(startOnGoingProcessModal('CREATING_KEY'));
         const multisigKey = (await dispatch<any>(
           startCreateReadonlyKeyMultisig(opts),
