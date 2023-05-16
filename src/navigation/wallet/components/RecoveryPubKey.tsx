@@ -332,6 +332,9 @@ const RecoveryPubKey = () => {
       isMultisig: boolean;
     },
   ) => {
+
+
+    console.log(`---------- setKeyOptions 方法内 准备创建之前:  includeTestnetWallets = [${includeTestnetWallets}] derivationPathEnabled = [${derivationPathEnabled}] keyOpts = [${JSON.stringify(keyOpts)}]，advancedOpts = [${JSON.stringify(advancedOpts)}] `)
     keyOpts.passphrase = advancedOpts.passphrase;
 
     // To clear encrypt password
@@ -342,7 +345,7 @@ const RecoveryPubKey = () => {
     if (derivationPathEnabled || recreateWallet) {
       const derivationPath = advancedOpts.derivationPath;
 
-      keyOpts.networkName = getNetworkName(derivationPath);
+      keyOpts.networkName = includeTestnetWallets ? 'testnet' : getNetworkName(derivationPath);
       keyOpts.derivationStrategy = getDerivationStrategy(derivationPath);
       keyOpts.account = getAccount(derivationPath);
 
@@ -397,7 +400,7 @@ const RecoveryPubKey = () => {
     let keyOpts: Partial<KeyOptions> = {};
     keyOpts.includeTestnetWallets = includeTestnetWallets;
     keyOpts.includeLegacyWallets = includeLegacyWallets;
-    // console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
+    console.log("---------- 导入观察钱包 - 点提交后的数据: ", JSON.stringify(formData), JSON.stringify(advancedOptions), JSON.stringify(keyOpts));
     try {
 
       if(!isValidPhrasePublicKey(text)){
@@ -555,10 +558,10 @@ const RecoveryPubKey = () => {
         showErrorModal(new Error(t('The public key is invalid.')));
         return;
       }
-
+      console.log(`---------- 准备创建之前: keyOpts = [${JSON.stringify(keyOpts)}]`)
       await dispatch(startOnGoingProcessModal('CREATING_KEY'));
       const key = (await dispatch<any>(startCreateKeyWithOptsNew(keyOpts))) as Key;
-      // console.log('----------  初次创建key', JSON.stringify(key));
+      console.log('----------  初次创建key', JSON.stringify(key));
       await dispatch(startGetRates({}));
       await dispatch(startUpdateAllWalletStatusForKey({key, force: true}));
       await sleep(1000);

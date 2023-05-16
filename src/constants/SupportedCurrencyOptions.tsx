@@ -6,6 +6,7 @@ import DogeIcon from '../../assets/img/currencies/doge.svg';
 import LtcIcon from '../../assets/img/currencies/ltc.svg';
 import XrpIcon from '../../assets/img/currencies/xrp.svg';
 import UsdcIcon from '../../assets/img/currencies/usdc.svg';
+import UsdtIcon from '../../assets/img/currencies/usdt.svg';
 import GusdIcon from '../../assets/img/currencies/gusd.svg';
 import BusdIcon from '../../assets/img/currencies/busd.svg';
 import DaiIcon from '../../assets/img/currencies/dai.svg';
@@ -43,6 +44,7 @@ export const CurrencyListIcons: {
   ltc: props => <LtcIcon {...props} />,
   xrp: props => <XrpIcon {...props} />,
   usdc_e: props => <UsdcIcon {...props} />,
+  usdt_e: props => <UsdtIcon {...props} />,
   gusd_e: props => <GusdIcon {...props} />,
   busd_e: props => <BusdIcon {...props} />,
   dai_e: props => <DaiIcon {...props} />,
@@ -141,6 +143,17 @@ export const SupportedTokenOptions: Array<SupportedCurrencyOption> = [
     chain: 'eth',
     isToken: true,
     imgSrc: require('../../assets/img/currencies/png/USDC.png'),
+    badgeSrc: require('../../assets/img/currencies/png/ETH.png'),
+    badgeUri: CurrencyListIcons.eth,
+  },
+  {
+    id: Math.random().toString(),
+    img: CurrencyListIcons.usdt_e,
+    currencyName: 'Tether USD',
+    currencyAbbreviation: 'usdt',
+    chain: 'eth',
+    isToken: true,
+    imgSrc: require('../../assets/img/currencies/png/USDT.png'),
     badgeSrc: require('../../assets/img/currencies/png/ETH.png'),
     badgeUri: CurrencyListIcons.eth,
   },

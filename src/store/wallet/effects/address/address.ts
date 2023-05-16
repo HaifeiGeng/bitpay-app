@@ -46,7 +46,7 @@ export const createWalletAddress =
       if (!wallet) {
         return reject();
       }
-
+      console.log(`----------  createWalletAddress 方法中， wallet = ${JSON.stringify(wallet)}`);
       if (!newAddress && wallet.receiveAddress) {
         dispatch(LogActions.info('returned cached wallet address'));
         return resolve(wallet.receiveAddress);

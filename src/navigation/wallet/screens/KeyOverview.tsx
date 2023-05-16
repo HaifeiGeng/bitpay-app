@@ -652,7 +652,23 @@ const KeyOverview = () => {
           );
         }}
         ListFooterComponent={() => {
+
+
+          console.log(`---------- key = [${JSON.stringify(key)}]`);
+
+
+
+          const chainList = key.wallets.map((wallet) => {
+            return wallet.credentials.chain
+          });
+          const chainSet = new Set(chainList);
+          const result = Array.from(chainSet);
+          // console.log(`---------- chainList = [${JSON.stringify(result)}]`);
+
           return null;
+          // if (result.includes('btc')) {
+          //   return null;
+          // }
           // return (
           //   <WalletListFooter
           //     activeOpacity={ActiveOpacity}
@@ -666,7 +682,7 @@ const KeyOverview = () => {
           //       });
           //     }}>
           //     <Icons.Add />
-          //     <WalletListFooterText>{t('Add Wallet') + '33'}</WalletListFooterText>
+          //     <WalletListFooterText>{t('Add Wallet')}</WalletListFooterText>
           //   </WalletListFooter>
           // );
         }}

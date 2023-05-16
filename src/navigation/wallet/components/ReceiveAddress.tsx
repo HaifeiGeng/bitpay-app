@@ -135,6 +135,7 @@ const ReceiveAddress = ({isVisible, closeModal, wallet}: Props) => {
       return;
     }
     wallet?.getStatus({network: wallet.network}, (err: any, status: Status) => {
+      // console.log(`----------  检查是否单一地址 ? [${JSON.stringify(status)}] `);
       if (err) {
         const errStr = err instanceof Error ? err.message : JSON.stringify(err);
         logger.error(`error [getStatus]1: ${errStr}`);
@@ -178,11 +179,12 @@ const ReceiveAddress = ({isVisible, closeModal, wallet}: Props) => {
   const createAddress = async (newAddress: boolean = false) => {
     let {currencyAbbreviation, network, chain} = wallet;
     const prefix = 'Could not create address';
-
+    // console.log(`----------  createAddress方法中， currencyAbbreviation = ${currencyAbbreviation}， newAddress = ${newAddress}`)
     try {
       const walletAddress = (await dispatch<any>(
         createWalletAddress({wallet, newAddress}),
       )) as string;
+      // console.log(`----------  createAddress方法中， walletAddress = ${walletAddress}`)
       setLoading(false);
       if (currencyAbbreviation === 'bch') {
         const protocolPrefix = dispatch(
@@ -196,6 +198,7 @@ const ReceiveAddress = ({isVisible, closeModal, wallet}: Props) => {
         setAddress(walletAddress);
       }
     } catch (createAddressErr: any) {
+      // console.log(`----------  createAddress方法中出现异常， createAddressErr = ${createAddressErr}`)
       switch (createAddressErr?.type) {
         case 'INVALID_ADDRESS_GENERATED':
           logger.error(createAddressErr.error);

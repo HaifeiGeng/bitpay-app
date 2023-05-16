@@ -325,7 +325,7 @@ const RecoveryPhrase = () => {
     if (derivationPathEnabled || recreateWallet) {
       const derivationPath = advancedOpts.derivationPath;
 
-      keyOpts.networkName = getNetworkName(derivationPath);
+      keyOpts.networkName = includeTestnetWallets ? 'testnet' : getNetworkName(derivationPath);
       keyOpts.derivationStrategy = getDerivationStrategy(derivationPath);
       keyOpts.account = getAccount(derivationPath);
 

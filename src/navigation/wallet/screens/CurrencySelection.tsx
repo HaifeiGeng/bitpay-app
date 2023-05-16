@@ -125,7 +125,8 @@ const SupportedMultisigCurrencyOptions: SupportedCurrencyOption[] =
   });
 
 const POPULAR_TOKENS: Record<string, string[]> = {
-  eth: ['usdc', 'busd', 'ape'],
+  // eth: ['usdc', 'usdt','busd', 'ape'],
+  eth: ['usdc', 'usdt'],
   matic: ['usdc', 'busd', 'ape'],
 };
 
@@ -249,10 +250,9 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
     // For each token, add it to the token list for its parent chain object
     const tokenOptions: Record<string, Token> = {
       ...BitpaySupportedTokenOpts,
-      ...appTokenOptions,
+      // ...appTokenOptions,
       ...appCustomTokenOptions,
     };
-
     Object.entries(tokenOptions).forEach(([k, tokenOpt]) => {
       if (
         !(
@@ -312,7 +312,6 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
         });
       }
     });
-
     setAllListItems(list);
   }, [
     t,
@@ -389,6 +388,7 @@ const CurrencySelection: React.VFC<CurrencySelectionScreenProps> = ({
               dispatch(setHomeCarouselConfig({id: createdKey.id, show: true}));
 
               navigation.navigate(
+                
                 context === 'onboarding' ? 'Onboarding' : 'Wallet',
                 {
                   screen: 'BackupKey',

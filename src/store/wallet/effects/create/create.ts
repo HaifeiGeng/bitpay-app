@@ -589,9 +589,9 @@ export const startCreateKeyWithOpts =
           passphrase: opts.passphrase,
         });
 
-        // console.log('---------- 钱包不存在, 准备创建钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
+        console.log('---------- 钱包不存在, 准备创建钱包, 参数 : key , opts', JSON.stringify(_key), JSON.stringify(opts));
         const _wallet = await createWalletWithOpts({key: _key, opts});
-        // console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
+        console.log('---------- 钱包不存在，创建钱包， _wallet : ', JSON.stringify(_wallet));
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {
           dispatch(subscribePushNotifications(_wallet, brazeEid!));

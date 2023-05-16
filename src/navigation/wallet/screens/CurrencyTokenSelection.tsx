@@ -256,17 +256,38 @@ const CurrencyTokenSelectionScreen: React.VFC<
         EVM_SUPPORTED_TOKENS_LENGTH[chain.currencyAbbreviation];
       const tokenLength =
         chain.currencyAbbreviation === 'eth' ? _tokenLength - 1 : _tokenLength;
+      // 原有的代码, 必须是存在other tokens  
+      // return (
+      //   <>
+      //     {index === 0 && searchFilter?.length === 0 ? (
+      //       <TokensHeading>
+      //         {t('PopularArgTokens', {currency: t(chain.currencyName)})} (
+      //         {tokenLength})
+      //       </TokensHeading>
+      //     ) : null}
+      //     {index === tokenLength && searchFilter?.length === 0 ? (
+      //       <TokensHeading>
+      //         {t('Other Tokens')} ({tokens.length - tokenLength})
+      //       </TokensHeading>
+      //     ) : null}
+      //     <TokenSelectionRow
+      //       key={item.id}
+      //       token={item}
+      //       hideCheckbox={params.hideCheckbox}
+      //       selectionMode={params.selectionMode}
+      //       onToggle={memoizedOnTokenToggle}
+      //     />
+      //   </>
+      // );
+
+
+      // 去除other tokens分类
       return (
         <>
           {index === 0 && searchFilter?.length === 0 ? (
             <TokensHeading>
               {t('PopularArgTokens', {currency: t(chain.currencyName)})} (
-              {tokenLength})
-            </TokensHeading>
-          ) : null}
-          {index === tokenLength && searchFilter?.length === 0 ? (
-            <TokensHeading>
-              {t('Other Tokens')} ({tokens.length - tokenLength})
+              {_tokenLength})
             </TokensHeading>
           ) : null}
           <TokenSelectionRow

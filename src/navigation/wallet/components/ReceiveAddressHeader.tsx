@@ -80,6 +80,7 @@ const ReceiveAddressHeader = ({
 }: Props) => {
   const {t} = useTranslation();
   const {currency} = contextHandlers || {};
+  console.log(`----------   ReceiveAddressHeader处理接收地址  contextHandlers = ${JSON.stringify(contextHandlers)}`)
   switch (currency) {
     case 'bch':
       const {disabled, activeItem, onPressChange, items} =

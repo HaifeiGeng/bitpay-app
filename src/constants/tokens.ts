@@ -14,67 +14,73 @@ export const BitpaySupportedEthereumTokenOpts: TokenOptsType = {
     decimals: 6,
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   },
-  usdp_e: {
-    name: 'Paxos Dollar',
-    symbol: 'USDP',
-    decimals: 18,
-    address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
-  },
-  pax_e: {
-    // backward compatibility
-    name: 'Paxos Standard',
-    symbol: 'PAX',
-    decimals: 18,
-    address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
-  },
-  gusd_e: {
-    name: 'Gemini Dollar',
-    symbol: 'GUSD',
-    decimals: 2,
-    address: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
-  },
-  busd_e: {
-    name: 'Binance USD',
-    symbol: 'BUSD',
-    decimals: 18,
-    address: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
-  },
-  dai_e: {
-    name: 'DAI',
-    symbol: 'DAI',
-    decimals: 18,
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-  },
-  wbtc_e: {
-    name: 'Wrapped Bitcoin',
-    symbol: 'WBTC',
-    decimals: 8,
-    address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-  },
-  shib_e: {
-    name: 'Shiba Inu',
-    symbol: 'SHIB',
-    decimals: 18,
-    address: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
-  },
-  ape_e: {
-    name: 'ApeCoin',
-    symbol: 'APE',
-    decimals: 18,
-    address: '0x4d224452801aced8b2f0aebe155379bb5d594381',
-  },
-  euroc_e: {
-    name: 'Euro Coin',
-    symbol: 'EUROC',
+  usdt_e: {
+    name: 'Tether USD',
+    symbol: 'USDT',
     decimals: 6,
-    address: '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c',
+    address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
   },
-  matic_e: {
-    name: 'Matic Token',
-    symbol: 'MATIC',
-    decimals: 18,
-    address: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
-  },
+  // usdp_e: {
+  //   name: 'Paxos Dollar',
+  //   symbol: 'USDP',
+  //   decimals: 18,
+  //   address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
+  // },
+  // pax_e: {
+  //   // backward compatibility
+  //   name: 'Paxos Standard',
+  //   symbol: 'PAX',
+  //   decimals: 18,
+  //   address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
+  // },
+  // gusd_e: {
+  //   name: 'Gemini Dollar',
+  //   symbol: 'GUSD',
+  //   decimals: 2,
+  //   address: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
+  // },
+  // busd_e: {
+  //   name: 'Binance USD',
+  //   symbol: 'BUSD',
+  //   decimals: 18,
+  //   address: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+  // },
+  // dai_e: {
+  //   name: 'DAI',
+  //   symbol: 'DAI',
+  //   decimals: 18,
+  //   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  // },
+  // wbtc_e: {
+  //   name: 'Wrapped Bitcoin',
+  //   symbol: 'WBTC',
+  //   decimals: 8,
+  //   address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  // },
+  // shib_e: {
+  //   name: 'Shiba Inu',
+  //   symbol: 'SHIB',
+  //   decimals: 18,
+  //   address: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
+  // },
+  // ape_e: {
+  //   name: 'ApeCoin',
+  //   symbol: 'APE',
+  //   decimals: 18,
+  //   address: '0x4d224452801aced8b2f0aebe155379bb5d594381',
+  // },
+  // euroc_e: {
+  //   name: 'Euro Coin',
+  //   symbol: 'EUROC',
+  //   decimals: 6,
+  //   address: '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c',
+  // },
+  // matic_e: {
+  //   name: 'Matic Token',
+  //   symbol: 'MATIC',
+  //   decimals: 18,
+  //   address: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
+  // },
 };
 
 export const BitpaySupportedMaticTokenOpts: TokenOptsType = {
@@ -128,60 +134,66 @@ export const BitpaySupportedEthereumTokenOptsByAddress: TokenOptsType = {
     decimals: 6,
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   },
-  '0x8e870d67f660d95d5be530380d0ec0bd388289e1_e': {
-    name: 'Paxos Dollar',
-    symbol: 'USDP',
-    decimals: 18,
-    address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
-  },
-  '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd_e': {
-    name: 'Gemini Dollar',
-    symbol: 'GUSD',
-    decimals: 2,
-    address: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
-  },
-  '0x4fabb145d64652a948d72533023f6e7a623c7c53_e': {
-    name: 'Binance USD',
-    symbol: 'BUSD',
-    decimals: 18,
-    address: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
-  },
-  '0x6b175474e89094c44da98b954eedeac495271d0f_e': {
-    name: 'DAI',
-    symbol: 'DAI',
-    decimals: 18,
-    address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-  },
-  '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599_e': {
-    name: 'Wrapped Bitcoin',
-    symbol: 'WBTC',
-    decimals: 8,
-    address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-  },
-  '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce_e': {
-    name: 'Shiba Inu',
-    symbol: 'SHIB',
-    decimals: 18,
-    address: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
-  },
-  '0x4d224452801aced8b2f0aebe155379bb5d594381_e': {
-    name: 'ApeCoin',
-    symbol: 'APE',
-    decimals: 18,
-    address: '0x4d224452801aced8b2f0aebe155379bb5d594381',
-  },
-  '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c_e': {
-    name: 'Euro Coin',
-    symbol: 'EUROC',
+  '0xdac17f958d2ee523a2206206994597c13d831ec7_e': {
+    name: 'Tether USD',
+    symbol: 'USDT',
     decimals: 6,
-    address: '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c',
+    address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
   },
-  '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0_e': {
-    name: 'Matic Token',
-    symbol: 'MATIC',
-    decimals: 18,
-    address: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
-  },
+  // '0x8e870d67f660d95d5be530380d0ec0bd388289e1_e': {
+  //   name: 'Paxos Dollar',
+  //   symbol: 'USDP',
+  //   decimals: 18,
+  //   address: '0x8e870d67f660d95d5be530380d0ec0bd388289e1',
+  // },
+  // '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd_e': {
+  //   name: 'Gemini Dollar',
+  //   symbol: 'GUSD',
+  //   decimals: 2,
+  //   address: '0x056fd409e1d7a124bd7017459dfea2f387b6d5cd',
+  // },
+  // '0x4fabb145d64652a948d72533023f6e7a623c7c53_e': {
+  //   name: 'Binance USD',
+  //   symbol: 'BUSD',
+  //   decimals: 18,
+  //   address: '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+  // },
+  // '0x6b175474e89094c44da98b954eedeac495271d0f_e': {
+  //   name: 'DAI',
+  //   symbol: 'DAI',
+  //   decimals: 18,
+  //   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  // },
+  // '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599_e': {
+  //   name: 'Wrapped Bitcoin',
+  //   symbol: 'WBTC',
+  //   decimals: 8,
+  //   address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  // },
+  // '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce_e': {
+  //   name: 'Shiba Inu',
+  //   symbol: 'SHIB',
+  //   decimals: 18,
+  //   address: '0x95ad61b0a150d79219dcf64e1e6cc01f0b64c4ce',
+  // },
+  // '0x4d224452801aced8b2f0aebe155379bb5d594381_e': {
+  //   name: 'ApeCoin',
+  //   symbol: 'APE',
+  //   decimals: 18,
+  //   address: '0x4d224452801aced8b2f0aebe155379bb5d594381',
+  // },
+  // '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c_e': {
+  //   name: 'Euro Coin',
+  //   symbol: 'EUROC',
+  //   decimals: 6,
+  //   address: '0x1abaea1f7c830bd89acc67ec4af516284b1bc33c',
+  // },
+  // '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0_e': {
+  //   name: 'Matic Token',
+  //   symbol: 'MATIC',
+  //   decimals: 18,
+  //   address: '0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0',
+  // },
 };
 
 export const BitpaySupportedMaticTokenOptsByAddress: TokenOptsType = {
