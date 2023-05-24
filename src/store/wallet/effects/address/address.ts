@@ -53,6 +53,7 @@ export const createWalletAddress =
       }
 
       if (wallet) {
+        console.log(`----------  createWalletAddress 准备开始创建地址， wallet = ${JSON.stringify(wallet)}`);
         const {keyId, id} = wallet;
         let {token, network, multisigEthInfo} = wallet.credentials;
 
@@ -111,6 +112,96 @@ export const createWalletAddress =
               }),
             );
             return resolve(receiveAddress);
+          }
+        });
+      }
+    });
+  };
+
+
+  export const createWalletCustomAddress =
+  ({
+    wallet,
+    newAddress = true,
+    paymentAddressEnabled,
+    paymentAddress
+  }: {
+    wallet: Wallet;
+    newAddress?: boolean;
+    paymentAddressEnabled: boolean;
+    paymentAddress: string
+  }): Effect<Promise<string>> =>
+  async dispatch => {
+    return new Promise((resolve, reject) => {
+      if (!wallet) {
+        return reject();
+      }
+      console.log(`----------  createWalletAddress 方法中， wallet = ${JSON.stringify(wallet)}`);
+      if (!newAddress && wallet.receiveAddress) {
+        dispatch(LogActions.info('returned cached wallet address'));
+        return resolve(wallet.receiveAddress);
+      }
+
+      if (wallet) {
+        console.log(`----------  createWalletAddress 准备开始创建地址， wallet = ${JSON.stringify(wallet)}`);
+        const {keyId, id} = wallet;
+        let {token, network, multisigEthInfo} = wallet.credentials;
+
+        if (multisigEthInfo?.multisigContractAddress) {
+          return resolve(multisigEthInfo.multisigContractAddress);
+        }
+
+        if (token) {
+          wallet.id.replace(`-${token.address}`, '');
+        }
+
+        wallet.createAddress({}, (err: any, addressObj: Address) => {
+          if (err) {
+            //  Rate limits after 20 consecutive addresses
+            if (err.name && err.name.includes('MAIN_ADDRESS_GAP_REACHED')) {
+              wallet.getMainAddresses(
+                {
+                  reverse: true,
+                  limit: 1,
+                },
+                (e: any, addr: Address[]) => {
+                  if (e) {
+                    reject({type: 'MAIN_ADDRESS_GAP_REACHED', error: e});
+                  }
+
+                  const receiveAddress = addr[0].address;
+                  dispatch(
+                    successGetReceiveAddress({
+                      keyId,
+                      walletId: id,
+                      receiveAddress : paymentAddressEnabled ? paymentAddress : receiveAddress,
+                    }),
+                  );
+
+                  return resolve(paymentAddressEnabled ? paymentAddress : receiveAddress);
+                },
+              );
+            } else {
+              return reject({type: 'GENERAL_ERROR', error: err});
+            }
+          } else if (
+            addressObj &&
+            !ValidateCoinAddress(addressObj.address, addressObj.coin, network)
+          ) {
+            reject({
+              type: 'INVALID_ADDRESS_GENERATED',
+              error: addressObj.address,
+            });
+          } else if (addressObj) {
+            const receiveAddress = addressObj.address;
+            dispatch(
+              successGetReceiveAddress({
+                keyId,
+                walletId: id,
+                receiveAddress : paymentAddressEnabled ? paymentAddress : receiveAddress,
+              }),
+            );
+            return resolve(paymentAddressEnabled ? paymentAddress : receiveAddress);
           }
         });
       }

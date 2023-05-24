@@ -470,8 +470,7 @@ const KeyOverview = () => {
     dispatch(Analytics.track('View Key'));
   }, []);
 
-  const {wallets = [], totalBalance} =
-    useAppSelector(({WALLET}) => WALLET.keys[id]) || {};
+  const {wallets = [], totalBalance} = useAppSelector(({WALLET}) => WALLET.keys[id]) || {};
 
   const memorizedWalletList = useMemo(() => {
     const coins = wallets.filter(
@@ -665,26 +664,26 @@ const KeyOverview = () => {
           const result = Array.from(chainSet);
           // console.log(`---------- chainList = [${JSON.stringify(result)}]`);
 
-          return null;
-          // if (result.includes('btc')) {
-          //   return null;
-          // }
-          // return (
-          //   <WalletListFooter
-          //     activeOpacity={ActiveOpacity}
-          //     onPress={() => {
-          //       haptic('impactLight');
-          //       navigation.navigate('Wallet', {
-          //         screen: 'AddingOptions',
-          //         params: {
-          //           key,
-          //         },
-          //       });
-          //     }}>
-          //     <Icons.Add />
-          //     <WalletListFooterText>{t('Add Wallet')}</WalletListFooterText>
-          //   </WalletListFooter>
-          // );
+          // return null;
+          if (result.includes('btc')) {
+            return null;
+          }
+          return (
+            <WalletListFooter
+              activeOpacity={ActiveOpacity}
+              onPress={() => {
+                haptic('impactLight');
+                navigation.navigate('Wallet', {
+                  screen: 'AddingOptions',
+                  params: {
+                    key,
+                  },
+                });
+              }}>
+              <Icons.Add />
+              <WalletListFooterText>{t('Add Wallet')}</WalletListFooterText>
+            </WalletListFooter>
+          );
         }}
         data={memorizedWalletList}
         renderItem={memoizedRenderItem}

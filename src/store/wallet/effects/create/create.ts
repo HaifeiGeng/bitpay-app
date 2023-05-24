@@ -119,6 +119,10 @@ export const addWallet =
   async (dispatch, getState): Promise<Wallet> => {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log(`---------- addWallet方法  key = ${JSON.stringify(key)}`);
+        console.log(`---------- addWallet方法  currency = ${JSON.stringify(currency)}`);
+        console.log(`---------- addWallet方法  associatedWallet = ${JSON.stringify(associatedWallet)}`);
+        console.log(`---------- addWallet方法  options = ${JSON.stringify(options)}`);
         let newWallet;
         const {
           APP: {
@@ -138,6 +142,7 @@ export const addWallet =
 
         if (currency.isToken) {
           if (!associatedWallet) {
+            console.log(`---------- addWallet方法  进入!associatedWallet方法1`);
             associatedWallet = (await createWallet({
               key: key.methods!,
               coin: currency.chain as SupportedCoins,
@@ -164,7 +169,7 @@ export const addWallet =
               ),
             );
           }
-
+          console.log(`---------- addWallet方法  进入!associatedWallet方法2`);
           newWallet = (await dispatch(
             createTokenWallet(
               associatedWallet,
@@ -172,12 +177,14 @@ export const addWallet =
               tokenOpts,
             ),
           )) as Wallet;
+          console.log(`---------- addWallet方法 if判断, newWallet  newWallet = ${JSON.stringify(newWallet)}`);
         } else {
           newWallet = (await createWallet({
             key: key.methods!,
             coin: currency.currencyAbbreviation as SupportedCoins,
             options,
           })) as Wallet;
+          console.log(`---------- addWallet方法 else判断, newWallet  newWallet = ${JSON.stringify(newWallet)}`);
         }
 
         if (!newWallet) {
@@ -421,12 +428,14 @@ const createTokenWallet =
   async (dispatch): Promise<API> => {
     return new Promise((resolve, reject) => {
       try {
+        console.log(`---------- createTokenWallet 方法  wallet = ${JSON.stringify(wallet)}, tokenName = ${tokenName}, tokenOpts = ${JSON.stringify(tokenOpts)}`);
         const bwcClient = BWC.getClient();
         const tokenCredentials: Credentials =
           wallet.credentials.getTokenCredentials(
             tokenOpts[addTokenChainSuffix(tokenName, wallet.credentials.chain)],
             wallet.credentials.chain,
           );
+        console.log(`---------- createTokenWallet 方法  tokenCredentials = ${JSON.stringify(tokenCredentials)}`);
         bwcClient.fromObj(tokenCredentials);
         // push walletId as reference - this is used later to build out nested overview lists
         wallet.tokens = wallet.tokens || [];
@@ -452,7 +461,7 @@ const createTokenWallet =
             );
             break;
         }
-
+        console.log(`---------- createTokenWallet 方法  savePreferences之前 wallet = ${JSON.stringify(wallet)}`);
         wallet.savePreferences(wallet.preferences, (err: any) => {
           if (err) {
             dispatch(LogActions.error(`Error saving token: ${tokenName}`));

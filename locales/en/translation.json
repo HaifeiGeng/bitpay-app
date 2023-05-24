@@ -1316,5 +1316,8 @@
   "Export Transaction History": "Export Transaction History",
   "View your wallets, card balance": "View your wallets, card balance",
   "You don’t have any crypto. Create a wallet, import a wallet.": "You don’t have any crypto. Create a wallet, import a wallet.",
-  "Signing...": "Signing..."
+  "Signing...": "Signing...",
+  
+  "Add new wallet":"Add new wallet",
+  "Specify the payment address":"Specify the payment address"
 }

@@ -83,6 +83,7 @@ import {
 } from '../../../store/wallet/effects/status/status';
 import {
   createWalletAddress,
+  createWalletCustomAddress,
   GetCoinAndNetwork,
 } from '../../../store/wallet/effects/address/address';
 import {addCustomTokenOption} from '../../../store/wallet/effects/currencies/currencies';
@@ -112,6 +113,10 @@ export type AddWalletParamList = {
   isToken?: boolean;
   isCustomToken?: boolean;
 };
+
+const InputContainer = styled.View`
+  padding: 18px;
+`;
 
 const CreateWalletContainer = styled.SafeAreaView`
   flex: 1;
@@ -260,6 +265,11 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
 
   const withinReceiveSettings = isWithinReceiveSettings(navigation.getParent());
 
+  // 自定义收款地址
+  const [paymentAddressEnabled, setPaymentAddressEnabled] = useState(false);
+
+  const [paymentAddress, setPaymentAddress] = useState('');
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => {
@@ -343,7 +353,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
         !IsERCToken(wallet.currencyAbbreviation, wallet.chain),
     );
     setEvmWallets(_evmWallets);
-
+    console.log(`---------- _setEvmWallets  _evmWallets = ${JSON.stringify(_evmWallets)}`);
     // formatting for the bottom modal
     const _UIFormattedEvmWallets = _evmWallets?.map(wallet =>
       buildUIFormattedWallet(
@@ -355,7 +365,8 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
     );
     setUIFormattedEvmWallets(_UIFormattedEvmWallets);
     setAssociatedWallet(_UIFormattedEvmWallets[0]);
-
+    
+    console.log(`---------- _setEvmWallets  setUIFormattedEvmWallets = ${JSON.stringify(_UIFormattedEvmWallets)}`);
     if (!_evmWallets?.length && isToken) {
       showMissingWalletMsg();
     }
@@ -378,6 +389,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
   ): Promise<Wallet> => {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log(`---------- _addWallet方法  _associatedWallet = ${JSON.stringify(_associatedWallet)} , walletName = ${JSON.stringify(walletName)}`);
         let password, _currencyAbbreviation: string | undefined;
         if (key.isPrivKeyEncrypted) {
           password = await dispatch(getDecryptPassword(key));
@@ -422,9 +434,10 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           }),
         );
 
+        console.log(`---------- _addWallet方法  wallet = ${JSON.stringify(wallet)}`);
         if (!wallet.receiveAddress) {
           const walletAddress = (await dispatch<any>(
-            createWalletAddress({wallet, newAddress: true}),
+            createWalletCustomAddress({wallet, newAddress: true, paymentAddressEnabled, paymentAddress}),
           )) as string;
           dispatch(LogActions.info(`new address generated: ${walletAddress}`));
         }
@@ -452,9 +465,17 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
 
   const add = handleSubmit(async ({walletName}) => {
     try {
+
+      console.log(`----------  currencyAbbreviation = ${JSON.stringify(currencyAbbreviation)}`)
+      console.log(`----------  currencyName = ${JSON.stringify(currencyName)}`)
+      console.log(`----------  associatedWallet = ${JSON.stringify(associatedWallet)}`)
+      console.log(`----------  isToken = ${JSON.stringify(isToken)}`)
+      console.log(`----------  paymentAddressEnabled = ${paymentAddressEnabled}， paymentAddress = ${paymentAddress}`)
+
+
       const currency = currencyAbbreviation!.toLowerCase();
       let _associatedWallet: Wallet | undefined;
-
+      console.log(`---------- add操作 isToken = [${isToken}] ， evmWallets = [${JSON.stringify(evmWallets)}]`);
       if (isToken) {
         _associatedWallet = evmWallets?.find(
           wallet => wallet.id === associatedWallet?.id,
@@ -633,6 +654,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           <Controller
             control={control}
             render={({field: {onChange, onBlur, value}}) => (
+              <>
               <BoxInput
                 placeholder={`${currencyAbbreviation} Wallet`}
                 label={isToken ? 'TOKEN NAME' : 'WALLET NAME'}
@@ -641,6 +663,42 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
                 error={errors.walletName?.message}
                 value={value}
               />
+
+              <AdvancedOptions>
+                <RowContainer
+                  activeOpacity={1}
+                  onPress={() => {
+                    setPaymentAddressEnabled(!paymentAddressEnabled);
+                  }}>
+                  <Column>
+                    <OptionTitle>{t('Specify the payment address')}</OptionTitle>
+                  </Column>
+                  <CheckBoxContainer>
+                    <Checkbox
+                      checked={paymentAddressEnabled}
+                      onPress={() => {
+                        setPaymentAddressEnabled(!paymentAddressEnabled);
+                      }}
+                    />
+                  </CheckBoxContainer>
+                </RowContainer>
+              </AdvancedOptions>
+
+              {paymentAddressEnabled && (
+                <AdvancedOptions>
+                  <InputContainer>
+                    <BoxInput
+                      // label={'DERIVATION PATH'}
+                      placeholder='0x****'
+                      onChangeText={(text: string) =>
+                        setPaymentAddress(text)
+                      }
+                      value={paymentAddress}
+                    />
+                  </InputContainer>
+                </AdvancedOptions>
+              )}
+              </>
             )}
             name="walletName"
             defaultValue={`${currencyName}`}
@@ -879,6 +937,13 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
               (!associatedWallet && isToken)
             }
             onPress={add}
+            // onPress={() => {
+            //   console.log(`----------  currencyAbbreviation = ${JSON.stringify(currencyAbbreviation)}`)
+            //   console.log(`----------  currencyName = ${JSON.stringify(currencyName)}`)
+            //   console.log(`----------  associatedWallet = ${JSON.stringify(associatedWallet)}`)
+            //   console.log(`----------  isToken = ${JSON.stringify(isToken)}`)
+            //   console.log(`----------  paymentAddressEnabled = ${paymentAddressEnabled}， paymentAddress = ${paymentAddress}`)
+            // }}
             buttonStyle={'primary'}>
             {t('Add ') +
               (isCustomToken
