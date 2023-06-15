@@ -114,6 +114,8 @@ export interface WalletObj {
   hideWallet?: boolean;
   hideBalance?: boolean;
   network: Network;
+  customAddressEnabled?: boolean;
+  customAddress?: string;
 }
 
 export interface KeyOptions {

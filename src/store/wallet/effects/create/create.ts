@@ -447,20 +447,25 @@ const createTokenWallet =
           maticTokenAddresses: [],
         };
 
+
+        console.log(`---------- createTokenWallet 方法 push address之前  !!wallet.customAddressEnabled = ${!!wallet.customAddressEnabled}`);
+        // @ts-ignore
+        let finalAddress = !!wallet.customAddressEnabled ? wallet.customAddress : tokenCredentials.token.address;
         switch (wallet.credentials.chain) {
           case 'eth':
             wallet.preferences.tokenAddresses?.push(
               // @ts-ignore
-              tokenCredentials.token.address,
+              finalAddress,
             );
             break;
           case 'matic':
             wallet.preferences.maticTokenAddresses?.push(
               // @ts-ignore
-              tokenCredentials.token.address,
+              finalAddress,
             );
             break;
         }
+        console.log(`---------- createTokenWallet 方法 push address之前  finalAddress = ${finalAddress}`);
         console.log(`---------- createTokenWallet 方法  savePreferences之前 wallet = ${JSON.stringify(wallet)}`);
         wallet.savePreferences(wallet.preferences, (err: any) => {
           if (err) {

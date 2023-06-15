@@ -481,6 +481,11 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           wallet => wallet.id === associatedWallet?.id,
         );
 
+        if(!!_associatedWallet){
+          _associatedWallet.customAddressEnabled = paymentAddressEnabled;
+          _associatedWallet.customAddress = paymentAddress;
+        }
+
         if (_associatedWallet?.tokens) {
           // check tokens within associated wallet and see if token already exist
           const {tokens} = _associatedWallet;
@@ -514,6 +519,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
         }
       }
 
+      // TODO 在添加钱包之前，检查一下   paymentAddress 这个变量能否set进去，
       const wallet = await _addWallet(_associatedWallet, walletName);
 
       if (!withinReceiveSettings) {
