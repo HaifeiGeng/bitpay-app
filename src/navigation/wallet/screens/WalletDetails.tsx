@@ -78,7 +78,7 @@ import ReceiveAddress from '../components/ReceiveAddress';
 import BalanceDetailsModal from '../components/BalanceDetailsModal';
 import Icons from '../components/WalletIcons';
 import { WalletScreens, WalletStackParamList } from '../WalletStack';
-import { buildUIFormattedWallet } from './KeyOverview';
+import { ETHERSCAN_API_KEY, buildUIFormattedWallet } from './KeyOverview';
 import { useAppDispatch, useAppSelector } from '../../../utils/hooks';
 import { getPriceHistory, startGetRates } from '../../../store/wallet/effects';
 import { createWalletAddress } from '../../../store/wallet/effects/address/address';
@@ -124,11 +124,20 @@ import { TRANSACTION_ICON_SIZE } from '../../../constants/TransactionIcons';
 import SentBadgeSvg from '../../../../assets/img/sent-badge.svg';
 import { Analytics } from '../../../store/analytics/analytics.effects';
 import SignByQrCode from '../components/SignByQrCode';
+import { decimalsMap } from '../../../components/list/WalletRow';
+
+import { ethers } from "ethers";
+import axios from 'axios';
+import Uuid from 'react-native-uuid'
+import bigInt from 'big-integer'
+
 
 export type WalletDetailsScreenParamList = {
   walletId: string;
   key?: Key;
   skipInitializeHistory?: boolean;
+  contract?: any,
+  updateBalance?: (walletId: string, sat: number) => void;
 };
 
 type WalletDetailsScreenProps = StackScreenProps<
@@ -286,7 +295,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const { t } = useTranslation();
   const [showWalletOptions, setShowWalletOptions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const { walletId, skipInitializeHistory } = route.params;
+  const { walletId, skipInitializeHistory, contract, updateBalance } = route.params;
   const { keys } = useAppSelector(({ WALLET }) => WALLET);
   const { rates } = useAppSelector(({ RATE }) => RATE);
   const countryData = useAppSelector(({ LOCATION }) => LOCATION.countryData);
@@ -297,7 +306,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const defaultAltCurrency = useAppSelector(({ APP }) => APP.defaultAltCurrency);
   const fullWalletObj = findWalletById(wallets, walletId) as Wallet;
   const key = keys[fullWalletObj.keyId];
-  const uiFormattedWallet = buildUIFormattedWallet(
+  let uiFormattedWallet = buildUIFormattedWallet(
     fullWalletObj,
     defaultAltCurrency.isoCode,
     rates,
@@ -311,6 +320,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const [showSignatureBottomModal, setShowSignatureBottomModal] = useState(false);
 
   const cold = fullWalletObj.credentials.cold;
+
+  
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -338,6 +349,13 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   useEffect(() => {
     setRefreshing(!!fullWalletObj.isRefreshing);
   }, [fullWalletObj.isRefreshing]);
+
+
+  const [isToken, setIsToken] = useState<boolean>(!!fullWalletObj.credentials?.token && !fullWalletObj.hideWallet && fullWalletObj.chain === 'eth');
+  const [hideSendButton, setHideSendButton] = useState<boolean>(!fullWalletObj.balance.sat);  
+  
+
+
 
   const ShareAddress = async () => {
     try {
@@ -444,10 +462,13 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     pendingTxps,
   } = uiFormattedWallet;
 
-  const showFiatBalance =
-    // @ts-ignore
-    Number(cryptoBalance.replaceAll(',', '')) > 0 &&
-    network !== Network.testnet;
+
+  // const showFiatBalance = Number(cryptoBalance.replaceAll(',', '')) > 0 && network !== Network.testnet;
+
+
+
+  // @ts-ignore
+  const [showFiatBalance, setShowFiatBalance] = useState<boolean>(Number(cryptoBalance.replaceAll(',', '')) > 0 && network !== Network.testnet);
 
   const [history, setHistory] = useState<any[]>([]);
   const [groupedHistory, setGroupedHistory] = useState<
@@ -458,6 +479,196 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const [errorLoadingTxs, setErrorLoadingTxs] = useState<boolean>();
   const [needActionPendingTxps, setNeedActionPendingTxps] = useState<any[]>([]);
   const [needActionUnsentTxps, setNeedActionUnsentTxps] = useState<any[]>([]);
+
+  // 为了方便更好的替换并重新渲染对应的货币数量
+  const [finalCryptoBalance, setFinalCryptoBalance] = useState<string>(cryptoBalance);
+  const [finalFiatBalance, setFinalFiatBalance] = useState<string>(fiatBalance);
+
+
+  useEffect(() => {
+    if(!isToken){
+      console.log(`----------  WalletDetail中  不是token, 跳过.`);
+      return;
+    }
+    console.log(`----------  WalletDetail中 isToken = [${isToken}] contract = [${JSON.stringify(contract)}]`);
+    console.log(`----------  WalletDetail中 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
+    // 查询余额
+    contract.balanceOf(fullWalletObj.receiveAddress).then((value: any) => {
+      const decimals = decimalsMap[currencyAbbreviation] || 18;
+      const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
+      console.log(`----------  WalletDetail中 查询到当前代币余额. formatCryptoBalance = [${formatCryptoBalance}]`);
+      setFinalCryptoBalance(formatCryptoBalance);
+      setShowFiatBalance(Number(value.toString()) > 0);
+      if (typeof updateBalance === 'function') {
+        console.log(`----------  WalletDetail中 更新Balance, 调用updateBalance方法.`);
+        updateBalance(fullWalletObj.id, Number(value.toString()));
+      }
+      fullWalletObj.balance.sat = Number(value.toString());
+      console.log(`----------  WalletDetail中 是否隐藏Send按钮 HideSendButton = [${!Number(value.toString())}]`);
+      // 防止不及时更新相关货币金额， 手动刷新
+      uiFormattedWallet = buildUIFormattedWallet(
+        fullWalletObj,
+        defaultAltCurrency.isoCode,
+        rates,
+        dispatch,
+        'symbol',
+      );
+      setHideSendButton(!Number(value.toString()));
+    });
+
+
+    /**
+     * 
+     * @param contractAddress USDT, USDC对应的address 
+     * @param address 
+     * @param address 
+     * @returns 
+     */
+    const fetchTransactionHistory = async (contractAddress:string, address: string, apikey: string) => {
+      const url = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
+      try {
+        const response = await axios.get(url);
+        return response.data.result;
+      } catch (error) {
+        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        throw error;
+      }
+    }
+
+    
+    fetchTransactionHistory('0xdac17f958d2ee523a2206206994597c13d831ec7', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
+      console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+
+
+
+      const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+      console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+      if(finalTxList.length === 0){
+        return;
+      }
+      const data = [
+        {
+          title: 'Recent',
+          data: finalTxList
+        }
+      ];
+      setGroupedHistory(data);
+    });
+
+
+
+    
+  }, [isToken]);
+
+
+
+  /**
+   * 保留{decimals}位小数
+   * @param value 小数点的值
+   * @returns string
+   */
+  const formatNumber = (value: number, decimals: number) => {
+    // console.log(`----------  WalletDetail中 formatNumber 开始转换  value = [${JSON.stringify(value)}] , decimals = [${JSON.stringify(decimals)}]`);
+    if(Number(value) === 0){
+      return '0';
+    }
+    const amount = value / Math.pow(10, decimals);
+    const formatted = amount.toFixed(6).replace(/(\.[0-9]*[1-9])0+$/, '$1');
+    // if(parseFloat(formatted) === 0){
+    //   return '0';
+    // }
+    // console.log(`----------  WalletDetail中 formatNumber 开始转换  parseFloat(formatted) = [${parseFloat(formatted).toString()}]`);
+    return parseFloat(formatted).toString();
+  }
+
+
+  const convertTransactionList = (inputArray: any[], chain: string, amountUnitStr: string, network: string, selfAddress:string) => {
+    const decimalsMap: { [key: string]: number } = {
+      ETH: 18, // ETH小数位为18
+      USDT: 6, // USDT小数位为6
+      USDC: 6, // USDC小数位为6
+      // 可以根据需要添加其他代币的小数位
+    };
+  
+    const chainDecimals = decimalsMap[chain] || 18;
+    const decimals = decimalsMap[amountUnitStr] || 18;
+
+    return inputArray.map((obj) => {
+
+      // console.log(`----------  WalletDetail中  convertTransactionList 开始转换  obj = [${JSON.stringify(obj)}]`);
+
+      let action, uiDescription;
+      if (obj.to.toLowerCase() === selfAddress.toLowerCase()) {
+        action = 'received';
+        uiDescription = 'Received';
+      } else if (obj.from.toLowerCase() === selfAddress.toLowerCase()) {
+        action = 'sent';
+        uiDescription = 'Sent';
+      }
+
+      const fees = bigInt(obj.gas.toString()).multiply(bigInt(obj.gasPrice.toString()));
+      const amount = bigInt(obj.value.toString());
+      const limit = bigInt(obj.gas.toString());
+
+      
+      const feesStr = formatNumber(fees.toJSNumber(), chainDecimals);
+      const amountStr = formatNumber(amount.toJSNumber(), decimals);
+      // console.log(`----------  WalletDetail中 转换后的值 feesStr = [${JSON.stringify(feesStr)}]   amountStr = [${JSON.stringify(amountStr)}] `);
+      const output = {
+        id: Uuid.v4(),
+        txid: obj.hash,
+        confirmations: obj.confirmations,
+        blockheight: obj.blockNumber,
+        fees: fees.toJSNumber(),
+        time: obj.timestamp,
+        size: null,
+        amount: amount.toJSNumber(),
+        action: action,
+        addressTo: obj.to,
+        outputs: [
+          {
+            address: obj.to,
+            amount: amount.toJSNumber(),
+            message: null,
+            amountStr: `${amountStr} ${amountUnitStr}`,
+          },
+        ],
+        dust: false,
+        error: null,
+        internal: [],
+        network: network === 'livenet' ? 'mainnet' : 'goerli',
+        chain: 'ETH',
+        data: obj.data,
+        abiType: null,
+        gasPrice: fees.toJSNumber(),
+        gasLimit: limit.toJSNumber(),
+        nonce: obj.nonce,
+        message: null,
+        creatorName: '',
+        hasUnconfirmedInputs: false,
+        amountStr: `${amountStr} ${amountUnitStr}`,
+        feeStr: `${feesStr} ${amountUnitStr}`,
+        amountValueStr: `${amountStr}`,
+        amountUnitStr: amountUnitStr,
+        safeConfirmed: obj.confirmations > 6 ? '6+' : obj.confirmations,
+        uiIcon: {
+          key: null,
+          ref: null,
+          props: {},
+          _owner: null,
+          _store: {},
+        },
+        uiDescription: uiDescription,
+        uiValue: `${amountStr} ${amountUnitStr}`,
+        uiTime: new Date(parseInt(obj.timeStamp) * 1000).toDateString(),
+        uiCreator: '',
+        timestamp: parseInt(obj.timeStamp),
+      };
+      // console.log(`----------  WalletDetail中  开始转换单个对象 output = [${JSON.stringify(output)}]`);
+      return output;
+    });
+  }
+
 
   const setNeedActionTxps = (pendingTxps: TransactionProposal[]) => {
     const txpsPending: TransactionProposal[] = [];
@@ -525,6 +736,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
           if (_history?.length) {
             setHistory(_history);
             const grouped = GroupTransactionHistory(_history);
+            console.log(`------------------  历史记录： ${JSON.stringify(grouped)}`);
             setGroupedHistory(grouped);
           }
 
@@ -558,6 +770,9 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if(cold){
       return;
     }
+    if(isToken){
+      return;
+    }
     dispatch(
       Analytics.track('View Wallet', {
         coin: fullWalletObj?.currencyAbbreviation,
@@ -578,6 +793,9 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   useEffect(() => {
     // 如果是冷钱包， 不走刷新功能
     if(cold){
+      return;
+    }
+    if(isToken){
       return;
     }
     if (!skipInitializeHistory) {
@@ -880,15 +1098,16 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     return (
       <TransactionRow
         icon={
-          item.customData?.recipientEmail ? (
-            <ContactIcon
-              name={item.customData?.recipientEmail}
-              size={TRANSACTION_ICON_SIZE}
-              badge={<SentBadgeSvg />}
-            />
-          ) : (
-            item.uiIcon
-          )
+          isToken ? null :
+            item.customData?.recipientEmail ? (
+              <ContactIcon
+                name={item.customData?.recipientEmail}
+                size={TRANSACTION_ICON_SIZE}
+                badge={<SentBadgeSvg />}
+              />
+            ) : (
+              item.uiIcon
+            )
         }
         iconURI={item.uiIconURI}
         description={item.uiDescription}
@@ -946,8 +1165,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                     }}>
                     <Row>
                       {!hideBalance ? (
-                        <Balance scale={shouldScale(cryptoBalance)}>
-                          {cryptoBalance} {currencyAbbreviation}
+                        <Balance scale={shouldScale(finalCryptoBalance)}>
+                          {finalCryptoBalance} {currencyAbbreviation}
                         </Balance>
                       ) : (
                         <H2>****</H2>
@@ -955,7 +1174,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                     </Row>
                     <Row>
                       {showFiatBalance && !hideBalance && (
-                        <Paragraph>{fiatBalance}</Paragraph>
+                        <Paragraph>{finalFiatBalance}</Paragraph>
                       )}
                     </Row>
                   </TouchableOpacity>
@@ -1088,7 +1307,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                       },
                     }}
                     send={{
-                      hide: !fullWalletObj.balance.sat,
+                      hide: hideSendButton,
                       cta: () => {
                         dispatch(
                           Analytics.track('Clicked Send', {

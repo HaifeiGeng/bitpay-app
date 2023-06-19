@@ -74,6 +74,8 @@ import {COINBASE_ENV} from '../../../api/coinbase/coinbase.constants';
 import CoinbaseDropdownOption from '../components/CoinbaseDropdownOption';
 import {Analytics} from '../../../store/analytics/analytics.effects';
 
+import { ethers } from "ethers";
+
 LogBox.ignoreLogs([
   'Non-serializable values were found in the navigation state',
 ]);
@@ -158,6 +160,157 @@ const HeaderRightContainer = styled(_HeaderRightContainer)`
   align-items: center;
 `;
 
+
+//#region 
+// export const buildUIFormattedWallet: (
+//   wallet: Wallet,
+//   defaultAltCurrencyIsoCode: string,
+//   rates: Rates,
+//   dispatch: AppDispatch,
+//   currencyDisplay?: 'symbol',
+// ) => WalletRowProps = (
+//   {
+//     id,
+//     img,
+//     badgeImg,
+//     currencyName,
+//     currencyAbbreviation,
+//     chain,
+//     network,
+//     walletName,
+//     balance,
+//     credentials,
+//     keyId,
+//     isRefreshing,
+//     hideWallet,
+//     hideBalance,
+//     pendingTxps,
+//   },
+//   defaultAltCurrencyIsoCode,
+//   rates,
+//   dispatch,
+//   currencyDisplay,
+// ) => ({
+//   id,
+//   keyId,
+//   img,
+//   badgeImg,
+//   currencyName,
+//   currencyAbbreviation: currencyAbbreviation.toUpperCase(),
+//   chain,
+//   walletName: walletName || credentials.walletName,
+//   cryptoBalance: balance.crypto,
+//   cryptoLockedBalance: balance.cryptoLocked,
+//   cryptoConfirmedLockedBalance: balance.cryptoConfirmedLocked,
+//   cryptoSpendableBalance: balance.cryptoSpendable,
+//   cryptoPendingBalance: balance.cryptoPending,
+//   fiatBalance: formatFiatAmount(
+//     convertToFiat(
+//       dispatch(
+//         toFiat(
+//           balance.sat,
+//           defaultAltCurrencyIsoCode,
+//           currencyAbbreviation,
+//           chain,
+//           rates,
+//         ),
+//       ),
+//       hideWallet,
+//       network,
+//     ),
+//     defaultAltCurrencyIsoCode,
+//     {
+//       currencyDisplay,
+//     },
+//   ),
+//   fiatLockedBalance: formatFiatAmount(
+//     convertToFiat(
+//       dispatch(
+//         toFiat(
+//           balance.satLocked,
+//           defaultAltCurrencyIsoCode,
+//           currencyAbbreviation,
+//           chain,
+//           rates,
+//         ),
+//       ),
+//       hideWallet,
+//       network,
+//     ),
+//     defaultAltCurrencyIsoCode,
+//     {
+//       currencyDisplay,
+//     },
+//   ),
+//   fiatConfirmedLockedBalance: formatFiatAmount(
+//     convertToFiat(
+//       dispatch(
+//         toFiat(
+//           balance.satConfirmedLocked,
+//           defaultAltCurrencyIsoCode,
+//           currencyAbbreviation,
+//           chain,
+//           rates,
+//         ),
+//       ),
+//       hideWallet,
+//       network,
+//     ),
+//     defaultAltCurrencyIsoCode,
+//     {
+//       currencyDisplay,
+//     },
+//   ),
+//   fiatSpendableBalance: formatFiatAmount(
+//     convertToFiat(
+//       dispatch(
+//         toFiat(
+//           balance.satSpendable,
+//           defaultAltCurrencyIsoCode,
+//           currencyAbbreviation,
+//           chain,
+//           rates,
+//         ),
+//       ),
+//       hideWallet,
+//       network,
+//     ),
+//     defaultAltCurrencyIsoCode,
+//     {
+//       currencyDisplay,
+//     },
+//   ),
+//   fiatPendingBalance: formatFiatAmount(
+//     convertToFiat(
+//       dispatch(
+//         toFiat(
+//           balance.satPending,
+//           defaultAltCurrencyIsoCode,
+//           currencyAbbreviation,
+//           chain,
+//           rates,
+//         ),
+//       ),
+//       hideWallet,
+//       network,
+//     ),
+//     defaultAltCurrencyIsoCode,
+//     {
+//       currencyDisplay,
+//     },
+//   ),
+//   network: network,
+//   isRefreshing,
+//   hideWallet,
+//   hideBalance,
+//   pendingTxps,
+//   multisig:
+//     credentials.n > 1
+//       ? `- Multisig ${credentials.m}/${credentials.n}`
+//       : undefined,
+// });
+//#endregion
+
 export const buildUIFormattedWallet: (
   wallet: Wallet,
   defaultAltCurrencyIsoCode: string,
@@ -165,54 +318,55 @@ export const buildUIFormattedWallet: (
   dispatch: AppDispatch,
   currencyDisplay?: 'symbol',
 ) => WalletRowProps = (
-  {
-    id,
-    img,
-    badgeImg,
-    currencyName,
-    currencyAbbreviation,
-    chain,
-    network,
-    walletName,
-    balance,
-    credentials,
-    keyId,
-    isRefreshing,
-    hideWallet,
-    hideBalance,
-    pendingTxps,
-  },
+  // {
+  //   id,
+  //   img,
+  //   badgeImg,
+  //   currencyName,
+  //   currencyAbbreviation,
+  //   chain,
+  //   network,
+  //   walletName,
+  //   balance,
+  //   credentials,
+  //   keyId,
+  //   isRefreshing,
+  //   hideWallet,
+  //   hideBalance,
+  //   pendingTxps,
+  // },
+  wallet,
   defaultAltCurrencyIsoCode,
   rates,
   dispatch,
   currencyDisplay,
 ) => ({
-  id,
-  keyId,
-  img,
-  badgeImg,
-  currencyName,
-  currencyAbbreviation: currencyAbbreviation.toUpperCase(),
-  chain,
-  walletName: walletName || credentials.walletName,
-  cryptoBalance: balance.crypto,
-  cryptoLockedBalance: balance.cryptoLocked,
-  cryptoConfirmedLockedBalance: balance.cryptoConfirmedLocked,
-  cryptoSpendableBalance: balance.cryptoSpendable,
-  cryptoPendingBalance: balance.cryptoPending,
+  id: wallet.id,
+  keyId: wallet.keyId,
+  img: wallet.img,
+  badgeImg: wallet.badgeImg,
+  currencyName: wallet.currencyName,
+  currencyAbbreviation: wallet.currencyAbbreviation.toUpperCase(),
+  chain: wallet.chain,
+  walletName: wallet.walletName || wallet.credentials.walletName,
+  cryptoBalance: wallet.balance.crypto,
+  cryptoLockedBalance: wallet.balance.cryptoLocked,
+  cryptoConfirmedLockedBalance: wallet.balance.cryptoConfirmedLocked,
+  cryptoSpendableBalance: wallet.balance.cryptoSpendable,
+  cryptoPendingBalance: wallet.balance.cryptoPending,
   fiatBalance: formatFiatAmount(
     convertToFiat(
       dispatch(
         toFiat(
-          balance.sat,
+          wallet.balance.sat,
           defaultAltCurrencyIsoCode,
-          currencyAbbreviation,
-          chain,
+          wallet.currencyAbbreviation,
+          wallet.chain,
           rates,
         ),
       ),
-      hideWallet,
-      network,
+      wallet.hideWallet,
+      wallet.network,
     ),
     defaultAltCurrencyIsoCode,
     {
@@ -223,15 +377,15 @@ export const buildUIFormattedWallet: (
     convertToFiat(
       dispatch(
         toFiat(
-          balance.satLocked,
+          wallet.balance.satLocked,
           defaultAltCurrencyIsoCode,
-          currencyAbbreviation,
-          chain,
+          wallet.currencyAbbreviation,
+          wallet.chain,
           rates,
         ),
       ),
-      hideWallet,
-      network,
+      wallet.hideWallet,
+      wallet.network,
     ),
     defaultAltCurrencyIsoCode,
     {
@@ -242,15 +396,15 @@ export const buildUIFormattedWallet: (
     convertToFiat(
       dispatch(
         toFiat(
-          balance.satConfirmedLocked,
+          wallet.balance.satConfirmedLocked,
           defaultAltCurrencyIsoCode,
-          currencyAbbreviation,
-          chain,
+          wallet.currencyAbbreviation,
+          wallet.chain,
           rates,
         ),
       ),
-      hideWallet,
-      network,
+      wallet.hideWallet,
+      wallet.network,
     ),
     defaultAltCurrencyIsoCode,
     {
@@ -261,15 +415,15 @@ export const buildUIFormattedWallet: (
     convertToFiat(
       dispatch(
         toFiat(
-          balance.satSpendable,
+          wallet.balance.satSpendable,
           defaultAltCurrencyIsoCode,
-          currencyAbbreviation,
-          chain,
+          wallet.currencyAbbreviation,
+          wallet.chain,
           rates,
         ),
       ),
-      hideWallet,
-      network,
+      wallet.hideWallet,
+      wallet.network,
     ),
     defaultAltCurrencyIsoCode,
     {
@@ -280,30 +434,31 @@ export const buildUIFormattedWallet: (
     convertToFiat(
       dispatch(
         toFiat(
-          balance.satPending,
+          wallet.balance.satPending,
           defaultAltCurrencyIsoCode,
-          currencyAbbreviation,
-          chain,
+          wallet.currencyAbbreviation,
+          wallet.chain,
           rates,
         ),
       ),
-      hideWallet,
-      network,
+      wallet.hideWallet,
+      wallet.network,
     ),
     defaultAltCurrencyIsoCode,
     {
       currencyDisplay,
     },
   ),
-  network: network,
-  isRefreshing,
-  hideWallet,
-  hideBalance,
-  pendingTxps,
+  network: wallet.network,
+  isRefreshing: wallet.isRefreshing,
+  hideWallet: wallet.hideWallet,
+  hideBalance: wallet.hideBalance,
+  pendingTxps: wallet.pendingTxps,
   multisig:
-    credentials.n > 1
-      ? `- Multisig ${credentials.m}/${credentials.n}`
+    wallet.credentials.n > 1
+      ? `- Multisig ${wallet.credentials.m}/${wallet.credentials.n}`
       : undefined,
+  currentWallet: wallet,
 });
 
 // Key overview list builder
@@ -341,6 +496,9 @@ export const buildNestedWalletList = (
 
   return walletList;
 };
+export const ETHERSCAN_API_KEY = '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F';
+export const INFURA_API_KEY = '7dc74fd8880c433ea68f136756979dc2';
+export const USDT_USDC_ABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_upgradedAddress","type":"address"}],"name":"deprecate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_evilUser","type":"address"}],"name":"addBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"upgradedAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balances","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maximumFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unpause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_maker","type":"address"}],"name":"getBlackListStatus","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowed","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paused","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"pause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newBasisPoints","type":"uint256"},{"name":"newMaxFee","type":"uint256"}],"name":"setParams","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"issue","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"redeem","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"basisPointsRate","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isBlackListed","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_clearedUser","type":"address"}],"name":"removeBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"MAX_UINT","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_blackListedUser","type":"address"}],"name":"destroyBlackFunds","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_initialSupply","type":"uint256"},{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Issue","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Redeem","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newAddress","type":"address"}],"name":"Deprecate","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"feeBasisPoints","type":"uint256"},{"indexed":false,"name":"maxFee","type":"uint256"}],"name":"Params","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_blackListedUser","type":"address"},{"indexed":false,"name":"_balance","type":"uint256"}],"name":"DestroyedBlackFunds","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"AddedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"RemovedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[],"name":"Pause","type":"event"},{"anonymous":false,"inputs":[],"name":"Unpause","type":"event"}];
 
 const KeyOverview = () => {
   const {t} = useTranslation();
@@ -491,6 +649,21 @@ const KeyOverview = () => {
 
   const keyOptions: Array<Option> = [];
 
+
+
+  const updateBalance = (walletId: string, sat: number): void => {
+    let currentWallet = null;
+    for (let i = 0; i < wallets.length; i++) {
+      const wallet = wallets[i];
+      if(wallet.id === walletId){
+        console.log(`----------  updateBalance 接收的参数: walletId = [${walletId}]    sat = [${sat}]  `);
+        currentWallet = wallets[i];
+        currentWallet.balance.sat = sat;
+        wallets[i] = currentWallet;
+      }
+    }
+  }
+
   if (!key?.methods?.isPrivKeyEncrypted()) {
     if (!key?.isReadOnly) {
       keyOptions.push({
@@ -554,12 +727,40 @@ const KeyOverview = () => {
     setRefreshing(false);
   };
 
+  /**
+   * 获取Token ontract
+   * @param network string 当前网络
+   * @param tokenAddress string 代币地址
+   * @param currencyAbbreviation string 货币缩写
+   * @returns 
+   */
+  const getTokenContract = (network: string, tokenAddress: string, currencyAbbreviation: string) => {
+    console.log(`----------  WalletRow中 当前token获取合约对象, 入参: network = [${network}]  tokenAddress = [${tokenAddress}]  currencyAbbreviation = [${currencyAbbreviation}]    `);
+    const provider = new ethers.providers.EtherscanProvider(network === 'livenet' ? 'homestead' : 'goerli', ETHERSCAN_API_KEY);
+    let abi = null;
+    if(currencyAbbreviation === 'usdc'){
+      abi = USDT_USDC_ABI;
+    } else if(currencyAbbreviation === 'usdt'){
+      abi = USDT_USDC_ABI;
+    } else {
+      console.error(`---------- WalletRow中 未找到对应的代币数据. 停止.`)
+      throw new Error('currencyAbbreviation error');
+    }
+    return new ethers.Contract(tokenAddress, abi, provider);
+  }
+
   const memoizedRenderItem = useCallback(
     ({item}: {item: WalletRowProps}) => {
+      let contract: any = undefined;
+      if(item.isToken) {
+        contract = getTokenContract(item.network, item.currentWallet.credentials?.token?.address, item.currentWallet.currencyAbbreviation);
+      }
       return (
         <WalletRow
           id={item.id}
           wallet={item}
+          updateBalance={(walletId: string, sat: number) => {updateBalance(walletId, sat)}}
+          contract={contract}
           onPress={() => {
             haptic('impactLight');
             const fullWalletObj = key.wallets.find(k => k.id === item.id)!;
@@ -602,6 +803,8 @@ const KeyOverview = () => {
                 params: {
                   key,
                   walletId: item.id,
+                  contract,
+                  updateBalance
                 },
               });
             }

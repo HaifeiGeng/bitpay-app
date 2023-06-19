@@ -1,4 +1,4 @@
-import React, {memo, ReactElement} from 'react';
+import React, {memo, ReactElement, useEffect, useState} from 'react';
 import {
   Column,
   CurrencyImageContainer,
@@ -16,6 +16,9 @@ import {CoinbaseAccountProps} from '../../api/coinbase/coinbase.types';
 import NestedArrowIcon from '../nested-arrow/NestedArrow';
 import {getProtocolName} from '../../utils/helper-methods';
 import {Platform} from 'react-native';
+
+import { ethers } from "ethers";
+import { Wallet } from '../../store/wallet/wallet.models';
 
 const BadgeContainer = styled.View`
   margin-left: 3px;
@@ -58,6 +61,7 @@ export interface WalletRowProps {
   pendingTxps: TransactionProposal[];
   coinbaseAccount?: CoinbaseAccountProps;
   multisig?: string;
+  currentWallet: Wallet;
 }
 
 interface Props {
@@ -66,6 +70,8 @@ interface Props {
   hideIcon?: boolean;
   isLast?: boolean;
   onPress: () => void;
+  updateBalance: (walletId: string, sat: number) => void;
+  contract?: any;
 }
 
 export const buildTestBadge = (
@@ -86,10 +92,17 @@ export const buildTestBadge = (
   );
 };
 
-const WalletRow = ({wallet, hideIcon, onPress, isLast}: Props) => {
+export const decimalsMap: { [key: string]: number } = {
+  ETH: 18, // ETH小数位为18
+  USDT: 6, // USDT小数位为6
+  USDC: 6, // USDC小数位为6
+  // 可以根据需要添加其他代币的小数位
+};
+
+const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}: Props) => {
   const {
     currencyName,
-    currencyAbbreviation,
+    currencyAbbreviation, // 上游转换成了大写
     chain,
     walletName,
     img,
@@ -100,10 +113,39 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast}: Props) => {
     network,
     hideBalance,
     multisig,
+    currentWallet,
   } = wallet;
 
+  const [finalCryptoBalance, setFinalCryptoBalance] = useState<string>(cryptoBalance);
+  const [finalFiatBalance, setFinalFiatBalance] = useState<string>(fiatBalance);
   // @ts-ignore
-  const showFiatBalance = Number(cryptoBalance.replaceAll(',', '')) > 0;
+  const [showFiatBalance, setShowFiatBalance] = useState<boolean>(Number(cryptoBalance.replaceAll(',', '')) > 0 && network !== Network.testnet);
+
+  
+
+
+  useEffect(() => {
+    if(!isToken){
+      console.log(`----------  WalletRow中  不是token, 跳过.`);
+      return;
+    }
+    if(!contract){
+      console.log(`----------  WalletRow中  contract不存在, 跳过.`);
+      return;
+    }
+    console.log(`----------  WalletRow中 WalletRow中, 当前渲染的token为  是否token = [${isToken}] 是否展示余额 = [${showFiatBalance}] chain = [${chain}] currencyName = [${currencyName}]  currencyAbbreviation = [${currencyAbbreviation}] walletName = [${walletName}] cryptoBalance = [${cryptoBalance}] fiatBalance = [${fiatBalance}]`);
+    console.log(`----------  WalletRow中 当前详细钱包数据 currentWallet = [${JSON.stringify(currentWallet)}]`);
+    contract.balanceOf(currentWallet.receiveAddress).then((value: any) => {
+      const decimals = decimalsMap[currencyAbbreviation] || 18;
+      const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
+      console.log(`----------  WalletRow中 查询到当前代币余额. formatCryptoBalance = [${formatCryptoBalance}]`);
+      setFinalCryptoBalance(formatCryptoBalance);
+      setShowFiatBalance(Number(value.toString()) > 0);
+      updateBalance(wallet.id, Number(value.toString()));
+    });
+  }, [isToken]);
+
+
 
   return (
     <RowContainer
@@ -141,11 +183,11 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast}: Props) => {
         {!hideBalance ? (
           <>
             <H5 numberOfLines={1} ellipsizeMode="tail">
-              {cryptoBalance}
+              {finalCryptoBalance}
             </H5>
             {showFiatBalance && (
               <ListItemSubText textAlign={'right'}>
-                {network === 'testnet' ? 'Test - No Value' : fiatBalance}
+                {network === 'testnet' ? 'Test - No Value' : finalFiatBalance}
               </ListItemSubText>
             )}
           </>
