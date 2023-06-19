@@ -124,6 +124,7 @@ import { TRANSACTION_ICON_SIZE } from '../../../constants/TransactionIcons';
 import SentBadgeSvg from '../../../../assets/img/sent-badge.svg';
 import { Analytics } from '../../../store/analytics/analytics.effects';
 import SignByQrCode from '../components/SignByQrCode';
+import SignEthByQrCode from '../components/SignEthByQrCode';
 import { decimalsMap } from '../../../components/list/WalletRow';
 
 import { ethers } from "ethers";
@@ -318,6 +319,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const [showBalanceDetailsModal, setShowBalanceDetailsModal] = useState(false);
   const walletType = getWalletType(key, fullWalletObj);
   const [showSignatureBottomModal, setShowSignatureBottomModal] = useState(false);
+  const [showEthSignatureBottomModal, setShowEthSignatureBottomModal] = useState(false);
 
   const cold = fullWalletObj.credentials.cold;
 
@@ -488,6 +490,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   useEffect(() => {
     if(!isToken){
       console.log(`----------  WalletDetail中  不是token, 跳过.`);
+      return;
+    }
+    if(!contract){
+      console.log(`----------  WalletDetail中  contract不存在, 跳过.`);
       return;
     }
     console.log(`----------  WalletDetail中 isToken = [${isToken}] contract = [${JSON.stringify(contract)}]`);
@@ -1330,7 +1336,15 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                             coin: fullWalletObj.currencyAbbreviation,
                           }),
                         );
-                        setShowSignatureBottomModal(true);
+
+                        console.log(`----  按下签名按钮了.`);
+                        if(fullWalletObj.chain === 'btc'){
+                          setShowSignatureBottomModal(true);
+                        }
+                        if(fullWalletObj.chain === 'eth'){
+                          setShowEthSignatureBottomModal(true);
+                        }
+
                       },
                     }}
                   />
@@ -1444,6 +1458,15 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       {fullWalletObj ? (
         <SignByQrCode
           isVisible={showSignatureBottomModal}
+          closeModal={() => setShowSignatureBottomModal(false)}
+          fullWalletObj={fullWalletObj}
+          keyObj={key}
+        />
+      ) : null}
+
+      {fullWalletObj ? (
+        <SignEthByQrCode
+          isVisible={showEthSignatureBottomModal}
           closeModal={() => setShowSignatureBottomModal(false)}
           fullWalletObj={fullWalletObj}
           keyObj={key}

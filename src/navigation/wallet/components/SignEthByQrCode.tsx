@@ -55,7 +55,7 @@ interface Props {
   keyObj: any;
 }
 let decoder: BlueURDecoder | undefined;
-const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => {
+const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => {
 
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
@@ -74,11 +74,11 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   const win = Dimensions.get('window');
 
   useEffect(() => {
-    if(fullWalletObj.chain !== 'btc'){
+    if(fullWalletObj.chain !== 'eth'){
       return;
     }
-    console.log(`----------  SignByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
-    console.log(`----------  SignByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
+    console.log(`----------  SignEthByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
+    console.log(`----------  SignEthByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
     try {
       setCoin(fullWalletObj.credentials.coin);
       setDisplayQRCode(false);
@@ -97,7 +97,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   }, []);
 
   useEffect(() => {
-    if(fullWalletObj.chain !== 'btc'){
+    if(fullWalletObj.chain !== 'eth'){
       return;
     }
     if (total > 0) {
@@ -271,7 +271,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   );
 };
 
-export default SignByQrCode;
+export default SignEthByQrCode;
 
 const styles = StyleSheet.create({
   root: {

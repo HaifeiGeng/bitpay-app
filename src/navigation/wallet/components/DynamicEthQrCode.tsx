@@ -15,11 +15,19 @@ import {
   Text,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
-
-import {signTxForCold} from '../../../store/wallet/effects/send/send';
-import { sleep } from '../../../utils/helper-methods';
-import {useDispatch,} from 'react-redux';
+import { broadcastTx } from '../../../store/wallet/effects/send/send';
+import {useAppDispatch} from '../../../utils/hooks';
+import {Analytics} from '../../../store/analytics/analytics.effects';
+import {
+  startOnGoingProcessModal,
+} from '../../../store/app/app.effects';
+import {
+  dismissOnGoingProcessModal,
+} from '../../../store/app/app.actions';
 import { showBottomNotificationModal } from '../../../store/app/app.actions';
+
+
+export const BchAddressTypes = ['Cash Address', 'Legacy'];
 
 const QRCodeContainer = styled.View`
   align-items: center;
@@ -51,61 +59,61 @@ const CloseButtonText = styled(Paragraph)`
 interface Props {
   isVisible: boolean;
   closeModal: () => void;
-  fullWalletObj: any;
-  keyObj: any;
+  dynamicEthQrCodeData: any;
+  onShowPaymentSent: () => void;
+  lastSigner?: boolean;
 }
 let decoder: BlueURDecoder | undefined;
-const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => {
-
+const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPaymentSent, lastSigner = false}: Props) => {
+  const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
+  console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  dynamicEthQrCodeData = [${JSON.stringify(dynamicEthQrCodeData)}] `) ;
+  const fragmentsEncoded = encodeUR(
+    Buffer.from(JSON.stringify({txp: dynamicEthQrCodeData.txp, rootPath: dynamicEthQrCodeData.wallet.credentials.rootPath}), 'ascii').toString('hex'),
+    100,
+  );
+
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
   const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
-  const [displayQRCode, setDisplayQRCode] = useState(false);
+  const [displayQRCode, setDisplayQRCode] = useState(true);
   const [fragments, setFragments] = useState<string[]>([]);
-  const [openCamera, setOpenCamera] = useState(true);
+  const [openCamera, setOpenCamera] = useState(false);
   const [urTotal, setUrTotal] = useState<number>(0);
   const [urHaveCount, setUrHaveCount] = useState<number>(0);
-  const [signing, setSigning] = useState<boolean>(false);
-  const dispatch = useDispatch();
 
   const win = Dimensions.get('window');
 
   useEffect(() => {
-    if(fullWalletObj.chain !== 'btc'){
-      return;
-    }
-    console.log(`----------  SignByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
-    console.log(`----------  SignByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
     try {
-      setCoin(fullWalletObj.credentials.coin);
-      setDisplayQRCode(false);
-      setOpenCamera(true);
+      setCoin(dynamicEthQrCodeData.txp.coin);
+      setFragments(fragmentsEncoded);
+      setTotal(fragmentsEncoded.length);
+      setDisplayQRCode(true);
     } catch (e) {
       console.log(e);
-      setDisplayQRCode(true);
+      setDisplayQRCode(false);
     }
     return () => {
-      setOpenCamera(false);
       if (intervalHandler) {
+        // console.log('---------- DynamicQrCode 组件已经卸载');
         clearInterval(intervalHandler);
       }
-      // console.log('---------- SignByQrCode 组件已经卸载');
     };
   }, []);
 
+
   useEffect(() => {
-    if(fullWalletObj.chain !== 'btc'){
-      return;
-    }
     if (total > 0) {
       startAutoMove();
     }
   }, [total, index]);
 
+
   const startAutoMove = () => {
+    // console.log('----------  当前index :', index, '当前 total :',total);
     if (!intervalHandler) {
       setIntervalHandler(
         setInterval(
@@ -119,6 +127,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }
   };
 
+
   const getCurrentFragment = () => {
     const currentFragment = fragments[index];
     if (currentFragment) {
@@ -128,30 +137,21 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }
   };
 
-  const buildQrData = (data: string) => {
-    const fragmentsEncoded = encodeUR(
-      Buffer.from(data, 'ascii').toString('hex'),
-      100,
-    );
-    setTotal(fragmentsEncoded.length);
-    setFragments(fragmentsEncoded);
-  };
 
   const _closeModal = () => {
     closeModal();
-    setTimeout(() => {
-      setOpenCamera(true);
-      setDisplayQRCode(false);
-    }, 500);
+  };
+
+
+  const _nextStep = () => {
     if (intervalHandler) {
       clearInterval(intervalHandler);
       setIntervalHandler(undefined);
     }
-    setFragments([]);
-    setTotal(0);
-    setUrHaveCount(0);
-    setUrTotal(0);
+    setDisplayQRCode(false);
+    setOpenCamera(true);
   };
+
 
   const handleFinish = async () => {
     try {
@@ -182,7 +182,8 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }
   }
 
-  const onBarCodeScanned = async ({data}: {data: string}) => {
+  const onBarCodeScanned = ({data}: {data: string}) => {
+    // console.log('----------  扫描到的数据1：', data);
     if (!decoder) {
       decoder = new BlueURDecoder();
     }
@@ -192,28 +193,43 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         const parseData = decoder.toString();
         console.log('----------  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
-        if (intervalHandler) {
-          clearInterval(intervalHandler);
-        }
+
         setOpenCamera(false);
-        setSigning(true);
-        const {txp, rootPath} = JSON.parse(parseData);
-        const signature = await signTxForCold(rootPath, keyObj, txp);
-        // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
-        buildQrData(signature.join(','));
-        await sleep(500);
-        setSigning(false);
-        setDisplayQRCode(true);
+        closeModal();
+        dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
+        const signatureArray = parseData.split(',');
+        dynamicEthQrCodeData.wallet.pushSignatures(
+          dynamicEthQrCodeData.txp,
+          signatureArray,
+          async (err: Error, signedTxp: any) => {
+            if (err) {
+              console.log('----------  签名返回值： 失败', JSON.stringify(err));
+            }
+            console.log('----------  签名返回值： 成功1', JSON.stringify(signedTxp));
+            if(dynamicEthQrCodeData.wallet.n === 1 || lastSigner){
+              // 如果是单签， 或者是最后一个人签名，需要进行广播
+              let broadcastedTx = await broadcastTx(dynamicEthQrCodeData.wallet, signedTxp);
+              console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
+            }
+            dispatch(
+              Analytics.track('Sent Crypto', {
+                context: 'Confirm',
+                coin: dynamicEthQrCodeData.wallet.currencyAbbreviation || '',
+              }),
+            );
+            dispatch(dismissOnGoingProcessModal());
+            onShowPaymentSent();
+          },
+          null,
+        );
       } else {
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);
         // setUrHave(parseFloat((decoder.getProgress() * 100).toFixed(2)));
-        // console.log('----------  扫描的数量', decoder.getProgress());
-        // console.log(`----------  解码相关数量打印：expectedPartCount = ${decoder.expectedPartCount()} expectedPartIndexes = ${decoder.expectedPartIndexes()} receivedPartIndexes = ${decoder.receivedPartIndexes()} lastPartIndexes = ${decoder.lastPartIndexes()} estimatedPercentComplete = ${decoder.estimatedPercentComplete()} getProgress = ${decoder.getProgress()}`);
-        // console.log(`----------  解码详细数量打印： 需要${decoder.expectedPartCount()}张二维码, 目前已经收到了${decoder.receivedPartIndexes().length || 0}张二维码 `);
       }
     } catch (error) {
       console.warn(error);
+      dispatch(dismissOnGoingProcessModal());
     }
   };
 
@@ -221,16 +237,16 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
         <DynamicQrCodeHeader title={t('Please sign')} />
-        {coin === 'btc' && displayQRCode ? (
+        {coin === 'eth' && displayQRCode ? (
           <QRCodeContainer>
             <QRCodeBackground>
               {/* <QRCode value={qrCodeData} size={200} /> */}
               <QRCodeComponent value={getCurrentFragment()} />
             </QRCodeBackground>
           </QRCodeContainer>
-        ) : coin === 'btc' && !displayQRCode && openCamera ? (
+        ) : coin === 'eth' && !displayQRCode && openCamera ? (
           <View style={styles.cameraContainer}>
-            <Text style={styles.title}>{urHaveCount} / {urTotal}</Text>
+            <Text  style={styles.title}>{urHaveCount} / {urTotal}</Text>
             <RNCamera
               style={styles.root}
               type={RNCamera.Constants.Type.back}
@@ -245,22 +261,20 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
               </View>
             </RNCamera>
           </View>
-        ) : signing ? (
-          <H4 style={{textAlign: 'center', }}>{t('Signing...')}</H4>
         ) : (
-          <H4></H4>
+          <H4>ETH</H4>
         )}
-        
+
         <View style={{flexDirection: 'row', marginTop: 50}}>
           <CloseButton onPress={_closeModal}>
             <CloseButtonText>{t('CLOSE')}</CloseButtonText>
           </CloseButton>
-          {/* {!displayQRCode ? (
+          {displayQRCode ? (
             <CloseButton onPress={_nextStep}>
               <CloseButtonText>{t('Next step')}</CloseButtonText>
             </CloseButton>
-          ) : null} */}
-          {displayQRCode && (
+          ) : null}
+          {!displayQRCode && (
             <CloseButton onPress={handleFinish}>
               <CloseButtonText>{t('Finish')}</CloseButtonText>
             </CloseButton>
@@ -271,7 +285,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   );
 };
 
-export default SignByQrCode;
+export default DynamicEthQrCode;
 
 const styles = StyleSheet.create({
   root: {

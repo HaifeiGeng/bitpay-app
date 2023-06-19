@@ -71,6 +71,7 @@ import {GetPrecision} from '../../../../../store/wallet/utils/currency';
 import prompt from 'react-native-prompt-android';
 import {Analytics} from '../../../../../store/analytics/analytics.effects';
 import DynamicQrCode from '../../../components/DynamicQrCode';
+import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
 
 const VerticalPadding = styled.View`
@@ -111,7 +112,8 @@ export const SettingTitle = styled(BaseText)`
 
 const Confirm = () => {
   // 是否开启动态二维码窗口
-  const [showDynamicQrCodeModal, setShowDynamicQrCodeModal] = useState(false);
+  const [showBtcDynamicQrCodeModal, setShowBtcDynamicQrCodeModal] = useState(false);
+  const [showEthDynamicQrCodeModal, setShowEthDynamicQrCodeModal] = useState(false);
   const [dynamicQrCodeData, setDynamicQrCodeData] = useState({});
 
   const dispatch = useAppDispatch();
@@ -553,14 +555,17 @@ const Confirm = () => {
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
             await sleep(500);
 
-            // console.log('---------- 确认页面 - 滑动以发送: key : ', JSON.stringify(key));
-            // console.log('---------- 确认页面 - 滑动以发送: wallet : ', JSON.stringify(wallet));
-            // console.log('---------- 确认页面 - 滑动以发送: txp : ', JSON.stringify(txp));
-            // console.log('---------- 确认页面 - 滑动以发送: recipient : ', JSON.stringify(recipient));
-            
+            console.log(`---------- 确认页面 - 滑动以发送: key = [${JSON.stringify(key)}] `);
+            console.log(`---------- 确认页面 - 滑动以发送: wallet = [${JSON.stringify(wallet)}] `);
+            console.log(`---------- 确认页面 - 滑动以发送: txp = [${JSON.stringify(txp)}] `);
+            console.log(`---------- 确认页面 - 滑动以发送: recipient = [${JSON.stringify(recipient)}]`);
 
+
+            console.log(`---------- 确认页面 - 滑动以发送: 当前链 chain = [${wallet.chain}]`);
+            
+            
             const txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
-            // console.log('---------- SwipeButton的最终返回值 txpResult', JSON.stringify(txpResult));
+            console.log(`---------- SwipeButton的最终返回值 txpResult = [${JSON.stringify(txpResult)}]`);
             dispatch(dismissOnGoingProcessModal());
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);
@@ -570,10 +575,15 @@ const Confirm = () => {
             //     coin: currencyAbbreviation || '',
             //   }),
             // );
-            // await sleep(500);
+            await sleep(500);
             // setShowPaymentSentModal(true);
             setDynamicQrCodeData({txp: txpResult, wallet});
-            setShowDynamicQrCodeModal(true);
+            if(wallet.chain === 'btc'){
+              setShowBtcDynamicQrCodeModal(true);
+            }
+            if(wallet.chain === 'eth'){
+              setShowEthDynamicQrCodeModal(true);
+            }
             await sleep(500);
             // console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
             // console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
@@ -602,12 +612,23 @@ const Confirm = () => {
         }}
       />
       {
-        showDynamicQrCodeModal &&
+        showBtcDynamicQrCodeModal &&
         (
           <DynamicQrCode 
-            isVisible={showDynamicQrCodeModal} 
-            closeModal={() => setShowDynamicQrCodeModal(false)} 
+            isVisible={showBtcDynamicQrCodeModal} 
+            closeModal={() => {setShowBtcDynamicQrCodeModal(false);setShowEthDynamicQrCodeModal(false);}} 
             dynamicQrCodeData={dynamicQrCodeData} 
+            onShowPaymentSent={() => {onShowPaymentSent()}}
+          />
+        )
+      }
+      {
+        showEthDynamicQrCodeModal &&
+        (
+          <DynamicEthQrCode 
+            isVisible={showEthDynamicQrCodeModal} 
+            closeModal={() => {setShowBtcDynamicQrCodeModal(false);setShowEthDynamicQrCodeModal(false);}} 
+            dynamicEthQrCodeData={dynamicQrCodeData} 
             onShowPaymentSent={() => {onShowPaymentSent()}}
           />
         )
