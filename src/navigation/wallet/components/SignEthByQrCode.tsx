@@ -221,14 +221,14 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
     <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
         <DynamicQrCodeHeader title={t('Please sign')} />
-        {coin === 'btc' && displayQRCode ? (
+        {coin === 'eth' && displayQRCode ? (
           <QRCodeContainer>
             <QRCodeBackground>
               {/* <QRCode value={qrCodeData} size={200} /> */}
               <QRCodeComponent value={getCurrentFragment()} />
             </QRCodeBackground>
           </QRCodeContainer>
-        ) : coin === 'btc' && !displayQRCode && openCamera ? (
+        ) : coin === 'eth' && !displayQRCode && openCamera ? (
           <View style={styles.cameraContainer}>
             <Text style={styles.title}>{urHaveCount} / {urTotal}</Text>
             <RNCamera

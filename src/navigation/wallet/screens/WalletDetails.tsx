@@ -1337,7 +1337,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                           }),
                         );
 
-                        console.log(`----  按下签名按钮了.`);
+                        console.log(`----  按下签名按钮了. fullWalletObj.chain = [${fullWalletObj.chain}]`);
                         if(fullWalletObj.chain === 'btc'){
                           setShowSignatureBottomModal(true);
                         }
@@ -1455,7 +1455,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         />
       ) : null}
 
-      {fullWalletObj ? (
+      {fullWalletObj && showSignatureBottomModal? (
         <SignByQrCode
           isVisible={showSignatureBottomModal}
           closeModal={() => setShowSignatureBottomModal(false)}
@@ -1464,10 +1464,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         />
       ) : null}
 
-      {fullWalletObj ? (
+      {fullWalletObj && showEthSignatureBottomModal ? (
         <SignEthByQrCode
           isVisible={showEthSignatureBottomModal}
-          closeModal={() => setShowSignatureBottomModal(false)}
+          closeModal={() => setShowEthSignatureBottomModal(false)}
           fullWalletObj={fullWalletObj}
           keyObj={key}
         />
