@@ -500,9 +500,9 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     console.log(`----------  WalletDetail中 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
     // 查询余额
     contract.balanceOf(fullWalletObj.receiveAddress).then((value: any) => {
-      const decimals = decimalsMap[currencyAbbreviation] || 18;
+      const decimals = decimalsMap[currencyAbbreviation.toUpperCase()] || 18;
       const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
-      console.log(`----------  WalletDetail中 查询到当前代币余额. formatCryptoBalance = [${formatCryptoBalance}]`);
+      console.log(`----------  WalletDetail中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}] decimals = [${decimals}] defaultAltCurrency.isoCode = [${defaultAltCurrency.isoCode}]`);
       setFinalCryptoBalance(formatCryptoBalance);
       setShowFiatBalance(Number(value.toString()) > 0);
       if (typeof updateBalance === 'function') {

@@ -197,6 +197,7 @@ export const getContractAddresses =
       });
     });
     dispatch(LogActions.info('getContractAddresses: success'));
+    console.log(`---------- rates.ts文件中, getContractAddresses 返回值: allTokenAddresses = [${JSON.stringify(allTokenAddresses)}]`)
     return allTokenAddresses;
   };
 
@@ -222,7 +223,13 @@ export const getTokenRates =
           ...tokenOptionsByAddress,
           ...customTokenOptionsByAddress,
         };
+        
+        console.log(`----------  rates.ts文件中, getTokenRates 参数打印  altCurrencyList = [${JSON.stringify(altCurrencyList)}]`);
+        console.log(`----------  rates.ts文件中, getTokenRates 参数打印  tokenOptionsByAddress = [${JSON.stringify(tokenOptionsByAddress)}]`);
+        console.log(`----------  rates.ts文件中, getTokenRates 参数打印  customTokenOptionsByAddress = [${JSON.stringify(customTokenOptionsByAddress)}]`);
+        console.log(`----------  rates.ts文件中, getTokenRates 参数打印  tokensOptsByAddress = [${JSON.stringify(tokensOptsByAddress)}]`);
 
+        console.log(`----------  rates.ts文件中, getTokenRates 参数打印  SUPPORTED_EVM_COINS = [${JSON.stringify(SUPPORTED_EVM_COINS)}]`);
         dispatch(
           LogActions.info('getTokenRates: selecting alternative currencies'),
         );
@@ -232,6 +239,9 @@ export const getTokenRates =
 
         for (const chain of SUPPORTED_EVM_COINS) {
           const contractAddresses = dispatch(getContractAddresses(chain));
+          if(contractAddresses.length === 0){
+            continue;
+          }
           const url = `https://api.coingecko.com/api/v3/simple/token_price/${
             // @ts-ignore
             EVM_BLOCKCHAIN_NETWORK[chain]
@@ -245,6 +255,7 @@ export const getTokenRates =
           dispatch(LogActions.debug('getTokenRates: success get request'));
 
           Object.entries(data).map(([key, value]: [string, any]) => {
+            console.log(`----------  rates.ts文件中, getTokenRates 参数打印  key = [${JSON.stringify(key)}] value = [${JSON.stringify(value)}]`);
             const formattedTokenAddress = addTokenChainSuffix(key, chain);
 
             // only save token rates if exist in tokens list

@@ -420,6 +420,8 @@ const SendTo = () => {
       destinationTag?: number;
     } = {},
   ) => {
+
+    console.log(`----------  SendTo页面中, 参数 text = [${text}] opts = [${JSON.stringify(opts)}] `);
     const {context, name, email, destinationTag} = opts;
     if (isEmailAddress(text.trim())) {
       setSearchIsEmailAddress(true);
@@ -513,7 +515,7 @@ const SendTo = () => {
         currency: credentials.coin,
         chain,
       };
-
+      // console.log(`---------  测试 --- --- ---   `)
       dispatch(
         goToAmount({
           coin: wallet.currencyAbbreviation,

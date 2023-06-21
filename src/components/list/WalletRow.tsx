@@ -138,7 +138,7 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
     contract.balanceOf(currentWallet.receiveAddress).then((value: any) => {
       const decimals = decimalsMap[currencyAbbreviation] || 18;
       const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
-      console.log(`----------  WalletRow中 查询到当前代币余额. formatCryptoBalance = [${formatCryptoBalance}]`);
+      console.log(`----------  WalletRow中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}] decimals = [${decimals}]`);
       setFinalCryptoBalance(formatCryptoBalance);
       setShowFiatBalance(Number(value.toString()) > 0);
       updateBalance(wallet.id, Number(value.toString()));

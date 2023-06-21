@@ -70,6 +70,10 @@ import {navigationRef} from '../../../../Root';
 import {WalletScreens} from '../../../../navigation/wallet/WalletStack';
 import {keyBackupRequired} from '../../../../navigation/tabs/home/components/Crypto';
 import {Analytics} from '../../../analytics/analytics.effects';
+import axios from 'axios';
+import { ETHERSCAN_API_KEY, getTokenContract } from '../../../../navigation/wallet/screens/KeyOverview';
+import { ethers } from "ethers";
+const Uuid = require('uuid');
 
 export const createProposalAndBuildTxDetails =
   (
@@ -219,6 +223,215 @@ export const createProposalAndBuildTxDetails =
       }
     });
   };
+
+
+// 供Token使用，因在BWS中没有余额，所以无法创建交易提案（Proposal）
+export const createTokenProposalAndBuildTxDetails =
+  (
+    tx: TransactionOptions,
+  ): Effect<
+    Promise<{
+      txDetails: TxDetails;
+      txp: TransactionProposal;
+    }>
+  > =>
+  async (dispatch, getState) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // base tx
+        let {
+          wallet,
+          recipient,
+          amount,
+          context,
+          feeLevel: customFeeLevel,
+          feePerKb,
+          invoice,
+          payProUrl,
+          dryRun = true,
+          destinationTag,
+          payProDetails,
+        } = tx;
+
+        let {credentials, currencyAbbreviation, network} = wallet;
+        const {token, chain} = credentials;
+        const formattedAmount = dispatch(
+          ParseAmount(amount, currencyAbbreviation, chain),
+        );
+        const {
+          WALLET: {
+            feeLevel: cachedFeeLevel,
+            useUnconfirmedFunds,
+            queuedTransactions,
+          },
+        } = getState();
+        const {
+          APP: {defaultAltCurrency},
+        } = getState();
+
+        if (
+          chain === 'eth' &&
+          wallet.transactionHistory?.hasConfirmingTxs &&
+          context !== 'speedupEth'
+        ) {
+          if (!queuedTransactions) {
+            return reject({
+              err: new Error(
+                t(
+                  'There is a pending transaction with a lower account nonce. Wait for your pending transactions to confirm or enable "ETH Queued transactions" in Advanced Settings.',
+                ),
+              ),
+            });
+          } else {
+            await dispatch(setEthAddressNonce(wallet, tx));
+          }
+        }
+
+        if (currencyAbbreviation === 'xrp') {
+          if (payProDetails) {
+            const instructions = payProDetails.instructions[0];
+            const {outputs} = instructions;
+            tx.invoiceID = outputs[0].invoiceID;
+          }
+          tx.destinationTag = destinationTag || recipient.destinationTag;
+
+          if (wallet.receiveAddress === recipient.address) {
+            return reject({
+              err: new Error(
+                t(
+                  'Cannot send XRP to the same wallet you are trying to send from. Please check the destination address and try it again.',
+                ),
+              ),
+            });
+          }
+        }
+
+        const tokenFeeLevel = token ? cachedFeeLevel.eth : undefined;
+        const feeLevel =
+          customFeeLevel ||
+          cachedFeeLevel[currencyAbbreviation] ||
+          tokenFeeLevel ||
+          FeeLevels.NORMAL;
+        if (!feePerKb && tx.sendMax) {
+          feePerKb = await getFeeRatePerKb({
+            wallet,
+            feeLevel: feeLevel,
+          });
+        }
+
+        // build transaction proposal options then create full proposal
+        const txp = {
+          ...(await dispatch(
+            buildTransactionProposal({
+              ...tx,
+              context,
+              currency: currencyAbbreviation.toLowerCase(),
+              chain,
+              tokenAddress: token ? token.address : null,
+              toAddress: recipient.address,
+              amount: formattedAmount.amountSat,
+              network,
+              payProUrl,
+              feePerKb,
+              feeLevel,
+              useUnconfirmedFunds,
+            }),
+          )),
+          dryRun,
+        } as Partial<TransactionProposal>;
+
+        // wallet.createTxProposal(
+        //   txp,
+        //   async (err: Error, proposal: TransactionProposal) => {
+        //     if (err) {
+        //       return reject({err, tx, txp, getState});
+        //     }
+        //     try {
+        //       const rates = await dispatch(startGetRates({}));
+        //       // building UI object for details
+        //       const txDetails = dispatch(
+        //         buildTxDetails({
+        //           proposal,
+        //           rates,
+        //           defaultAltCurrencyIsoCode: defaultAltCurrency.isoCode,
+        //           wallet,
+        //           recipient,
+        //           invoice,
+        //           context,
+        //           feeLevel,
+        //         }),
+        //       );
+        //       txp.id = proposal.id;
+        //       resolve({txDetails, txp: txp as TransactionProposal});
+        //     } catch (err2) {
+        //       reject({err: err2});
+        //     }
+        //   },
+        //   null,
+        // );
+        // const proposal: TransactionProposal = txp as TransactionProposal;
+        const proposal = _.cloneDeep(txp) as TransactionProposal;
+        const outputObj = proposal.outputs[0];
+        proposal.gasPrice = await getGasPrice();
+        proposal.gasLimit = 70000;
+        proposal.nonce = await getEtherscanNonce(wallet.receiveAddress!);
+        proposal.amount = typeof outputObj.amount === 'string' ? parseInt(outputObj.amount) : outputObj.amount;
+        proposal.fee = proposal.gasLimit * proposal.gasPrice;
+
+        console.log(`----------  send.ts文件中, createTokenProposalAndBuildTxDetails 转换过以后的proposal = [${JSON.stringify(proposal)}]`);
+        const rates = await dispatch(startGetRates({}));
+        // building UI object for details
+        const txDetails = dispatch(
+          buildTokenTxDetails({
+            proposal,
+            rates,
+            defaultAltCurrencyIsoCode: defaultAltCurrency.isoCode,
+            wallet,
+            recipient,
+            invoice,
+            context,
+            feeLevel,
+          }),
+        );
+        txp.id = Uuid.v4();
+        console.log(`----------  send.ts文件中, createTokenProposalAndBuildTxDetails 参数 txDetails = [${JSON.stringify(txDetails)}]`);
+        resolve({txDetails, txp: txp as TransactionProposal});
+      } catch (err) {
+        reject({err});
+      }
+    });
+  };
+
+
+
+const getGasLimit = (to: string, ) => {
+  const getGasLimitUrl = `https://api.etherscan.io/api?module=proxy&action=eth_estimateGas&data=0x4e71d92d&to=${to}&value=0xff22&gasPrice=0x51da038cc&gas=0x5f5e0ff&apikey=${ETHERSCAN_API_KEY}`;
+}
+
+  
+const getEtherscanNonce = async (receiveAddress: string) => {
+  const getNonceUrl = `https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=${receiveAddress}&tag=latest&apikey=${ETHERSCAN_API_KEY}`;
+  try {
+    const response = await axios.get(getNonceUrl);
+    console.log(`----------  send.ts文件中, 获取getEtherscanNonce成功 = [${JSON.stringify(response.data)}]`);
+    return parseInt(response.data.result);
+  } catch (error) {
+    console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
+    throw error;
+  }
+}
+
+const getGasPrice = async () => {
+  const getGasPriceUrl = `https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${ETHERSCAN_API_KEY}`;
+  try {
+    const response = await axios.get(getGasPriceUrl);
+    console.log(`----------  send.ts文件中, 获取gasPrice成功 = [${JSON.stringify(response.data)}]`);
+    return parseInt(ethers.utils.parseUnits(response.data.result.SafeGasPrice, 'gwei').toString());
+  } catch (error) {
+    console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
+    throw error;
+  }
+}
 
 const setEthAddressNonce =
   (wallet: Wallet, tx: TransactionOptions): Effect<Promise<void>> =>
@@ -373,6 +586,8 @@ export const buildTxDetails =
     feeLevel?: string;
   }): Effect<TxDetails> =>
   dispatch => {
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 proposal = [${JSON.stringify(proposal)}]`);
     const {gasPrice, gasLimit, nonce, destinationTag} = proposal || {};
     const invoiceCurrency =
       invoice?.buyerProvidedInfo!.selectedTransactionCurrency;
@@ -391,6 +606,16 @@ export const buildTxDetails =
       throw new Error('Invalid coin or chain');
     }
 
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 gasPrice = [${JSON.stringify(gasPrice)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 gasLimit = [${JSON.stringify(gasLimit)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 nonce = [${JSON.stringify(nonce)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 destinationTag = [${JSON.stringify(destinationTag)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 invoice = [${JSON.stringify(invoice)}]`);
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 amount = [${JSON.stringify(amount)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 coin = [${JSON.stringify(coin)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 chain = [${JSON.stringify(chain)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 fee = [${JSON.stringify(fee)}]`);
     amount = Number(amount); // Support BN (use number instead string only for view)
     const effectiveRate =
       (invoiceCurrency &&
@@ -404,8 +629,7 @@ export const buildTxDetails =
       chain,
     };
     const rateStr = getRateStr(opts);
-    const networkCost =
-      invoiceCurrency && invoice?.minerFees[invoiceCurrency]?.totalFee;
+    const networkCost = invoiceCurrency && invoice?.minerFees[invoiceCurrency]?.totalFee;
     const isERC20 = IsERCToken(coin, chain);
     const effectiveRateForFee = isERC20 ? undefined : effectiveRate; // always use chain rates for fee values
 
@@ -494,6 +718,194 @@ export const buildTxDetails =
               FormatAmountStr(chain, chain, fee),
             )}`
           : dispatch(FormatAmountStr(coin, chain, amount + fee)),
+        fiatAmount: formatFiatAmount(
+          dispatch(
+            toFiat(
+              amount,
+              defaultAltCurrencyIsoCode,
+              coin,
+              chain,
+              rates,
+              effectiveRate,
+            ),
+          ) +
+            dispatch(
+              toFiat(
+                fee,
+                defaultAltCurrencyIsoCode,
+                chain,
+                chain,
+                rates,
+                effectiveRateForFee,
+              ),
+            ),
+          defaultAltCurrencyIsoCode,
+        ),
+      },
+      gasPrice: gasPrice ? Number((gasPrice * 1e-9).toFixed(2)) : undefined,
+      gasLimit,
+      nonce,
+      destinationTag,
+      rateStr,
+    };
+  };
+
+/*
+ * UI formatted details for confirm view
+ * */
+export const buildTokenTxDetails =
+  ({
+    proposal,
+    rates,
+    defaultAltCurrencyIsoCode,
+    wallet,
+    recipient,
+    invoice,
+    context,
+    feeLevel = 'custom',
+  }: {
+    proposal?: TransactionProposal;
+    rates: Rates;
+    defaultAltCurrencyIsoCode: string;
+    wallet: Wallet | WalletRowProps;
+    recipient?: Recipient;
+    invoice?: Invoice;
+    context?: TransactionOptionsContext;
+    feeLevel?: string;
+  }): Effect<TxDetails> =>
+  dispatch => {
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 proposal = [${JSON.stringify(proposal)}]`);
+    const {gasPrice, gasLimit, nonce, destinationTag} = proposal || {};
+    const invoiceCurrency =
+      invoice?.buyerProvidedInfo!.selectedTransactionCurrency;
+    let {amount, coin, chain, fee = 0} = proposal || {}; // proposal fee is zero for coinbase
+
+    if (invoiceCurrency) {
+      amount = invoice.paymentTotals[invoiceCurrency] || 0;
+      const coinAndChain = getCoinAndChainFromCurrencyCode(
+        invoiceCurrency.toLowerCase(),
+      );
+      coin = coinAndChain.coin;
+      chain = coinAndChain.chain;
+    }
+
+    if (!coin || !chain) {
+      throw new Error('Invalid coin or chain');
+    }
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 gasPrice = [${JSON.stringify(gasPrice)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 gasLimit = [${JSON.stringify(gasLimit)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 nonce = [${JSON.stringify(nonce)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 destinationTag = [${JSON.stringify(destinationTag)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 invoice = [${JSON.stringify(invoice)}]`);
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 amount = [${JSON.stringify(amount)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 coin = [${JSON.stringify(coin)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 chain = [${JSON.stringify(chain)}]`);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 fee = [${JSON.stringify(fee)}]`);
+    amount = Number(amount); // Support BN (use number instead string only for view)
+    const effectiveRate =
+      (invoiceCurrency &&
+        dispatch(getInvoiceEffectiveRate(invoice, invoiceCurrency, chain))) ||
+      undefined;
+    const opts = {
+      effectiveRate,
+      defaultAltCurrencyIsoCode,
+      rates,
+      coin,
+      chain,
+    };
+    const rateStr = getRateStr(opts);
+    const networkCost = invoiceCurrency && invoice?.minerFees[invoiceCurrency]?.totalFee;
+    const isERC20 = IsERCToken(coin, chain);
+    const effectiveRateForFee = isERC20 ? undefined : effectiveRate; // always use chain rates for fee values
+
+    if (invoiceCurrency && context === 'paypro') {
+      amount = invoice.paymentTotals[invoiceCurrency];
+    } else if (context === 'speedupBtcReceive') {
+      amount = amount - fee;
+    }
+
+    const {type, name, address, email} = recipient || {};
+    return {
+      context,
+      currency: coin,
+      sendingTo: {
+        recipientType: type,
+        recipientName: name,
+        recipientEmail: email,
+        recipientAddress: address && formatCryptoAddress(address),
+        img: wallet.img,
+        recipientFullAddress: address,
+        recipientChain: chain,
+      },
+      ...(fee !== 0 && {
+        fee: {
+          feeLevel,
+          cryptoAmount: dispatch(FormatAmountStr(chain, chain, fee)),
+          fiatAmount: formatFiatAmount(
+            dispatch(
+              toFiat(
+                fee,
+                defaultAltCurrencyIsoCode,
+                chain,
+                chain,
+                rates,
+                effectiveRateForFee,
+              ),
+            ),
+            defaultAltCurrencyIsoCode,
+          ),
+          percentageOfTotalAmount:
+            ((fee / (amount + fee)) * 100).toFixed(2) + '%',
+        },
+      }),
+      ...(networkCost && {
+        networkCost: {
+          cryptoAmount: dispatch(FormatAmountStr(chain, chain, networkCost)),
+          fiatAmount: formatFiatAmount(
+            dispatch(
+              toFiat(
+                networkCost,
+                defaultAltCurrencyIsoCode,
+                chain,
+                chain,
+                rates,
+                effectiveRateForFee,
+              ),
+            ),
+            defaultAltCurrencyIsoCode,
+          ),
+        },
+      }),
+      sendingFrom: {
+        walletName: wallet.walletName || wallet.credentials.walletName,
+        img: wallet.img,
+        badgeImg: wallet.badgeImg,
+      },
+      subTotal: {
+        cryptoAmount: dispatch(FormatAmountStr(coin, chain, amount,)),
+        fiatAmount: formatFiatAmount(
+          dispatch(
+            toFiat(
+              amount,
+              defaultAltCurrencyIsoCode,
+              coin,
+              chain,
+              rates,
+              effectiveRate,
+            ),
+          ),
+          defaultAltCurrencyIsoCode,
+        ),
+      },
+      total: {
+        cryptoAmount: isERC20
+          ? `${dispatch(FormatAmountStr(coin, chain, amount))} + ${dispatch(
+              FormatAmountStr(chain, chain, fee),
+            )}`
+          : dispatch(FormatAmountStr(chain, chain, amount + fee)),
         fiatAmount: formatFiatAmount(
           dispatch(
             toFiat(
@@ -839,7 +1251,7 @@ export const startSendPayment =
         // console.log(`----------   startSendPayment 参数 key = [${JSON.stringify(key)}]`);
         // console.log(`----------   startSendPayment 参数 wallet = [${JSON.stringify(wallet)}]`);
         // console.log(`----------   startSendPayment 参数 recipient = [${JSON.stringify(recipient)}]`);
-        console.log(`----------   startSendPayment 参数 wallet.credentials.rootPath = [${JSON.stringify(wallet.credentials.rootPath)}]`);
+        console.log(`----------   startSendPayment 参数 wallet.credentials.rootPath = [${wallet.credentials.rootPath}]`);
 
 
         wallet.createTxProposal(
@@ -874,6 +1286,90 @@ export const startSendPayment =
       }
     });
   };
+
+
+export const startSendTokenPayment =
+  ({
+    txp,
+    key,
+    wallet,
+    recipient,
+  }: {
+    txp: Partial<TransactionProposal>;
+    key: Key;
+    wallet: Wallet;
+    recipient: Recipient;
+  }): Effect<Promise<any>> =>
+  async dispatch => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log(`----------   startSendTokenPayment 参数 txp = [${JSON.stringify(txp)}]`);
+        console.log(`----------   startSendTokenPayment 参数 key = [${JSON.stringify(key)}]`);
+        console.log(`----------   startSendTokenPayment 参数 wallet = [${JSON.stringify(wallet)}]`);
+        console.log(`----------   startSendTokenPayment 参数 recipient = [${JSON.stringify(recipient)}]`);
+        console.log(`----------   startSendTokenPayment 参数 wallet.credentials.rootPath = [${wallet.credentials.rootPath}]`);
+
+
+        // wallet.createTxProposal(
+        //   {...txp, dryRun: false},
+        //   async (err: Error, proposal: TransactionProposal) => {
+        //     if (err) {
+        //       return reject(err);
+        //     }
+        //     try {
+        //       const broadcastedTx = await dispatch(
+        //         publishAndSign({
+        //           txp: proposal,
+        //           key,
+        //           wallet,
+        //           recipient,
+        //         }),
+        //       );
+        //       // console.log('----------   startSendTokenPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
+        //       return resolve(broadcastedTx);
+        //       // return resolve({txp: proposal,key,wallet,recipient,});
+        //     } catch (e) {
+        //       return reject(e);
+        //     }
+        //   },
+        //   null,
+        // );
+
+        const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
+        // 获取该地址的合约的m/n (该收款地址，也是合约地址)
+        // const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
+        const currContract = getTokenContract('goerli', wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
+        // 共有几个人
+        const owners = await currContract.getOwners();
+        // 签名最少需要几个人
+        const n = await currContract.getRequired();
+
+        console.log(`----------   startSendTokenPayment 参数 m = [${owners.length}] n = [${n}]`);
+
+        try {
+          const broadcastedTx = await dispatch(
+            tokenPublishAndSign({
+              txp: proposal,
+              key,
+              wallet,
+              recipient,
+            }),
+          );
+          // console.log('----------   startSendTokenPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
+          return resolve(broadcastedTx);
+          // return resolve({txp: proposal,key,wallet,recipient,});
+        } catch (e) {
+          return reject(e);
+        }
+      } catch (err) {
+        const errString =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        dispatch(LogActions.error(`startSendTokenPayment: ${errString}`));
+        reject(err);
+      }
+    });
+  };
+
 
 export const publishAndSign =
   ({
@@ -946,6 +1442,155 @@ export const publishAndSign =
           // read only wallet
           return resolve(publishedTx);
         }
+
+        const signedTx: any = await signTx(
+          wallet,
+          key,
+          publishedTx || txp,
+          password,
+        );
+        dispatch(LogActions.debug('success sign [publishAndSign]'));
+        if (signedTx.status === 'accepted') {
+          broadcastedTx = await broadcastTx(wallet, signedTx);
+          dispatch(LogActions.debug('success broadcast [publishAndSign]'));
+          const {fee, amount} = broadcastedTx as {
+            fee: number;
+            amount: number;
+          };
+          const targetAmount = wallet.balance.sat - (fee + amount);
+
+          dispatch(
+            waitForTargetAmountAndUpdateWallet({
+              key,
+              wallet,
+              targetAmount,
+              recipient,
+            }),
+          );
+        } else {
+          dispatch(startUpdateWalletStatus({key, wallet, force: true}));
+        }
+
+        let resultTx = broadcastedTx ? broadcastedTx : signedTx;
+        dispatch(
+          LogActions.info(`resultTx [publishAndSign]: ${resultTx?.txid}`),
+        );
+
+        // Check if ConfirmTx notification is enabled
+        const {APP} = getState();
+        if (APP.confirmedTxAccepted) {
+          wallet.txConfirmationSubscribe(
+            {txid: resultTx?.id, amount: txp.amount},
+            (err: any) => {
+              if (err) {
+                dispatch(
+                  LogActions.error(
+                    '[publishAndSign] txConfirmationSubscribe err',
+                    err,
+                  ),
+                );
+              }
+            },
+          );
+        }
+
+        resolve(resultTx);
+      } catch (err) {
+        const errorStr =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        dispatch(LogActions.error(`[publishAndSign] err: ${errorStr}`));
+        // if broadcast fails, remove transaction proposal
+        try {
+          // except for multisig pending transactions
+          if (txp.status !== 'pending') {
+            await removeTxp(wallet, txp);
+          }
+        } catch (removeTxpErr: any) {
+          dispatch(
+            LogActions.error(
+              `[publishAndSign] err - Could not delete payment proposal: ${removeTxpErr?.message}`,
+            ),
+          );
+        }
+        reject(err);
+      }
+    });
+  };
+
+
+export const tokenPublishAndSign =
+  ({
+    txp,
+    key,
+    wallet,
+    recipient,
+    password,
+    signingMultipleProposals,
+  }: {
+    txp: TransactionProposal;
+    key: Key;
+    wallet: Wallet;
+    recipient?: Recipient;
+    password?: string;
+    signingMultipleProposals?: boolean; // when signing multiple proposals from a wallet we ask for decrypt password and biometric before
+  }): Effect<Promise<Partial<TransactionProposal> | void>> =>
+  async (dispatch, getState) => {
+    return new Promise(async (resolve, reject) => {
+      const {
+        APP: {biometricLockActive},
+      } = getState();
+
+      // console.log('----------   publishAndSign 参数 txp ： ', JSON.stringify(txp));
+      // console.log('----------   publishAndSign 参数 key ： ', JSON.stringify(key));
+      // console.log('----------   publishAndSign 参数 wallet ： ', JSON.stringify(wallet));
+      // console.log('----------   publishAndSign 参数 recipient ： ', JSON.stringify(recipient));
+      // console.log('----------   publishAndSign 参数 password ： ', password);
+      // console.log('----------   publishAndSign 参数 signingMultipleProposals ： ', signingMultipleProposals);
+      if (biometricLockActive && !signingMultipleProposals) {
+        try {
+          await dispatch(checkBiometricForSending());
+        } catch (error) {
+          return reject(error);
+        }
+      }
+      if (key.isPrivKeyEncrypted && !signingMultipleProposals) {
+        try {
+          password = await new Promise<string>((_resolve, _reject) => {
+            dispatch(
+              showDecryptPasswordModal({
+                onSubmitHandler: async (_password: string) => {
+                  dispatch(dismissDecryptPasswordModal());
+                  await sleep(500);
+                  checkEncryptPassword(key, _password)
+                    ? _resolve(_password)
+                    : _reject('invalid password');
+                },
+                onCancelHandler: () => {
+                  _reject('password canceled');
+                },
+              }),
+            );
+          });
+        } catch (error) {
+          return reject(error);
+        }
+      }
+
+      try {
+        let publishedTx, broadcastedTx;
+
+        // Token交易USDT, 注释掉该方法
+        // Already published?
+        // if (txp.status !== 'pending') {
+          publishedTx = await publishTx(wallet, txp);
+        //   dispatch(LogActions.debug('success publish [publishAndSign]'));
+        // }
+
+        // Token交易USDT, 注释掉该方法
+        // if (key.isReadOnly) {
+        //   // read only wallet
+        //   return resolve(publishedTx);
+        // }
 
         const signedTx: any = await signTx(
           wallet,

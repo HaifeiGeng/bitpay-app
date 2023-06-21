@@ -51,6 +51,7 @@ import {sleep} from '../../utils/helper-methods';
 import {BwcProvider} from '../../lib/bwc';
 import {
   createProposalAndBuildTxDetails,
+  createTokenProposalAndBuildTxDetails,
   handleCreateTxProposalError,
 } from '../wallet/effects/send/send';
 import {Key, Wallet} from '../wallet/wallet.models';
@@ -103,12 +104,14 @@ export const incomingData =
         dispatch(goToPayPro(data));
         // Plain Address (Bitcoin)
       } else if (IsValidBitcoinAddress(data)) {
+        console.log(`---------- scan.effects.ts文件中 检测到coin = [BTC] IsValidBitcoinAddress `);
         dispatch(handlePlainAddress(data, coin || 'btc', chain || 'btc', opts));
         // Plain Address (Bitcoin Cash)
       } else if (IsValidBitcoinCashAddress(data)) {
         dispatch(handlePlainAddress(data, coin || 'bch', chain || 'bch', opts));
         // Address (Ethereum)
       } else if (IsValidEthereumAddress(data)) {
+        console.log(`---------- scan.effects.ts文件中 检测到coin = [ETH] IsValidEthereumAddress`);
         dispatch(handlePlainAddress(data, coin || 'eth', chain || 'eth', opts));
         // Address (Matic)
       } else if (IsValidMaticAddress(data)) {
@@ -128,6 +131,7 @@ export const incomingData =
         dispatch(handlePlainAddress(data, coin || 'ltc', chain || 'ltc', opts));
         // Bitcoin  URI
       } else if (IsValidBitcoinUri(data)) {
+        console.log(`---------- scan.effects.ts文件中 检测到coin = [BTC] IsValidBitcoinUri`);
         dispatch(handleBitcoinUri(data, opts?.wallet));
         // Bitcoin Cash URI
       } else if (IsValidBitcoinCashUri(data)) {
@@ -137,6 +141,7 @@ export const incomingData =
         dispatch(handleBitcoinCashUriLegacyAddress(data, opts?.wallet));
         // Ethereum URI
       } else if (IsValidEthereumUri(data)) {
+        console.log(`---------- scan.effects.ts文件中 检测到coin = [ETH] IsValidEthereumUri`);
         dispatch(handleEthereumUri(data, opts?.wallet));
         // Matic URI
       } else if (IsValidMaticUri(data)) {
@@ -434,6 +439,12 @@ const goToConfirm =
   }): Effect<Promise<void>> =>
   async dispatch => {
     try {
+
+      console.log(`----------  输入金额完毕，点击Continue之后, recipient = [${JSON.stringify(recipient)}]`);
+      console.log(`----------  输入金额完毕，点击Continue之后, amount = [${JSON.stringify(amount)}]`);
+      console.log(`----------  输入金额完毕，点击Continue之后, wallet = [${JSON.stringify(wallet)}]`);
+      console.log(`----------  输入金额完毕，点击Continue之后, opts = [${JSON.stringify(opts)}]`);
+
       if (!wallet) {
         navigationRef.navigate('Wallet', {
           screen: 'GlobalSelect',
@@ -469,6 +480,128 @@ const goToConfirm =
           ...opts,
         }),
       );
+      console.log(`----------  输入金额完毕，点击Continue之后, txDetails = [${JSON.stringify(txDetails)}]`);
+      console.log(`----------  输入金额完毕，点击Continue之后, txp = [${JSON.stringify(txp)}]`);
+      if (setButtonState) {
+        setButtonState('success');
+      } else {
+        dispatch(dismissOnGoingProcessModal());
+      }
+      await sleep(300);
+      navigationRef.navigate('Wallet', {
+        screen: 'Confirm',
+        params: {
+          wallet,
+          recipient,
+          txp,
+          txDetails,
+          amount,
+          message: opts?.message || '',
+          sendMax: opts?.sendMax,
+        },
+      });
+      sleep(300).then(() => setButtonState?.(null));
+    } catch (err: any) {
+      if (setButtonState) {
+        setButtonState('failed');
+      } else {
+        dispatch(dismissOnGoingProcessModal());
+      }
+      const [errorMessageConfig] = await Promise.all([
+        dispatch(handleCreateTxProposalError(err)),
+        sleep(400),
+      ]);
+      dispatch(
+        showBottomNotificationModal({
+          ...errorMessageConfig,
+          enableBackdropDismiss: false,
+          actions: [
+            {
+              text: 'OK',
+              action: () => {
+                if (setButtonState) {
+                  setButtonState(undefined);
+                }
+              },
+            },
+          ],
+        }),
+      );
+    }
+  };
+
+
+
+  const goToTokenConfirm =
+  ({
+    recipient,
+    amount,
+    wallet,
+    setButtonState,
+    opts,
+  }: {
+    recipient: {
+      type: string;
+      address: string;
+      email?: string;
+      currency: string;
+      chain: string;
+      destinationTag?: number;
+      network?: Network;
+    };
+    amount: number;
+    wallet?: Wallet;
+    setButtonState?: (state: ButtonState) => void;
+    opts?: {
+      sendMax?: boolean | undefined;
+      message?: string;
+      feePerKb?: number;
+    };
+  }): Effect<Promise<void>> =>
+  async dispatch => {
+    try {
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, recipient = [${JSON.stringify(recipient)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, amount = [${JSON.stringify(amount)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, wallet = [${JSON.stringify(wallet)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, opts = [${JSON.stringify(opts)}]`);
+
+      if (!wallet) {
+        navigationRef.navigate('Wallet', {
+          screen: 'GlobalSelect',
+          params: {
+            context: 'scanner',
+            recipient: {
+              ...recipient,
+              ...{
+                opts: {
+                  showERC20Tokens:
+                    !!BitpaySupportedEvmCoins[recipient.currency.toLowerCase()], // no wallet selected - if ETH address show token wallets in next view
+                  message: opts?.message || '',
+                },
+              },
+            },
+            amount,
+          },
+        });
+        return Promise.resolve();
+      }
+
+      if (setButtonState) {
+        setButtonState('loading');
+      } else {
+        dispatch(startOnGoingProcessModal('CREATING_TXP'));
+      }
+
+      const {txDetails, txp} = await dispatch(
+        createTokenProposalAndBuildTxDetails({
+          wallet,
+          recipient,
+          amount,
+          ...opts,
+        }),
+      );
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, txDetails = [${JSON.stringify(txDetails)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, txp = [${JSON.stringify(txp)}]`);
       if (setButtonState) {
         setButtonState('success');
       } else {
@@ -543,6 +676,9 @@ export const goToAmount =
     };
   }): Effect<Promise<void>> =>
   async dispatch => {
+
+
+    console.log(`---------- scan.effects.ts文件中 goToAmount 参数 wallet = [${JSON.stringify(wallet)}]`)
     if (!wallet) {
       navigationRef.navigate('Wallet', {
         screen: 'GlobalSelect',
@@ -561,6 +697,9 @@ export const goToAmount =
       });
       return Promise.resolve();
     }
+    // 检查是否为TOKEN
+    const isToken = !!wallet.credentials?.token;
+    console.log(`---------- scan.effects.ts文件中 当前钱包是否为Token = [${isToken}]`)
     navigationRef.navigate('Wallet', {
       screen: WalletScreens.AMOUNT,
       params: {
@@ -568,14 +707,22 @@ export const goToAmount =
         cryptoCurrencyAbbreviation: coin.toUpperCase(),
         chain,
         onAmountSelected: async (amount, setButtonState, amountOpts) => {
-          dispatch(
+          dispatch(isToken ? 
+            goToTokenConfirm({
+              recipient,
+              amount: Number(amount),
+              wallet,
+              setButtonState,
+              opts: {...urlOpts, ...amountOpts},
+            }) : 
             goToConfirm({
               recipient,
               amount: Number(amount),
               wallet,
               setButtonState,
               opts: {...urlOpts, ...amountOpts},
-            }),
+            }) 
+            ,
           );
         },
       },

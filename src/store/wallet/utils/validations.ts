@@ -216,6 +216,7 @@ export const ValidateURI = (data: string): any => {
   }
 
   if (IsValidBitcoinUri(data)) {
+    console.log(`---------- validations.ts 文件中, 检测到data为btc Url data = [${data}]`);
     return {
       data,
       type: 'BitcoinUri',
@@ -232,6 +233,7 @@ export const ValidateURI = (data: string): any => {
   }
 
   if (IsValidEthereumUri(data)) {
+    console.log(`---------- validations.ts 文件中, 检测到data为eth Url data = [${data}]`);
     return {
       data,
       type: 'EthereumUri',

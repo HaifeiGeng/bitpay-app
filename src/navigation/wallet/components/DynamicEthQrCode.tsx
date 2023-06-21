@@ -25,6 +25,9 @@ import {
   dismissOnGoingProcessModal,
 } from '../../../store/app/app.actions';
 import { showBottomNotificationModal } from '../../../store/app/app.actions';
+import {
+  BitcoreLib as Bitcore
+} from 'crypto-wallet-core';
 
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
@@ -68,7 +71,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
   const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
-  console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  dynamicEthQrCodeData = [${JSON.stringify(dynamicEthQrCodeData)}] `) ;
+  
   const fragmentsEncoded = encodeUR(
     Buffer.from(JSON.stringify({txp: dynamicEthQrCodeData.txp, rootPath: dynamicEthQrCodeData.wallet.credentials.rootPath}), 'ascii').toString('hex'),
     100,
@@ -87,6 +90,13 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
   const win = Dimensions.get('window');
 
   useEffect(() => {
+    console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  dynamicEthQrCodeData = [${JSON.stringify(dynamicEthQrCodeData)}] `) ;
+    console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  私钥 = [${dynamicEthQrCodeData.txp.properties}] derivationPath = [${dynamicEthQrCodeData.wallet.credentials.rootPath}]`) ;
+    // 获取该派生路径下的私钥
+    const xpriv = new Bitcore.HDPrivateKey(dynamicEthQrCodeData.txp.properties);
+    const derived = xpriv.derive(dynamicEthQrCodeData.wallet.credentials.rootPath + '/0/0');
+    console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  获取到的HDPrivateKey = [${JSON.stringify(xpriv)}] 子私钥 = [${JSON.stringify(derived.privateKey)}]`) ;
+
     try {
       setCoin(dynamicEthQrCodeData.txp.coin);
       setFragments(fragmentsEncoded);

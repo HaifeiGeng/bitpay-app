@@ -13,8 +13,10 @@ import {
 import SwipeButton from '../../../../../components/swipe-button/SwipeButton';
 import {
   createProposalAndBuildTxDetails,
+  createTokenProposalAndBuildTxDetails,
   handleCreateTxProposalError,
   startSendPayment,
+  startSendTokenPayment,
 } from '../../../../../store/wallet/effects/send/send';
 import PaymentSent from '../../../components/PaymentSent';
 import {formatFiatAmount, sleep} from '../../../../../utils/helper-methods';
@@ -73,6 +75,7 @@ import {Analytics} from '../../../../../store/analytics/analytics.effects';
 import DynamicQrCode from '../../../components/DynamicQrCode';
 import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
+import { getTokenContract } from '../../KeyOverview';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -314,6 +317,12 @@ const Confirm = () => {
     return () => clearTimeout(timer);
   }, [resetSwipeButton]);
 
+
+  useEffect(() => {
+    console.log(`---------- Confirm.tsx页面中 , txDetails = [${JSON.stringify(txDetails)}]`);
+    console.log(`---------- Confirm.tsx页面中 , txp = [${JSON.stringify(txp)}]`);
+  }, [])
+
   const showErrorMessage = useCallback(
     async (msg: BottomNotificationConfig) => {
       await sleep(500);
@@ -362,6 +371,12 @@ const Confirm = () => {
 
   const onShowPaymentSent = () => {
     setShowPaymentSentModal(true);
+  }
+
+  const getSpendNonce = async (currContract: any) => {
+    const currentNonce = await currContract.getSpendNonce();
+    console.log(`----------  获取Nonce完毕, currentNonce = [${parseInt(currentNonce)}]`);
+    return parseInt(currentNonce);
   }
 
   return (
@@ -552,6 +567,7 @@ const Confirm = () => {
         forceReset={resetSwipeButton}
         onSwipeComplete={async () => {
           try {
+            // 开始转圈
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
             await sleep(500);
 
@@ -559,13 +575,41 @@ const Confirm = () => {
             console.log(`---------- 确认页面 - 滑动以发送: wallet = [${JSON.stringify(wallet)}] `);
             console.log(`---------- 确认页面 - 滑动以发送: txp = [${JSON.stringify(txp)}] `);
             console.log(`---------- 确认页面 - 滑动以发送: recipient = [${JSON.stringify(recipient)}]`);
-
-
             console.log(`---------- 确认页面 - 滑动以发送: 当前链 chain = [${wallet.chain}]`);
+
+
+            // 检查是否为TOKEN
+            const isToken = !!wallet.credentials?.token;
+            console.log(`---------- 确认页面 - 滑动以发送: 是否为token isToken = [${isToken}]`);
+
+            let txpResult = undefined;
+            if(isToken){
+              const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
+              // const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
+              const currContract = getTokenContract('goerli', wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi); // TODO 测试完毕删除
+              const data = txp.outputs![0].data;
+              // const value = txp.outputs![0].amount;
+              const value:number = 0;
+              const coin = txp.chain;
+              const nonce = await getSpendNonce(currContract);
+              // const destination = txp.tokenAddress;
+              const destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除
+              txpResult = {
+                data,
+                value,
+                destination,
+                coin,
+                nonce,
+                properties: key.properties!.xPrivKey,
+              }
+              // txpResult = await dispatch(startSendTokenPayment({txp, key, wallet, recipient}));
+
+            } else {
+              txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
+            }
             
-            
-            const txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
             console.log(`---------- SwipeButton的最终返回值 txpResult = [${JSON.stringify(txpResult)}]`);
+            // 停止转圈
             dispatch(dismissOnGoingProcessModal());
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);
