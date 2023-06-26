@@ -21,6 +21,11 @@ import { sleep } from '../../../utils/helper-methods';
 import {useDispatch,} from 'react-redux';
 import { showBottomNotificationModal } from '../../../store/app/app.actions';
 
+import {
+  BitcoreLib as Bitcore
+} from 'crypto-wallet-core';
+import { ethers } from 'ethers'
+
 const QRCodeContainer = styled.View`
   align-items: center;
   margin: 15px;
@@ -79,6 +84,8 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
     }
     console.log(`----------  SignEthByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
     console.log(`----------  SignEthByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
+
+
     try {
       setCoin(fullWalletObj.credentials.coin);
       setDisplayQRCode(false);
@@ -182,6 +189,59 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
     }
   }
 
+
+  // =========================== 签名相关方法 =======================================================================
+  
+  const generateMessageToSign = (destination: string, value: number, data: string, nonce: number, receiveAddress: string) => {
+    let encode = ethers.utils.solidityPack(["address", "address", "uint256", "bytes", "uint256"], [receiveAddress, destination, value, data, nonce]);
+    const message = ethers.utils.keccak256(encode);
+    return message;
+  }
+
+
+  const _messageToRecover = (destination: string, value: number, data: string, nonce: number, receiveAddress: string) => {
+    const hashedUnsignedMessage = generateMessageToSign(destination, value, data, nonce, receiveAddress);
+    const prefix = ethers.utils.toUtf8Bytes("\x19Ethereum Signed Message:\n32");
+    const messageToSign = ethers.utils.concat([prefix, hashedUnsignedMessage]);
+    return ethers.utils.keccak256(messageToSign);
+  }
+
+
+  const _validSignature = (destination: string, value: number, data: string, nonce: number, vs: any[], rs: any[], ss: any[], receiveAddress: string) => {
+    const message = _messageToRecover(destination, value, data, nonce, receiveAddress);
+    const addresses = [];
+    for (let i = 0; i < vs.length; i++) {
+        const publicKey = ethers.utils.recoverPublicKey(
+            message,
+            ethers.utils.concat([
+                ethers.utils.hexlify(rs[i]),
+                ethers.utils.hexlify(ss[i]),
+                ethers.utils.hexlify(vs[i])
+            ])
+        );
+        const address = ethers.utils.computeAddress(publicKey);
+        addresses.push(address);
+    }
+    return addresses;
+  }
+
+
+  const sign = async (destination: string, value: number, data: string, nonce: number, privateKey: string, receiveAddress: string) => {
+    console.log(`----------   SignEthByQrCode页面中,  签名方法  参数 destination = [${destination}], value = [${value}], data = [${data}], nonce = [${nonce}], privateKey = [${privateKey}], receiveAddress = [${receiveAddress}]`);
+    const message = _messageToRecover(destination, value, data, nonce, receiveAddress);
+    const signingKey = new ethers.utils.SigningKey(privateKey);
+    const signature = signingKey.signDigest(message);
+    
+    return signature;
+  }
+
+
+
+
+
+
+  // =========================== 签名相关方法 =======================================================================
+
   const onBarCodeScanned = async ({data}: {data: string}) => {
     if (!decoder) {
       decoder = new BlueURDecoder();
@@ -190,17 +250,42 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
       decoder.receivePart(data);
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
-        console.log('----------  扫描到的数据：', parseData);
+        console.log('----------   SignEthByQrCode页面中,  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
         if (intervalHandler) {
           clearInterval(intervalHandler);
         }
         setOpenCamera(false);
         setSigning(true);
-        const {txp, rootPath} = JSON.parse(parseData);
-        const signature = await signTxForCold(rootPath, keyObj, txp);
+        const {txp: {
+          data, 
+          value, 
+          destination, // 测试时使用的是测试网的USDT
+          nonce, 
+          coin, 
+          receiveAddress, 
+          currencyAbbreviation,
+        }, 
+        rootPath } = JSON.parse(parseData);
+
+        // 获取该派生路径下的私钥
+        const xpriv = new Bitcore.HDPrivateKey(keyObj.properties.xPrivKey);
+        const derivedPrivateKey = xpriv.derive(fullWalletObj.credentials.rootPath + '/0/0');
+        console.log(`----------  SignEthByQrCode页面中,  rootPath = [${JSON.stringify(fullWalletObj.credentials.rootPath)}]`);
+        console.log(`----------  SignEthByQrCode页面中,  privateKey = [${JSON.stringify(keyObj.properties.xPrivKey)}]`);
+
+
+        const signature = await sign(destination, value, data, nonce, '0x' + derivedPrivateKey.privateKey, receiveAddress);
+        console.log(`----------   SignEthByQrCode页面中,  返回值 signature = [${JSON.stringify(signature)}]`);
+        const finalResult = {
+          r: signature.r,
+          s: signature.s,
+          v: signature.v - 27
+        }
+        console.log(`----------   SignEthByQrCode页面中,  返回值 finalResult = [${JSON.stringify(finalResult)}]`);
+
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
-        buildQrData(signature.join(','));
+        buildQrData(JSON.stringify(finalResult));
         await sleep(500);
         setSigning(false);
         setDisplayQRCode(true);

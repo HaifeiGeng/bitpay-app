@@ -190,7 +190,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       decoder.receivePart(data);
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
-        console.log('----------  扫描到的数据：', parseData);
+        console.log('----------  SignByQrCode页面中,  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
         if (intervalHandler) {
           clearInterval(intervalHandler);

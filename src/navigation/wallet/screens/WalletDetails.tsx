@@ -531,7 +531,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
      * @returns 
      */
     const fetchTransactionHistory = async (contractAddress:string, address: string, apikey: string) => {
-      const url = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
+      // const url = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
+      const url = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
       try {
         const response = await axios.get(url);
         return response.data.result;
@@ -540,9 +541,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         throw error;
       }
     }
-
+// 
     
-    fetchTransactionHistory('0xdac17f958d2ee523a2206206994597c13d831ec7', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
+    // fetchTransactionHistory('0xdac17f958d2ee523a2206206994597c13d831ec7', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
+    fetchTransactionHistory('0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
       console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
 
 

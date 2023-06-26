@@ -592,6 +592,10 @@ const Confirm = () => {
               const value:number = 0;
               const coin = txp.chain;
               const nonce = await getSpendNonce(currContract);
+              // 共有几个人
+              const ownerArray = await currContract.getOwners();
+              // 签名最少需要几个人
+              const n = await currContract.getRequired();
               // const destination = txp.tokenAddress;
               const destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除
               txpResult = {
@@ -601,6 +605,9 @@ const Confirm = () => {
                 coin,
                 nonce,
                 properties: key.properties!.xPrivKey,
+                m: ownerArray.length,
+                n: parseInt(n),
+                receiveAddress: wallet.receiveAddress!,
               }
               // txpResult = await dispatch(startSendTokenPayment({txp, key, wallet, recipient}));
 
