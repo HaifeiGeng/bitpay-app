@@ -314,8 +314,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     dispatch,
     'symbol',
   );
-  const [showReceiveAddressBottomModal, setShowReceiveAddressBottomModal] =
-    useState(false);
+  const [showReceiveAddressBottomModal, setShowReceiveAddressBottomModal] = useState(false);
   const [showBalanceDetailsModal, setShowBalanceDetailsModal] = useState(false);
   const walletType = getWalletType(key, fullWalletObj);
   const [showSignatureBottomModal, setShowSignatureBottomModal] = useState(false);

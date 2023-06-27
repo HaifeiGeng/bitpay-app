@@ -75,7 +75,7 @@ import {Analytics} from '../../../../../store/analytics/analytics.effects';
 import DynamicQrCode from '../../../components/DynamicQrCode';
 import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
-import { getTokenContract } from '../../KeyOverview';
+import { USDT_USDC_ABI, getTokenContract } from '../../KeyOverview';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -530,11 +530,17 @@ const Confirm = () => {
                 }),
               );
             } else {
+              let contract = undefined;
+              const isToken = !!wallet.credentials?.token && !wallet.hideWallet && wallet.chain === 'eth';
+              if(isToken){
+                contract = getTokenContract('goerli', '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', wallet.currencyAbbreviation, USDT_USDC_ABI);// TODO 测试完毕后替换为生产的
+              }
               navigation.dispatch(StackActions.popToTop());
               navigation.dispatch(
                 StackActions.replace('WalletDetails', {
                   walletId: wallet!.id,
                   key,
+                  contract,
                 }),
               );
               await sleep(0);
