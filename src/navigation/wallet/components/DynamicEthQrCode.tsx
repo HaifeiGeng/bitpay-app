@@ -80,7 +80,6 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
-  const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
   const [displayQRCode, setDisplayQRCode] = useState(true);
   const [fragments, setFragments] = useState<string[]>([]);
   const [openCamera, setOpenCamera] = useState(false);
@@ -106,7 +105,6 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
     const rootPath = dynamicEthQrCodeData.wallet.credentials.rootPath;
 
     console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  二维码内容 txp = [${JSON.stringify(txp)}]  rootPath = [${rootPath}] `) ;
-
     console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  多签信息 m = [${m}]  n = [${n}] `) ;
 
     const fragmentsEncoded = encodeUR(
@@ -114,52 +112,45 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
       100,
     );
 
-
-    
     console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  隐藏私钥 = [${JSON.stringify({...dynamicEthQrCodeData.txp, properties: ''})}] `) ;
     console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  dynamicEthQrCodeData = [${JSON.stringify(dynamicEthQrCodeData)}] `) ;
     console.log(`---------- DynamicEthQrCode 方法内 展示动态二维码之前  私钥 = [${dynamicEthQrCodeData.txp.properties}] derivationPath = [${dynamicEthQrCodeData.wallet.credentials.rootPath}]`) ;
     
-
     try {
       setCoin(dynamicEthQrCodeData.txp.coin);
       setFragments(fragmentsEncoded);
       setTotal(fragmentsEncoded.length);
-      setDisplayQRCode(true);
     } catch (e) {
       console.log(e);
       setDisplayQRCode(false);
     }
-    return () => {
-      if (intervalHandler) {
-        // console.log('---------- DynamicQrCode 组件已经卸载');
-        clearInterval(intervalHandler);
-      }
-    };
+
   }, []);
 
 
   useEffect(() => {
-    if (total > 0) {
-      startAutoMove();
+    let intervalId: any;
+    if(total > 0){
+      if (displayQRCode) {
+        intervalId = setInterval(() => {
+          setIndex((prevIndex) => {
+            // console.log(`---------- DynamicEthQrCode useEffect 调用定时器 intervalId = [${intervalId}] total = [${total}] index = [${prevIndex}]`);
+            return (prevIndex + 1) % total;
+          });
+        }, 300);
+      }
     }
-  }, [total, index]);
+
+    return () => {
+      if(!!intervalId){
+        console.log(`---------- DynamicEthQrCode useEffect 卸载 intervalId = [${intervalId}] total = [${total}] index = [${index}]`);
+        clearInterval(intervalId);
+      }
+    };
+  }, [displayQRCode, total]);
 
 
-  const startAutoMove = () => {
-    // console.log('----------  当前index :', index, '当前 total :',total);
-    if (!intervalHandler) {
-      setIntervalHandler(
-        setInterval(
-          () =>
-            setIndex(prevState => {
-              return (prevState + 1) % total;
-            }),
-          200,
-        ),
-      );
-    }
-  };
+
 
 
   const getCurrentFragment = () => {
@@ -178,10 +169,6 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
 
 
   const _nextStep = () => {
-    if (intervalHandler) {
-      clearInterval(intervalHandler);
-      setIntervalHandler(undefined);
-    }
     setDisplayQRCode(false);
     setOpenCamera(true);
   };
@@ -305,7 +292,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         if(newN > 0){
           // 未完成，继续扫码
           setDisplayQRCode(true);
-          startAutoMove();
+          // startAutoMove();
         } else {
           closeModal();
           await startOnGoingProcessModal('SENDING_PAYMENT');

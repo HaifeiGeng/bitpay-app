@@ -134,6 +134,10 @@ const ReceiveAddress = ({isVisible, closeModal, wallet}: Props) => {
       // 如果是冷钱包， 不检查是否单一地址
       return;
     }
+    if(!!wallet.credentials?.token && !wallet.hideWallet && wallet.chain === 'eth'){
+      // 如果是token, 不检查是否单一地址
+      return;
+    }
     wallet?.getStatus({network: wallet.network}, (err: any, status: Status) => {
       // console.log(`----------  检查是否单一地址 ? [${JSON.stringify(status)}] `);
       if (err) {

@@ -435,15 +435,18 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     try {
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({ force: true }));
-      await Promise.all([
-        await dispatch(
-          startUpdateWalletStatus({ key, wallet: fullWalletObj, force: true }),
-        ),
-        await loadHistory(true),
-        sleep(1000),
-      ]);
-      dispatch(updatePortfolioBalance());
-      setNeedActionTxps(fullWalletObj.pendingTxps);
+      // 如果不是token, 才需要对下方进行更新
+      if(!isToken){
+        await Promise.all([
+          await dispatch(
+            startUpdateWalletStatus({ key, wallet: fullWalletObj, force: true }),
+          ),
+          await loadHistory(true),
+          sleep(1000),
+        ]);
+        dispatch(updatePortfolioBalance());
+        setNeedActionTxps(fullWalletObj.pendingTxps);
+      }
     } catch (err) {
       dispatch(showBottomNotificationModal(BalanceUpdateError()));
     }
@@ -546,9 +549,6 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     // fetchTransactionHistory('0xdac17f958d2ee523a2206206994597c13d831ec7', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
     fetchTransactionHistory('0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
       console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
-
-
-
       const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
       console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
       if(finalTxList.length === 0){
@@ -562,10 +562,6 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       ];
       setGroupedHistory(data);
     });
-
-
-
-    
   }, [isToken]);
 
 
@@ -718,6 +714,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if(cold){
       return;
     }
+    // 如果是token， 不走刷新功能
+    if(isToken){
+      return;
+    }
     try {
       batch(() => {
         setIsLoading(!refresh);
@@ -769,6 +769,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if(cold){
       return;
     }
+    // 如果是token， 不走刷新功能
+    if(isToken){
+      return;
+    }
     await dispatch(startUpdateWalletStatus({ key, wallet: fullWalletObj }));
     dispatch(updatePortfolioBalance);
   };
@@ -778,6 +782,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if(cold){
       return;
     }
+    // 如果是token， 不走刷新功能
     if(isToken){
       return;
     }
@@ -803,6 +808,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     if(cold){
       return;
     }
+    // 如果是token， 不走刷新功能
     if(isToken){
       return;
     }
