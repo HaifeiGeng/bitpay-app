@@ -68,9 +68,10 @@ interface Props {
   dynamicEthQrCodeData: any;
   onShowPaymentSent: () => void;
   lastSigner?: boolean;
+  showLoading: (flag: boolean) => void;
 }
 let decoder: BlueURDecoder | undefined;
-const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPaymentSent, lastSigner = false}: Props) => {
+const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPaymentSent, lastSigner = false, showLoading}: Props) => {
   const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
@@ -125,6 +126,11 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
       setDisplayQRCode(false);
     }
 
+    return () => {
+      // 在组件卸载时执行清理操作
+      console.log(`---------- DynamicEthQrCode useEffect 卸载 `);  
+      // 执行其他清理操作，如取消订阅、清除计时器等
+    };
   }, []);
 
 
@@ -251,7 +257,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
 
 
 
-  const onBarCodeScanned = async ({data}: {data: string}) => {
+  const onBarCodeScanned = ({data}: {data: string}) => {
     // console.log('----------  扫描到的数据1：', data);
     if (!decoder) {
       decoder = new BlueURDecoder();
@@ -269,7 +275,6 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         console.log(`----------  DynamicEthQrCode  获取签名数据 目前的n = [${n}]`);
         const newN = n - 1;
         setN(newN);
-        await sleep(500);
         console.log(`----------  DynamicEthQrCode  获取签名数据 -1之后的n = [${newN}]`);
 
 
@@ -291,60 +296,58 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
 
         if(newN > 0){
           // 未完成，继续扫码
+          console.log(`----------  DynamicEthQrCode  未完成 需要继续扫码 newN = [${newN}]`);
           setDisplayQRCode(true);
-          // startAutoMove();
         } else {
-          closeModal();
-          await startOnGoingProcessModal('SENDING_PAYMENT');
-          await sleep(500);
-          // 签名完毕，满足签名需求，去签名，签名后广播，之后跳转到PaymentSent页面。
-          // 获取该派生路径下的私钥
-          const xpriv = new Bitcore.HDPrivateKey(dynamicEthQrCodeData.txp.properties);
-          const derived = xpriv.derive(dynamicEthQrCodeData.wallet.credentials.rootPath + '/0/0');
-          const subPrivateKey = '0x' + derived.privateKey;
-          console.log(`---------- DynamicEthQrCode 方法内 签名中  获取到的HDPrivateKey = [${JSON.stringify(xpriv)}] 子私钥 = [${subPrivateKey}]`) ;
-
-          // USDT测试： 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
-          const destination = dynamicEthQrCodeData.txp.destination; // 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
-          const value = 0;
-          const signData = dynamicEthQrCodeData.txp.data;
-          let addresses = _validSignature(destination, 0, finalV, finalR, finalS, signData, dynamicEthQrCodeData.txp.nonce, dynamicEthQrCodeData.wallet.receiveAddress);
-          console.log(`---------- DynamicEthQrCode 方法内 签名中  addresses = [${JSON.stringify(addresses)}]`) ;
-          const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
-          // const provider = new ethers.providers.EtherscanProvider(dynamicEthQrCodeData.wallet.network === 'livenet' ? 'homestead' : dynamicEthQrCodeData.wallet.network, ETHERSCAN_API_KEY);
-          const provider = new ethers.providers.EtherscanProvider('goerli', ETHERSCAN_API_KEY);// TODO  测试完毕后删除
-          const wallet = new ethers.Wallet(subPrivateKey, provider);
-          console.log(`---------- DynamicEthQrCode 方法内 wallet创建完毕`) ;
-          // 声明可写合约
-          const contractWETH = new ethers.Contract(dynamicEthQrCodeData.wallet.receiveAddress, customeAbi, wallet);
-          console.log(`---------- DynamicEthQrCode 方法内 写合约 创建完毕`) ;
-          // const contractWETH = new ethers.Contract('0x9d71037b73b6A23F40A1241e4A34a2054258B9bb', customeAbi, wallet);
-          // 发起交易
-          const tx2 = await contractWETH.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: 150000 });
-          console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
-          // 等待交易上链
-          await tx2.wait();
-          console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
-          dispatch(
-            Analytics.track('Sent Crypto', {
-              context: 'Confirm',
-              coin: dynamicEthQrCodeData.wallet.currencyAbbreviation || '',
-            }),
-          );
-          await dismissOnGoingProcessModal();
-          onShowPaymentSent();
+          
+          console.log(`----------  DynamicEthQrCode  扫码完成了，开始执行转圈`);
+          const doPay = async () => {
+            closeModal();
+            showLoading(true);
+            await sleep(500);
+            // dispatch(startOnGoingProcessModal('SIGNING'));
+            
+            // 签名完毕，满足签名需求，去签名，签名后广播，之后跳转到PaymentSent页面。
+            // 获取该派生路径下的私钥
+            const xpriv = new Bitcore.HDPrivateKey(dynamicEthQrCodeData.txp.properties);
+            const derived = xpriv.derive(dynamicEthQrCodeData.wallet.credentials.rootPath + '/0/0');
+            const subPrivateKey = '0x' + derived.privateKey;
+            console.log(`---------- DynamicEthQrCode 方法内 签名中  获取到的HDPrivateKey = [${JSON.stringify(xpriv)}] 子私钥 = [${subPrivateKey}]`) ;
+  
+            // USDT测试： 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
+            const destination = dynamicEthQrCodeData.txp.destination; // 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
+            const value = 0;
+            const signData = dynamicEthQrCodeData.txp.data;
+            let addresses = _validSignature(destination, 0, finalV, finalR, finalS, signData, dynamicEthQrCodeData.txp.nonce, dynamicEthQrCodeData.wallet.receiveAddress);
+            console.log(`---------- DynamicEthQrCode 方法内 签名中  addresses = [${JSON.stringify(addresses)}]`) ;
+            const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
+            // const provider = new ethers.providers.EtherscanProvider(dynamicEthQrCodeData.wallet.network === 'livenet' ? 'homestead' : dynamicEthQrCodeData.wallet.network, ETHERSCAN_API_KEY);
+            const provider = new ethers.providers.EtherscanProvider('goerli', ETHERSCAN_API_KEY);// TODO  测试完毕后删除
+            const wallet = new ethers.Wallet(subPrivateKey, provider);
+            console.log(`---------- DynamicEthQrCode 方法内 wallet创建完毕`) ;
+            // 声明可写合约
+            const contractWETH = new ethers.Contract(dynamicEthQrCodeData.wallet.receiveAddress, customeAbi, wallet);
+            console.log(`---------- DynamicEthQrCode 方法内 写合约 创建完毕`) ;
+            // const contractWETH = new ethers.Contract('0x9d71037b73b6A23F40A1241e4A34a2054258B9bb', customeAbi, wallet);
+            // 发起交易
+            const tx2 = await contractWETH.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: 150000 });
+            console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
+            // 等待交易上链
+            await tx2.wait();
+            console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
+            // dispatch(
+            //   Analytics.track('Sent Crypto', {
+            //     context: 'Confirm',
+            //     coin: dynamicEthQrCodeData.wallet.currencyAbbreviation || '',
+            //   }),
+            // );
+            dispatch(dismissOnGoingProcessModal());
+            console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
+            showLoading(false);
+            onShowPaymentSent();
+          }
+          doPay();
         }
-
-
-
-
-
-
-
-
-
-
-
       } else {
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);
@@ -363,7 +366,6 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         {coin === 'eth' && displayQRCode ? (
           <QRCodeContainer>
             <QRCodeBackground>
-              {/* <QRCode value={qrCodeData} size={200} /> */}
               <QRCodeComponent value={getCurrentFragment()} />
             </QRCodeBackground>
           </QRCodeContainer>
@@ -389,7 +391,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         )}
 
         <View style={{flexDirection: 'row', marginTop: 50}}>
-          <CloseButton onPress={_closeModal}>
+          <CloseButton onPress={handleFinish}>
             <CloseButtonText>{t('CLOSE')}</CloseButtonText>
           </CloseButton>
           {displayQRCode ? (

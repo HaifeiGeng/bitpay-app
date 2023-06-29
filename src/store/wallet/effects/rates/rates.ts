@@ -321,11 +321,15 @@ export const getHistoricFiatRate = (
 ): Promise<HistoricRate> => {
   return new Promise(async (resolve, reject) => {
     try {
+      console.log(`----------  进入 getHistoricFiatRate方法  参数   fiatCode = [${fiatCode}] currencyAbbreviation = [${currencyAbbreviation}] ts = [${ts}]`);
       const url = `${BASE_BWS_URL}/v1/fiatrates/${fiatCode}?coin=${currencyAbbreviation}&ts=${ts}`;
       const {data} = await axios.get(url);
       resolve(data);
     } catch (e) {
-      reject(e);
+      console.error(`----------  进入 getHistoricFiatRate方法  请求出现异常 e = [${e}]`)
+      // reject(e);
+      const data: any = {};
+      resolve(data);
     }
   });
 };

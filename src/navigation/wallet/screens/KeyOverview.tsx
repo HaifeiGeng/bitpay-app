@@ -640,6 +640,8 @@ const KeyOverview = () => {
   }, [navigation, key?.wallets, context]);
 
   useEffect(() => {
+    console.log(`----------   rates = [${JSON.stringify(rates)}]`);
+    console.log(`----------   wallets = [${JSON.stringify(wallets)}]`);
     dispatch(Analytics.track('View Key'));
   }, []);
 
@@ -728,7 +730,7 @@ const KeyOverview = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    try {
+    try { // TODO 
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({force: true}));
       await Promise.all([

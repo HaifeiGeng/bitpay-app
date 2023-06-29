@@ -623,7 +623,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         confirmations: obj.confirmations,
         blockheight: obj.blockNumber,
         fees: fees.toJSNumber(),
-        time: obj.timestamp,
+        time: obj.timeStamp,
         size: null,
         amount: amount.toJSNumber(),
         action: action,
@@ -1030,8 +1030,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     );
   };
 
-  const onPressTransaction = useMemo(
-    () => (transaction: any) => {
+  const onPressTransaction = useMemo(() => (transaction: any) => {
       const { hasUnconfirmedInputs, action, isRBF } = transaction;
       const isReceived = IsReceived(action);
       const isMoved = IsMoved(action);

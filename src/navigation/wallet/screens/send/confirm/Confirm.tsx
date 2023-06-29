@@ -27,6 +27,7 @@ import {
 import {
   dismissOnGoingProcessModal,
   showBottomNotificationModal,
+  dismissBottomNotificationModal,
 } from '../../../../../store/app/app.actions';
 import {
   Amount,
@@ -76,6 +77,7 @@ import DynamicQrCode from '../../../components/DynamicQrCode';
 import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
 import { USDT_USDC_ABI, getTokenContract } from '../../KeyOverview';
+import Loading from './loading/Loading';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -117,6 +119,10 @@ const Confirm = () => {
   // 是否开启动态二维码窗口
   const [showBtcDynamicQrCodeModal, setShowBtcDynamicQrCodeModal] = useState(false);
   const [showEthDynamicQrCodeModal, setShowEthDynamicQrCodeModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+
+
   const [dynamicQrCodeData, setDynamicQrCodeData] = useState({});
 
   const dispatch = useAppDispatch();
@@ -138,9 +144,7 @@ const Confirm = () => {
   } = route.params;
   const [txp, setTxp] = useState(_txp);
   const allKeys = useAppSelector(({WALLET}) => WALLET.keys);
-  const enableReplaceByFee = useAppSelector(
-    ({WALLET}) => WALLET.enableReplaceByFee,
-  );
+  const enableReplaceByFee = useAppSelector( ({WALLET}) => WALLET.enableReplaceByFee);
   const customizeNonce = useAppSelector(({WALLET}) => WALLET.customizeNonce);
   const rates = useAppSelector(({RATE}) => RATE.rates);
   const {isoCode} = useAppSelector(({APP}) => APP.defaultAltCurrency);
@@ -175,8 +179,8 @@ const Confirm = () => {
   );
   const {currencyAbbreviation, chain} = wallet;
   const feeOptions = GetFeeOptions(chain);
-  const {unitToSatoshi} =
-    dispatch(GetPrecision(currencyAbbreviation, chain)) || {};
+  const {unitToSatoshi} = dispatch(GetPrecision(currencyAbbreviation, chain)) || {};
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
@@ -377,6 +381,19 @@ const Confirm = () => {
     const currentNonce = await currContract.getSpendNonce();
     console.log(`----------  获取Nonce完毕, currentNonce = [${parseInt(currentNonce)}]`);
     return parseInt(currentNonce);
+  }
+
+  const closeModal = () => {
+    dispatch(dismissOnGoingProcessModal());
+    setTimeout(() => {
+      setShowBtcDynamicQrCodeModal(false);
+      setShowEthDynamicQrCodeModal(false);
+    }, 50); // 延迟时间可以根据需要进行调整
+  }
+
+
+  const showLoading = (flag: boolean) => {
+    setIsLoading(flag);
   }
 
   return (
@@ -624,16 +641,10 @@ const Confirm = () => {
             console.log(`---------- SwipeButton的最终返回值 txpResult = [${JSON.stringify(txpResult)}]`);
             // 停止转圈
             dispatch(dismissOnGoingProcessModal());
+            await sleep(500);
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);
-            // dispatch(
-            //   Analytics.track('Sent Crypto', {
-            //     context: 'Confirm',
-            //     coin: currencyAbbreviation || '',
-            //   }),
-            // );
             await sleep(500);
-            // setShowPaymentSentModal(true);
             setDynamicQrCodeData({txp: txpResult, wallet});
             if(wallet.chain === 'btc'){
               setShowBtcDynamicQrCodeModal(true);
@@ -642,8 +653,6 @@ const Confirm = () => {
               setShowEthDynamicQrCodeModal(true);
             }
             await sleep(500);
-            // console.log('---------- 准备展示动态二维码 showDynamicQrCodeModal', showDynamicQrCodeModal);
-            // console.log('---------- 准备展示动态二维码 dynamicQrCodeData', JSON.stringify(dynamicQrCodeData));
           } catch (err) {
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);
@@ -669,26 +678,33 @@ const Confirm = () => {
         }}
       />
       {
-        showBtcDynamicQrCodeModal &&
+        showBtcDynamicQrCodeModal ?
         (
           <DynamicQrCode 
             isVisible={showBtcDynamicQrCodeModal} 
-            closeModal={() => {setShowBtcDynamicQrCodeModal(false);setShowEthDynamicQrCodeModal(false);}} 
+            closeModal={() => {closeModal()}} 
             dynamicQrCodeData={dynamicQrCodeData} 
             onShowPaymentSent={() => {onShowPaymentSent()}}
           />
-        )
+        ) : null
       }
       {
-        showEthDynamicQrCodeModal &&
-        (
-          <DynamicEthQrCode 
-            isVisible={showEthDynamicQrCodeModal} 
-            closeModal={() => {setShowBtcDynamicQrCodeModal(false);setShowEthDynamicQrCodeModal(false);}} 
-            dynamicEthQrCodeData={dynamicQrCodeData} 
-            onShowPaymentSent={() => {onShowPaymentSent()}}
-          />
-        )
+        showEthDynamicQrCodeModal ? 
+          (
+            <DynamicEthQrCode 
+              isVisible={showEthDynamicQrCodeModal} 
+              closeModal={() => {closeModal()}} 
+              dynamicEthQrCodeData={dynamicQrCodeData} 
+              onShowPaymentSent={() => {onShowPaymentSent()}}
+              showLoading={(flag: boolean) => showLoading(flag)}
+            />
+          ) : null
+      }
+      {
+        isLoading ? 
+          (
+            <Loading text="Sending Payment..." />
+          ) : null
       }
     </ConfirmContainer>
   );
