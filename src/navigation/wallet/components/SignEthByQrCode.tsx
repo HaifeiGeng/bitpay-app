@@ -103,7 +103,7 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
             // console.log(`---------- SignEthByQrCode useEffect 调用定时器 intervalId = [${intervalId}] total = [${total}] index = [${prevIndex}]`);
             return (prevIndex + 1) % total;
           });
-        }, 300);
+        }, 200);
       }
     }
 

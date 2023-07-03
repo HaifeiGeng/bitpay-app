@@ -574,7 +574,7 @@ const RecoveryPhrase = () => {
         <HeaderContainer>
           <ImportTitle>{t('Recovery phrase')}</ImportTitle>
 
-          <ScanContainer
+          {/* <ScanContainer
             activeOpacity={ActiveOpacity}
             onPress={() => {
               dispatch(
@@ -592,7 +592,7 @@ const RecoveryPhrase = () => {
               });
             }}>
             <ScanSvg />
-          </ScanContainer>
+          </ScanContainer> */}
         </HeaderContainer>
 
         <Controller

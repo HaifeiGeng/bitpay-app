@@ -77,7 +77,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
-  const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
+  // const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
   const [displayQRCode, setDisplayQRCode] = useState(true);
   const [fragments, setFragments] = useState<string[]>([]);
   const [openCamera, setOpenCamera] = useState(false);
@@ -91,41 +91,66 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
       setCoin(dynamicQrCodeData.txp.coin);
       setFragments(fragmentsEncoded);
       setTotal(fragmentsEncoded.length);
-      setDisplayQRCode(true);
     } catch (e) {
       console.log(e);
       setDisplayQRCode(false);
     }
+    // return () => {
+    //   if (intervalHandler) {
+    //     // console.log('---------- DynamicQrCode 组件已经卸载');
+    //     clearInterval(intervalHandler);
+    //   }
+    // };
     return () => {
-      if (intervalHandler) {
-        // console.log('---------- DynamicQrCode 组件已经卸载');
-        clearInterval(intervalHandler);
-      }
+      // 在组件卸载时执行清理操作
+      console.log(`---------- DynamicQrCode useEffect 卸载 `);  
+      // 执行其他清理操作，如取消订阅、清除计时器等
     };
   }, []);
 
 
+  // useEffect(() => {
+  //   if (total > 0) {
+  //     startAutoMove();
+  //   }
+  // }, [total, index]);
+
+
+  // const startAutoMove = () => {
+  //   // console.log('----------  当前index :', index, '当前 total :',total);
+  //   if (!intervalHandler) {
+  //     setIntervalHandler(
+  //       setInterval(
+  //         () =>
+  //           setIndex(prevState => {
+  //             return (prevState + 1) % total;
+  //           }),
+  //         200,
+  //       ),
+  //     );
+  //   }
+  // };
+
   useEffect(() => {
-    if (total > 0) {
-      startAutoMove();
+    let intervalId: any;
+    if(total > 0){
+      if (displayQRCode) {
+        intervalId = setInterval(() => {
+          setIndex((prevIndex) => {
+            // console.log(`---------- DynamicEthQrCode useEffect 调用定时器 intervalId = [${intervalId}] total = [${total}] index = [${prevIndex}]`);
+            return (prevIndex + 1) % total;
+          });
+        }, 300);
+      }
     }
-  }, [total, index]);
 
-
-  const startAutoMove = () => {
-    // console.log('----------  当前index :', index, '当前 total :',total);
-    if (!intervalHandler) {
-      setIntervalHandler(
-        setInterval(
-          () =>
-            setIndex(prevState => {
-              return (prevState + 1) % total;
-            }),
-          200,
-        ),
-      );
-    }
-  };
+    return () => {
+      if(!!intervalId){
+        console.log(`---------- DynamicQrCode useEffect 卸载 intervalId = [${intervalId}] total = [${total}] index = [${index}]`);
+        clearInterval(intervalId);
+      }
+    };
+  }, [displayQRCode, total]);
 
 
   const getCurrentFragment = () => {
@@ -144,10 +169,6 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
 
 
   const _nextStep = () => {
-    if (intervalHandler) {
-      clearInterval(intervalHandler);
-      setIntervalHandler(undefined);
-    }
     setDisplayQRCode(false);
     setOpenCamera(true);
   };

@@ -62,7 +62,6 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
   // 动态二维码
   const [index, setIndex] = useState(0);
   const [total, setTotal] = useState(0);
-  const [intervalHandler, setIntervalHandler] = useState<NodeJS.Timeout | undefined>();
   const [displayQRCode, setDisplayQRCode] = useState(false);
   const [fragments, setFragments] = useState<string[]>([]);
   const [openCamera, setOpenCamera] = useState(true);
@@ -81,43 +80,58 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     console.log(`----------  SignByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
     try {
       setCoin(fullWalletObj.credentials.coin);
-      setDisplayQRCode(false);
-      setOpenCamera(true);
     } catch (e) {
       console.log(e);
       setDisplayQRCode(true);
     }
     return () => {
       setOpenCamera(false);
-      if (intervalHandler) {
-        clearInterval(intervalHandler);
-      }
-      // console.log('---------- SignByQrCode 组件已经卸载');
     };
   }, []);
 
-  useEffect(() => {
-    if(fullWalletObj.chain !== 'btc'){
-      return;
-    }
-    if (total > 0) {
-      startAutoMove();
-    }
-  }, [total, index]);
+  // useEffect(() => {
+  //   if(fullWalletObj.chain !== 'btc'){
+  //     return;
+  //   }
+  //   if (total > 0) {
+  //     startAutoMove();
+  //   }
+  // }, [total, index]);
 
-  const startAutoMove = () => {
-    if (!intervalHandler) {
-      setIntervalHandler(
-        setInterval(
-          () =>
-            setIndex(prevState => {
-              return (prevState + 1) % total;
-            }),
-          200,
-        ),
-      );
+  // const startAutoMove = () => {
+  //   if (!intervalHandler) {
+  //     setIntervalHandler(
+  //       setInterval(
+  //         () =>
+  //           setIndex(prevState => {
+  //             return (prevState + 1) % total;
+  //           }),
+  //         200,
+  //       ),
+  //     );
+  //   }
+  // };
+
+  useEffect(() => {
+    let intervalId: any;
+    if(total > 0){
+      if (displayQRCode) {
+        intervalId = setInterval(() => {
+          setIndex((prevIndex) => {
+            // console.log(`---------- SignEthByQrCode useEffect 调用定时器 intervalId = [${intervalId}] total = [${total}] index = [${prevIndex}]`);
+            return (prevIndex + 1) % total;
+          });
+        }, 200);
+      }
     }
-  };
+
+    return () => {
+      if(!!intervalId){
+        console.log(`---------- SignEthByQrCode useEffect 卸载 intervalId = [${intervalId}] total = [${total}] index = [${index}]`);
+        clearInterval(intervalId);
+      }
+    };
+  }, [displayQRCode, total]);
 
   const getCurrentFragment = () => {
     const currentFragment = fragments[index];
@@ -142,11 +156,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     setTimeout(() => {
       setOpenCamera(true);
       setDisplayQRCode(false);
-    }, 500);
-    if (intervalHandler) {
-      clearInterval(intervalHandler);
-      setIntervalHandler(undefined);
-    }
+    }, 100);
     setFragments([]);
     setTotal(0);
     setUrHaveCount(0);
@@ -192,9 +202,6 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         const parseData = decoder.toString();
         console.log('----------  SignByQrCode页面中,  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
-        if (intervalHandler) {
-          clearInterval(intervalHandler);
-        }
         setOpenCamera(false);
         setSigning(true);
         const {txp, rootPath} = JSON.parse(parseData);
