@@ -78,7 +78,7 @@ import ReceiveAddress from '../components/ReceiveAddress';
 import BalanceDetailsModal from '../components/BalanceDetailsModal';
 import Icons from '../components/WalletIcons';
 import { WalletScreens, WalletStackParamList } from '../WalletStack';
-import { ETHERSCAN_API_KEY, buildUIFormattedWallet } from './KeyOverview';
+import { ETHERSCAN_API_KEY, USDT_USDC_ABI, buildUIFormattedWallet, getTokenContract } from './KeyOverview';
 import { useAppDispatch, useAppSelector } from '../../../utils/hooks';
 import { getPriceHistory, startGetRates } from '../../../store/wallet/effects';
 import { createWalletAddress } from '../../../store/wallet/effects/address/address';
@@ -296,7 +296,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const { t } = useTranslation();
   const [showWalletOptions, setShowWalletOptions] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const { walletId, skipInitializeHistory, contract, updateBalance } = route.params;
+  const { walletId, skipInitializeHistory, updateBalance } = route.params;
+  let { contract} = route.params;
   const { keys } = useAppSelector(({ WALLET }) => WALLET);
   const { rates } = useAppSelector(({ RATE }) => RATE);
   const countryData = useAppSelector(({ LOCATION }) => LOCATION.countryData);
@@ -495,8 +496,9 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       return;
     }
     if(!contract){
-      console.log(`----------  WalletDetail中  contract不存在, 跳过.`);
-      return;
+      console.log(`----------  WalletDetail中 是token, 且contract不存在, 创建contract`);
+      // contract = getTokenContract(fullWalletObj.network, fullWalletObj.credentials?.token?.address, fullWalletObj.currencyAbbreviation, USDT_USDC_ABI);
+      contract = getTokenContract('goerli', '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', fullWalletObj.currencyAbbreviation, USDT_USDC_ABI);
     }
     console.log(`----------  WalletDetail中 isToken = [${isToken}] contract = [${JSON.stringify(contract)}]`);
     console.log(`----------  WalletDetail中 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);

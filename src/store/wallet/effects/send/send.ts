@@ -379,7 +379,7 @@ export const createTokenProposalAndBuildTxDetails =
         proposal.fee = proposal.gasLimit * proposal.gasPrice;
 
         console.log(`----------  send.ts文件中, createTokenProposalAndBuildTxDetails 转换过以后的proposal = [${JSON.stringify(proposal)}]`);
-        const rates = await dispatch(startGetRates({}));
+        const rates = await dispatch(startGetRates({force: true}));
         // building UI object for details
         const txDetails = dispatch(
           buildTokenTxDetails({
@@ -551,6 +551,7 @@ export const getNonce = (
 export const getInvoiceEffectiveRate =
   (invoice: Invoice, coin: string, chain: string): Effect<number | undefined> =>
   dispatch => {
+    console.log(`----------  send.ts文件中, getInvoiceEffectiveRate 参数详情 invoice = [${JSON.stringify(invoice)}] coin = [${coin}] chain = [${chain}]   `);
     const precision = dispatch(GetPrecision(coin, chain));
     return (
       precision &&
@@ -777,8 +778,7 @@ export const buildTokenTxDetails =
 
     console.log(`----------  send.ts文件中, buildTxDetails 参数详情 proposal = [${JSON.stringify(proposal)}]`);
     const {gasPrice, gasLimit, nonce, destinationTag} = proposal || {};
-    const invoiceCurrency =
-      invoice?.buyerProvidedInfo!.selectedTransactionCurrency;
+    const invoiceCurrency = invoice?.buyerProvidedInfo!.selectedTransactionCurrency;
     let {amount, coin, chain, fee = 0} = proposal || {}; // proposal fee is zero for coinbase
 
     if (invoiceCurrency) {
@@ -804,11 +804,11 @@ export const buildTokenTxDetails =
     console.log(`----------  send.ts文件中, buildTxDetails 参数详情 coin = [${JSON.stringify(coin)}]`);
     console.log(`----------  send.ts文件中, buildTxDetails 参数详情 chain = [${JSON.stringify(chain)}]`);
     console.log(`----------  send.ts文件中, buildTxDetails 参数详情 fee = [${JSON.stringify(fee)}]`);
+
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 invoiceCurrency = [${JSON.stringify(invoiceCurrency)}]`);
     amount = Number(amount); // Support BN (use number instead string only for view)
-    const effectiveRate =
-      (invoiceCurrency &&
-        dispatch(getInvoiceEffectiveRate(invoice, invoiceCurrency, chain))) ||
-      undefined;
+    const effectiveRate = (invoiceCurrency && dispatch(getInvoiceEffectiveRate(invoice, invoiceCurrency, chain))) || undefined;
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 effectiveRate = [${JSON.stringify(effectiveRate)}]`);
     const opts = {
       effectiveRate,
       defaultAltCurrencyIsoCode,
@@ -816,18 +816,23 @@ export const buildTokenTxDetails =
       coin,
       chain,
     };
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 opts = [${JSON.stringify(opts)}]`);
     const rateStr = getRateStr(opts);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 rateStr = [${JSON.stringify(rateStr)}]`);
     const networkCost = invoiceCurrency && invoice?.minerFees[invoiceCurrency]?.totalFee;
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 networkCost = [${JSON.stringify(networkCost)}]`);
     const isERC20 = IsERCToken(coin, chain);
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 isERC20 = [${JSON.stringify(isERC20)}]`);
     const effectiveRateForFee = isERC20 ? undefined : effectiveRate; // always use chain rates for fee values
-
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 effectiveRateForFee = [${JSON.stringify(effectiveRateForFee)}]`);
     if (invoiceCurrency && context === 'paypro') {
       amount = invoice.paymentTotals[invoiceCurrency];
     } else if (context === 'speedupBtcReceive') {
       amount = amount - fee;
     }
-
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 amount = [${JSON.stringify(amount)}]`);
     const {type, name, address, email} = recipient || {};
+    console.log(`----------  send.ts文件中, buildTxDetails 参数详情 recipient = [${JSON.stringify(recipient)}]`);
     return {
       context,
       currency: coin,
