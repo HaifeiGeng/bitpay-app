@@ -1319,5 +1319,6 @@
   "Signing...": "Signing...",
   
   "Add new wallet":"Add new wallet",
-  "Specify the payment address":"Specify the payment address"
+  "Specify the payment address":"Specify the payment address",
+  "Waiting for signer": "Waiting for signer "
 }

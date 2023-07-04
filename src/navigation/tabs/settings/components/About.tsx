@@ -58,11 +58,10 @@ const About = () => {
     <SettingsComponent style={{marginBottom: 10}}>
       <Setting>
         <SettingTitle>{t('Version')}</SettingTitle>
-
         <Button buttonType="pill">{APP_VERSION}</Button>
       </Setting>
-{/* 
-      <Hr />
+
+      {/* <Hr />
 
       {GIT_COMMIT_HASH ? (
         <>
@@ -79,17 +78,16 @@ const About = () => {
         onPress={() => navigation.navigate('About', {screen: 'StorageUsage'})}>
         <SettingTitle>{t('Storage Usage')}</SettingTitle>
         <AngleRight />
-      </Setting>
+      </Setting> */}
 
       <Hr />
-
       <Setting
         onPress={() => navigation.navigate('About', {screen: 'SessionLogs'})}>
         <SettingTitle>{t('Session Log')}</SettingTitle>
         <AngleRight />
       </Setting>
 
-      <Hr />
+      {/* <Hr />
 
       <Setting
         onPress={() => navigation.navigate('About', {screen: 'SendFeedback'})}>

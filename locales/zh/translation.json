@@ -1160,5 +1160,6 @@
   "Signing...": "签名中...",
   
   "Add new wallet":"添加新的钱包",
-  "Specify the payment address":"指定收款地址"
+  "Specify the payment address":"指定收款地址",
+  "Waiting for signer": "等待签名者 "
 }

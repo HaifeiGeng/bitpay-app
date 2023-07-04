@@ -89,6 +89,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
 
   const [m, setM] = useState<number>(dynamicEthQrCodeData.txp.m | 0);
   const [n, setN] = useState<number>(dynamicEthQrCodeData.txp.n | 0);
+  const [signerNum, setSignerNum] = useState<number>(1);
 
   const [r, setR] = useState<string[]>([]);
   const [s, setS] = useState<string[]>([]);
@@ -275,6 +276,9 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         console.log(`----------  DynamicEthQrCode  获取签名数据 目前的n = [${n}]`);
         const newN = n - 1;
         setN(newN);
+        setSignerNum((preSignerNum) => {
+          return preSignerNum + 1;
+        });
         console.log(`----------  DynamicEthQrCode  获取签名数据 -1之后的n = [${newN}]`);
 
 
@@ -378,7 +382,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
   return (
     <SheetModal isVisible={isVisible} onBackdropPress={() => {}}>
       <ReceiveAddressContainer>
-        <DynamicQrCodeHeader title={t('Please sign')} />
+        <DynamicQrCodeHeader title={t('Waiting for signer') + signerNum}  />
         {coin === 'eth' && displayQRCode ? (
           <QRCodeContainer>
             <QRCodeBackground>
