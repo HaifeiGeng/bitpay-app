@@ -517,9 +517,7 @@ export const USDT_USDC_ABI = [{"constant":true,"inputs":[],"name":"name","output
 
 const KeyOverview = () => {
   const {t} = useTranslation();
-  const {
-    params: {id, context},
-  } = useRoute<RouteProp<WalletStackParamList, 'KeyOverview'>>();
+  const {params: {id, context}} = useRoute<RouteProp<WalletStackParamList, 'KeyOverview'>>();
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const logger = useLogger();
@@ -529,19 +527,18 @@ const KeyOverview = () => {
   const {keys} = useAppSelector(({WALLET}) => WALLET);
   const {rates} = useAppSelector(({RATE}) => RATE);
   const defaultAltCurrency = useAppSelector(({APP}) => APP.defaultAltCurrency);
-  const linkedCoinbase = useAppSelector(
-    ({COINBASE}) => !!COINBASE.token[COINBASE_ENV],
-  );
+  const linkedCoinbase = useAppSelector(({COINBASE}) => !!COINBASE.token[COINBASE_ENV],);
   const [showKeyDropdown, setShowKeyDropdown] = useState(false);
   const key = keys[id];
-  const hasMultipleKeys =
-    Object.values(keys).filter(k => k.backupComplete).length > 1;
+  const hasMultipleKeys = Object.values(keys).filter(k => k.backupComplete).length > 1;
   let pendingTxps: any = [];
   _.each(key?.wallets, x => {
     if (x.pendingTxps) {
       pendingTxps = pendingTxps.concat(x.pendingTxps);
     }
   });
+
+
   useLayoutEffect(() => {
     if (!key) {
       return;

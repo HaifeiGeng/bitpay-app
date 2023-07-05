@@ -426,7 +426,7 @@ const getGasPrice = async () => {
   try {
     const response = await axios.get(getGasPriceUrl);
     console.log(`----------  send.ts文件中, 获取gasPrice成功 = [${JSON.stringify(response.data)}]`);
-    return parseInt(ethers.utils.parseUnits(response.data.result.SafeGasPrice, 'gwei').toString());
+    return parseInt(ethers.utils.parseUnits(response.data.result.FastGasPrice, 'gwei').toString());
   } catch (error) {
     console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
     throw error;

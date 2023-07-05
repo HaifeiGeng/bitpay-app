@@ -1320,5 +1320,8 @@
   
   "Add new wallet":"Add new wallet",
   "Specify the payment address":"Specify the payment address",
-  "Waiting for signer": "Waiting for signer "
+  "Waiting for signer": "Waiting for signer ",
+  "About CanPay": "About CanPay",
+  "please check gasPrice or gasLimit": "please check gasPrice or gasLimit",
+  "Insufficient balance, please check": "Insufficient balance, please check"
 }

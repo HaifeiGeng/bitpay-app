@@ -76,8 +76,12 @@ import {Analytics} from '../../../../../store/analytics/analytics.effects';
 import DynamicQrCode from '../../../components/DynamicQrCode';
 import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
-import { USDT_USDC_ABI, getTokenContract } from '../../KeyOverview';
+import { ETHERSCAN_API_KEY, USDT_USDC_ABI, getTokenContract } from '../../KeyOverview';
+import {
+  BitcoreLib as Bitcore
+} from 'crypto-wallet-core';
 import Loading from './loading/Loading';
+import { BigNumber, ethers } from "ethers";
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -325,6 +329,7 @@ const Confirm = () => {
   useEffect(() => {
     console.log(`---------- Confirm.tsx页面中 , txDetails = [${JSON.stringify(txDetails)}]`);
     console.log(`---------- Confirm.tsx页面中 , txp = [${JSON.stringify(txp)}]`);
+    console.log(`---------- Confirm.tsx页面中 , key = [${JSON.stringify(key)}]`);
   }, [])
 
   const showErrorMessage = useCallback(
@@ -607,12 +612,35 @@ const Confirm = () => {
 
             let txpResult = undefined;
             if(isToken){
+              // 检查当前需要支付手续费钱包的余额，如果不足以支付手续费，则抛异常, 打印txDetails
+              console.log(`---------- 确认页面 - 滑动以发送: txDetails = [${JSON.stringify(txDetails)}]`)
+              if(!txDetails.gasPrice || !txDetails.gasLimit){
+                throw new Error(t('please check gasPrice or gasLimit'));
+              }
+              
+              const provider = new ethers.providers.EtherscanProvider('goerli', ETHERSCAN_API_KEY); // TODO 测试完毕删除
+              // const provider = new ethers.providers.EtherscanProvider(wallet.network === 'livenet' ? 'homestead' : wallet.network, ETHERSCAN_API_KEY); // TODO 测试完毕删除
+
+              const xpriv = new Bitcore.HDPrivateKey(key.properties!.xPrivKey);
+              const derived = xpriv.derive(wallet.credentials.rootPath + '/0/0');
+              const subPrivateKey = '0x' + derived.privateKey;
+              const ethersWallet = new ethers.Wallet(subPrivateKey, provider);
+
+              console.log(`---------- 确认页面 - 滑动以发送: ethersWallet = [${JSON.stringify(ethersWallet)}]`);
+              const ethersReceiveAddress = ethersWallet.address;
+              const allFee = txDetails.gasPrice * txDetails.gasLimit;
+              const balance = await provider.getBalance(ethersReceiveAddress);
+              console.log(`---------- 确认页面 - 滑动以发送: allFee = [${allFee}]  balance = [${BigNumber.from(balance.toString())}]`);
+              // 如果手续费大于余额的话， 抛出异常
+              if(BigNumber.from(allFee).gt(BigNumber.from(balance.toString()))){
+                throw new Error(t('Insufficient balance, please check') + `\nbalance = [${balance.toString()}] fee = [${allFee}]`);
+              }
               const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
               // const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
               const currContract = getTokenContract('goerli', wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi); // TODO 测试完毕删除
               const data = txp.outputs![0].data;
               // const value = txp.outputs![0].amount;
-              const value:number = 0;
+              const value: number = 0;
               const coin = txp.chain;
               const nonce = await getSpendNonce(currContract);
               // 共有几个人
@@ -639,12 +667,13 @@ const Confirm = () => {
             }
             
             console.log(`---------- SwipeButton的最终返回值 txpResult = [${JSON.stringify(txpResult)}]`);
-            // 停止转圈
-            dispatch(dismissOnGoingProcessModal());
+            
             await sleep(500);
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);
             await sleep(500);
+            // 停止转圈
+            dispatch(dismissOnGoingProcessModal());
             setDynamicQrCodeData({txp: txpResult, wallet});
             if(wallet.chain === 'btc'){
               setShowBtcDynamicQrCodeModal(true);
@@ -654,9 +683,11 @@ const Confirm = () => {
             }
             await sleep(500);
           } catch (err) {
+            setResetSwipeButton(true);
+            await sleep(500);
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);
-            setResetSwipeButton(true);
+            
             switch (err) {
               case 'invalid password':
                 dispatch(showBottomNotificationModal(WrongPasswordError()));

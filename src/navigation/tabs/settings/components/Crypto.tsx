@@ -48,7 +48,7 @@ const Crypto = () => {
         <SettingTitle>{t('Network Fee Policies')}</SettingTitle>
         <AngleRight />
       </Setting>
-      <Hr />
+      {/* <Hr />
       <Setting
         activeOpacity={1}
         onPress={() => setShowInfoUnconfirmed(!showInfoUnconfirmed)}>
@@ -140,7 +140,7 @@ const Crypto = () => {
           }}
           isEnabled={enableReplaceByFee}
         />
-      </Setting>
+      </Setting> */}
       {showInfoEnableRbf ? (
         <Info>
           <InfoTriangle />

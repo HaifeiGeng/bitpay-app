@@ -145,24 +145,24 @@ const SettingsHomeScreen: React.VFC<SettingsHomeProps> = ({route}) => {
         onPress: () => {},
         subListComponent: <WalletsAndKeys />,
       },
-      {
-        id: 'Security',
-        title: t('Security'),
-        onPress: () => {},
-        subListComponent: <Security />,
-      },
+      // {
+      //   id: 'Security',
+      //   title: t('Security'),
+      //   onPress: () => {},
+      //   subListComponent: <Security />,
+      // },
       {
         id: 'Notifications',
         title: t('Notifications'),
         onPress: () => {},
         subListComponent: <Notifications />,
       },
-      {
-        id: 'Connections',
-        title: t('Connections'),
-        onPress: () => {},
-        subListComponent: <Connections redirectTo={redirectTo} />,
-      },
+      // {
+      //   id: 'Connections',
+      //   title: t('Connections'),
+      //   onPress: () => {},
+      //   subListComponent: <Connections redirectTo={redirectTo} />,
+      // },
       // {
       //   id: 'External Services',
       //   title: t('External Services'),
@@ -170,8 +170,8 @@ const SettingsHomeScreen: React.VFC<SettingsHomeProps> = ({route}) => {
       //   subListComponent: <ExternalServices />,
       // },
       {
-        id: 'About BitPay',
-        title: t('About BitPay'),
+        id: 'About CanPay',
+        title: t('About CanPay'),
         onPress: () => {},
         subListComponent: <About />,
       },
