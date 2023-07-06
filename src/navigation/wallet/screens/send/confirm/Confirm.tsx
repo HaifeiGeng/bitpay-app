@@ -82,6 +82,7 @@ import {
 } from 'crypto-wallet-core';
 import Loading from './loading/Loading';
 import { BigNumber, ethers } from "ethers";
+import { LogActions } from '../../../../../store/log';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -597,6 +598,7 @@ const Confirm = () => {
           try {
             // 开始转圈
             dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
+            dispatch(LogActions.info('Start [SwipeButton] 滑动支付按钮'));
             await sleep(500);
 
             console.log(`---------- 确认页面 - 滑动以发送: key = [${JSON.stringify(key)}] `);
@@ -681,13 +683,15 @@ const Confirm = () => {
             if(wallet.chain === 'eth'){
               setShowEthDynamicQrCodeModal(true);
             }
+            dispatch(LogActions.info('Success [SwipeButton] 滑动支付按钮'));
             await sleep(500);
           } catch (err) {
             setResetSwipeButton(true);
             await sleep(500);
             dispatch(dismissOnGoingProcessModal());
             await sleep(500);
-            
+            const errorStr = err instanceof Error ? err.message : JSON.stringify(err);
+            dispatch(LogActions.error(`Failed [SwipeButton] 滑动支付按钮 出错了: ${errorStr}`));
             switch (err) {
               case 'invalid password':
                 dispatch(showBottomNotificationModal(WrongPasswordError()));

@@ -85,6 +85,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import { LogActions } from '../../../store/log';
 
 
 
@@ -420,6 +421,7 @@ const RecoveryColdWallet = () => {
       opts.cold = '1';
       // console.log("---------- 使用私钥导入冷钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
+      dispatch(LogActions.info('Starting [import cold Wallet]'));
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
       const key = (await dispatch<any>(startCreateKeyWithOptsCold(opts))) as Key;
@@ -439,9 +441,11 @@ const RecoveryColdWallet = () => {
         }),
       );
       dispatch(dismissOnGoingProcessModal()); // 转圈结束
+      dispatch(LogActions.info('Success [import cold Wallet]'));
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
+      dispatch(LogActions.error('Failed [import cold Wallet]'));
       await sleep(600);
       showErrorModal(e);
       return;

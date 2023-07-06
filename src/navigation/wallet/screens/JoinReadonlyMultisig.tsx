@@ -42,6 +42,7 @@ import {useAppDispatch} from '../../../utils/hooks';
 import {useTranslation} from 'react-i18next';
 import {Analytics} from '../../../store/analytics/analytics.effects';
 import {backupRedirect} from '../screens/Backup';
+import { LogActions } from '../../../store/log';
 
 
 export type JoinReadonlyMultisigParamList = {
@@ -114,7 +115,7 @@ const JoinReadonlyMultisig = () => {
         }
 
         dispatch(startOnGoingProcessModal('JOIN_WALLET'));
-
+        dispatch(LogActions.info('Starting [JoinReadonlyMultisigWallet]'));
         const wallet = (await dispatch<any>(
           addWalletJoinReadonlyMultisig({
             key,
@@ -197,12 +198,13 @@ const JoinReadonlyMultisig = () => {
               );
             }
             dispatch(dismissOnGoingProcessModal());
+8            dispatch(LogActions.info('Success [JoinReadonlyMultisigWallet]'));
           },
         );
       } else {
         // console.log(`---------- 加入共享钱包  JoinReadonlyMultisigWallet   key为空 opts = [${JSON.stringify(opts)}]`);
         dispatch(startOnGoingProcessModal('JOIN_WALLET'));
-
+        dispatch(LogActions.info('Starting [JoinReadonlyMultisigWallet]'));
         const multisigKey = (await dispatch<any>(
           startJoinReadonlyMultisig(opts),
         )) as Key;
@@ -222,12 +224,15 @@ const JoinReadonlyMultisig = () => {
           key: multisigKey,
         });
         dispatch(dismissOnGoingProcessModal());
+        dispatch(LogActions.info('Success [JoinReadonlyMultisigWallet]'));
       }
     } catch (e: any) {
       dispatch(dismissOnGoingProcessModal());
       if (e.message === 'invalid password') {
         dispatch(showBottomNotificationModal(WrongPasswordError()));
       } else {
+        const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+        dispatch(LogActions.error(`Failed [JoinReadonlyMultisigWallet]: ${errorStr}`));
         await sleep(500);
         await showErrorMessage(
           CustomErrorMessage({

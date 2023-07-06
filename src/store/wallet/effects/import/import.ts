@@ -863,6 +863,8 @@ export const startImportMnemonic =
         );
         resolve(key);
       } catch (e) {
+        const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+        dispatch(LogActions.error(`failed [startImportMnemonic]: ${errorStr}`));
         dispatch(failedImport());
         reject(e);
       }
@@ -1088,6 +1090,8 @@ export const startImportWithDerivationPath =
           resolve(key);
         });
       } catch (e) {
+        const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+        dispatch(LogActions.error(`failed [startImportWithDerivationPath]: ${errorStr}`));
         dispatch(failedImport());
         reject(e);
       }
@@ -1473,8 +1477,9 @@ export const startImportWithDerivationPath =
           resolve(key);
         });
       } catch (e) {
-        // console.log("---------- 使用公钥导入导入: 出错了", e);
+        const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
         dispatch(failedImport());
+        dispatch(LogActions.error(`failed [startImportPublicKey]: ${errorStr}`));
         reject(e);
       }
     });

@@ -25,6 +25,7 @@ import {
   BitcoreLib as Bitcore
 } from 'crypto-wallet-core';
 import { ethers } from 'ethers'
+import { LogActions } from '../../../store/log';
 
 const QRCodeContainer = styled.View`
   align-items: center;
@@ -81,6 +82,7 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
     if(fullWalletObj.chain !== 'eth'){
       return;
     }
+    dispatch(LogActions.info(`Starting [SignEthByQrCode] 扫描将要签名的数据`));
     console.log(`----------  SignEthByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
     console.log(`----------  SignEthByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
     try {
@@ -91,6 +93,7 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
     }
     return () => {
       setOpenCamera(false);
+      dispatch(LogActions.info(`Success [SignEthByQrCode] 扫描将要签名的数据`));
     };
   }, []);
 
@@ -239,6 +242,8 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
         decoder = undefined; // nullify for future use (?)
         setOpenCamera(false);
         setSigning(true);
+
+        dispatch(LogActions.info(`Starting [SignEthByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
         const {txp: {
           data, 
           value, 
@@ -271,6 +276,7 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
         await sleep(500);
         setSigning(false);
         setDisplayQRCode(true);
+        dispatch(LogActions.info(`Success [SignEthByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
       } else {
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);
@@ -281,6 +287,8 @@ const SignEthByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) 
       }
     } catch (error) {
       console.warn(error);
+      const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+      dispatch(LogActions.error(`Failed [SignEthByQrCode] 扫描将要签名的数据 出错了 : ${errorStr}`));
     }
   };
 

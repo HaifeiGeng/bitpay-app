@@ -84,6 +84,7 @@ import {
 
 import {useSelector} from 'react-redux';
 import {RootState} from '../../../store';
+import { LogActions } from '../../../store/log';
 
 export interface CreateReadonlyMultisigProps {
   currency: string;
@@ -280,6 +281,7 @@ const CreateReadonlyMultisig = () => {
         }
 
         await dispatch(startOnGoingProcessModal('ADDING_WALLET'));
+        dispatch(LogActions.info('Starting [CreateReadonlyMultisigWallet]'));
         const wallet = (await dispatch<any>(
           addReadonlyWalletMultisig({
             key,
@@ -339,11 +341,13 @@ const CreateReadonlyMultisig = () => {
               );
             }
             dispatch(dismissOnGoingProcessModal());
+            dispatch(LogActions.info('Success [CreateReadonlyMultisigWallet]'));
           },
         );
       } else {
         // console.log(`---------- 进入else 多签 : opts = [${JSON.stringify(opts)}]`);
         await dispatch(startOnGoingProcessModal('CREATING_KEY'));
+        dispatch(LogActions.info('Starting [CreateReadonlyMultisigWallet]'));
         const multisigKey = (await dispatch<any>(
           startCreateReadonlyKeyMultisig(opts),
         )) as Key;
@@ -371,6 +375,7 @@ const CreateReadonlyMultisig = () => {
           key: multisigKey,
         });
         dispatch(dismissOnGoingProcessModal());
+        dispatch(LogActions.info('Success [CreateReadonlyMultisigWallet]'));
       }
     } catch (e: any) {
       logger.error(e.message);
@@ -378,6 +383,8 @@ const CreateReadonlyMultisig = () => {
         dispatch(showBottomNotificationModal(WrongPasswordError()));
       } else {
         dispatch(dismissOnGoingProcessModal());
+        const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+        dispatch(LogActions.error(`Failed [CreateReadonlyMultisigWallet]: ${errorStr}`));
         await sleep(500);
         showErrorModal(e.message);
         return;

@@ -564,6 +564,7 @@ const goToConfirm =
       console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, amount = [${JSON.stringify(amount)}]`);
       console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, wallet = [${JSON.stringify(wallet)}]`);
       console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, opts = [${JSON.stringify(opts)}]`);
+      dispatch(LogActions.info('Starting [goToTokenConfirm] 金额输入完毕, 点击了Continue '));
 
       if (!wallet) {
         navigationRef.navigate('Wallet', {
@@ -600,8 +601,8 @@ const goToConfirm =
           ...opts,
         }),
       );
-      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, txDetails = [${JSON.stringify(txDetails)}]`);
-      console.log(`---------- goToTokenConfirm 输入金额完毕，点击Continue之后, txp = [${JSON.stringify(txp)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕, 点击Continue之后, txDetails = [${JSON.stringify(txDetails)}]`);
+      console.log(`---------- goToTokenConfirm 输入金额完毕, 点击Continue之后, txp = [${JSON.stringify(txp)}]`);
       if (setButtonState) {
         setButtonState('success');
       } else {
@@ -620,8 +621,11 @@ const goToConfirm =
           sendMax: opts?.sendMax,
         },
       });
+      dispatch(LogActions.info('Success [goToTokenConfirm] 金额输入完毕, 点击了Continue '));
       sleep(300).then(() => setButtonState?.(null));
     } catch (err: any) {
+      const errorStr = err instanceof Error ? err.message : JSON.stringify(err);
+      dispatch(LogActions.error(`Failed [goToTokenConfirm] - 金额输入完毕, 点击了Continue 出错了: ${errorStr}`));
       if (setButtonState) {
         setButtonState('failed');
       } else {

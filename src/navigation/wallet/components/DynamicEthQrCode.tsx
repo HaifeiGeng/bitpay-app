@@ -31,6 +31,7 @@ import {
 import { sleep } from '../../../utils/helper-methods';
 import { ethers } from 'ethers'
 import { ETHERSCAN_API_KEY } from '../screens/KeyOverview';
+import { LogActions } from '../../../store/log';
 
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
@@ -99,6 +100,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
 
   useEffect(() => {
 
+    dispatch(LogActions.info('Starting [DynamicEthQrCode] ETH二维码'));
     const txp =  {
       ...dynamicEthQrCodeData.txp, 
       properties: '', 
@@ -131,6 +133,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
       // 在组件卸载时执行清理操作
       console.log(`---------- DynamicEthQrCode useEffect 卸载 `);  
       // 执行其他清理操作，如取消订阅、清除计时器等
+      dispatch(LogActions.info('Success [DynamicEthQrCode] ETH二维码'));
     };
   }, []);
 
@@ -266,13 +269,14 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
     try {
       decoder.receivePart(data);
       if (decoder.isComplete()) {
+        
         const parseData = decoder.toString();
         const parseDataObj = JSON.parse(parseData);
         console.log(`----------  DynamicEthQrCode  扫描到的数据: [${parseData}]`);
         decoder = undefined; // nullify for future use (?)
         setOpenCamera(false);
-        // 开始签名 TODO...
-
+        // 开始签名
+        dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 第${signerNum}次`));
         console.log(`----------  DynamicEthQrCode  获取签名数据 目前的n = [${n}]`);
         const newN = n - 1;
         setN(newN);
@@ -350,8 +354,11 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);
       }
+      dispatch(LogActions.info(`Success [DynamicEthQrCode] 读取签名 ETH二维码 完毕`));
     } catch (error: any) {
       console.error(`----------  支付出现异常了  error = ${JSON.stringify(error)}`);
+      const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+      dispatch(LogActions.error(`Failed [DynamicEthQrCode] 读取签名 ETH二维码 出现异常了 : ${errorStr}`));
       showLoading(false);
       // 如果出现异常，需要展示错误信息
       showBottomNotificationModal({

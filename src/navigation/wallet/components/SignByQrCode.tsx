@@ -20,6 +20,7 @@ import {signTxForCold} from '../../../store/wallet/effects/send/send';
 import { sleep } from '../../../utils/helper-methods';
 import {useDispatch,} from 'react-redux';
 import { showBottomNotificationModal } from '../../../store/app/app.actions';
+import { LogActions } from '../../../store/log';
 
 const QRCodeContainer = styled.View`
   align-items: center;
@@ -76,6 +77,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     if(fullWalletObj.chain !== 'btc'){
       return;
     }
+    dispatch(LogActions.info(`Starting [SignByQrCode] 扫描将要签名的数据`));
     console.log(`----------  SignByQrCode页面中,  fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
     console.log(`----------  SignByQrCode页面中,  keyObj = [${JSON.stringify(keyObj)}]`);
     try {
@@ -86,6 +88,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
     }
     return () => {
       setOpenCamera(false);
+      dispatch(LogActions.info(`Success [SignByQrCode] 扫描将要签名的数据`));
     };
   }, []);
 
@@ -201,26 +204,27 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
         console.log('----------  SignByQrCode页面中,  扫描到的数据：', parseData);
+v        dispatch(LogActions.info(`Starting [SignByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
         decoder = undefined; // nullify for future use (?)
         setOpenCamera(false);
         setSigning(true);
         const {txp, rootPath} = JSON.parse(parseData);
         const signature = await signTxForCold(rootPath, keyObj, txp);
         // 扫描完毕，已经获取所有的扫描结果，将扫描结果作为二维码的展示数据
+        // @ts-ignore
         buildQrData(signature.join(','));
         await sleep(500);
         setSigning(false);
         setDisplayQRCode(true);
+        dispatch(LogActions.info(`Success [SignByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
       } else {
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);
-        // setUrHave(parseFloat((decoder.getProgress() * 100).toFixed(2)));
-        // console.log('----------  扫描的数量', decoder.getProgress());
-        // console.log(`----------  解码相关数量打印：expectedPartCount = ${decoder.expectedPartCount()} expectedPartIndexes = ${decoder.expectedPartIndexes()} receivedPartIndexes = ${decoder.receivedPartIndexes()} lastPartIndexes = ${decoder.lastPartIndexes()} estimatedPercentComplete = ${decoder.estimatedPercentComplete()} getProgress = ${decoder.getProgress()}`);
-        // console.log(`----------  解码详细数量打印： 需要${decoder.expectedPartCount()}张二维码, 目前已经收到了${decoder.receivedPartIndexes().length || 0}张二维码 `);
       }
     } catch (error) {
       console.warn(error);
+      const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+      dispatch(LogActions.error(`Failed [SignByQrCode] 扫描将要签名的数据 出错了: ${errorStr}`));
     }
   };
 

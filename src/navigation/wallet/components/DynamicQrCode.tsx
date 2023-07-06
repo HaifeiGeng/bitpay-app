@@ -25,6 +25,7 @@ import {
   dismissOnGoingProcessModal,
 } from '../../../store/app/app.actions';
 import { showBottomNotificationModal } from '../../../store/app/app.actions';
+import { LogActions } from '../../../store/log';
 
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
@@ -68,11 +69,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
   const dispatch = useAppDispatch();
   const {t} = useTranslation();
   const [coin, setCoin] = useState('');
-  // console.log('---------- DynamicQrCode 方法内 展示动态二维码之前  : ', JSON.stringify(dynamicQrCodeData)) ;
-  const fragmentsEncoded = encodeUR(
-    Buffer.from(JSON.stringify({txp: dynamicQrCodeData.txp, rootPath: dynamicQrCodeData.wallet.credentials.rootPath}), 'ascii').toString('hex'),
-    100,
-  );
+  
 
   // 动态二维码
   const [index, setIndex] = useState(0);
@@ -88,6 +85,11 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
 
   useEffect(() => {
     try {
+      const fragmentsEncoded = encodeUR(
+        Buffer.from(JSON.stringify({txp: dynamicQrCodeData.txp, rootPath: dynamicQrCodeData.wallet.credentials.rootPath}), 'ascii').toString('hex'),
+        100,
+      );
+      dispatch(LogActions.info('Starting [DynamicQrCode] BTC二维码'));
       setCoin(dynamicQrCodeData.txp.coin);
       setFragments(fragmentsEncoded);
       setTotal(fragmentsEncoded.length);
@@ -105,6 +107,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
       // 在组件卸载时执行清理操作
       console.log(`---------- DynamicQrCode useEffect 卸载 `);  
       // 执行其他清理操作，如取消订阅、清除计时器等
+      dispatch(LogActions.info('Success [DynamicQrCode] BTC二维码'));
     };
   }, []);
 
@@ -214,7 +217,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
         const parseData = decoder.toString();
         console.log('----------  扫描到的数据：', parseData);
         decoder = undefined; // nullify for future use (?)
-
+        dispatch(LogActions.info(`Starting [DynamicQrCode] 读取签名 BTC二维码`));
         setOpenCamera(false);
         closeModal();
         dispatch(startOnGoingProcessModal('SENDING_PAYMENT'));
@@ -239,6 +242,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
               }),
             );
             dispatch(dismissOnGoingProcessModal());
+            dispatch(LogActions.info(`Success [DynamicQrCode] 读取签名 BTC二维码`));
             onShowPaymentSent();
           },
           null,
@@ -250,6 +254,8 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
       }
     } catch (error) {
       console.warn(error);
+      const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+      dispatch(LogActions.error(`Failed [DynamicQrCode] 读取签名 BTC二维码 出错了: ${errorStr}`));
       dispatch(dismissOnGoingProcessModal());
     }
   };

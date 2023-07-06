@@ -86,6 +86,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import { LogActions } from '../../../store/log';
 
 const ScrollViewContainer = styled(KeyboardAwareScrollView)`
   margin-top: 20px;
@@ -412,6 +413,7 @@ const RecoveryPhrase = () => {
   ): Promise<void> => {
     try {
       dispatch(startOnGoingProcessModal('IMPORTING'));
+      dispatch(LogActions.info('Starting [import Recovery Phrase Wallet]'));
       await sleep(1000);
       const key = !derivationPathEnabled
         ? ((await dispatch<any>(startImportMnemonic(importData, opts))) as Key)
@@ -435,9 +437,11 @@ const RecoveryPhrase = () => {
         }),
       );
       dispatch(dismissOnGoingProcessModal());
+      dispatch(LogActions.info('Success [import Recovery Phrase Wallet]'));
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
+      dispatch(LogActions.error('Failed [import Recovery Phrase Wallet]'));
       await sleep(600);
       showErrorModal(e);
       return;
