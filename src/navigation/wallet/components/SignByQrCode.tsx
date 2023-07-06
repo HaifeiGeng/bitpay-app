@@ -204,7 +204,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
       if (decoder.isComplete()) {
         const parseData = decoder.toString();
         console.log('----------  SignByQrCode页面中,  扫描到的数据：', parseData);
-v        dispatch(LogActions.info(`Starting [SignByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
+        dispatch(LogActions.info(`Starting [SignByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
         decoder = undefined; // nullify for future use (?)
         setOpenCamera(false);
         setSigning(true);
