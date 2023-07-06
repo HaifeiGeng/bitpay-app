@@ -216,7 +216,7 @@ const SignByQrCode = ({isVisible, closeModal, fullWalletObj, keyObj}: Props) => 
         await sleep(500);
         setSigning(false);
         setDisplayQRCode(true);
-        dispatch(LogActions.info(`Success [SignByQrCode] 扫描将要签名的数据 扫描完毕, 获得将要签名的数据`));
+        dispatch(LogActions.info(`Success [SignByQrCode] 扫描将要签名的数据 扫描完毕, 展示签名后的动态二维码`));
       } else {
         setUrTotal(decoder.expectedPartCount());
         setUrHaveCount(decoder.receivedPartIndexes().length || 0);

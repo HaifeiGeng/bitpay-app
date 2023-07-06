@@ -107,7 +107,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
       // 在组件卸载时执行清理操作
       console.log(`---------- DynamicQrCode useEffect 卸载 `);  
       // 执行其他清理操作，如取消订阅、清除计时器等
-      dispatch(LogActions.info('Success [DynamicQrCode] BTC二维码'));
+      dispatch(LogActions.info('Success [DynamicQrCode] BTC二维码 卸载'));
     };
   }, []);
 
@@ -234,6 +234,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
               // 如果是单签， 或者是最后一个人签名，需要进行广播
               let broadcastedTx = await broadcastTx(dynamicQrCodeData.wallet, signedTxp);
               console.log('----------  签名返回值： 成功2 broadcastedTx = ', JSON.stringify(broadcastedTx));
+              dispatch(LogActions.info(`Success [DynamicQrCode] 读取签名 BTC二维码, 广播完毕`));
             }
             dispatch(
               Analytics.track('Sent Crypto', {
@@ -242,7 +243,7 @@ const DynamicQrCode = ({isVisible, closeModal, dynamicQrCodeData, onShowPaymentS
               }),
             );
             dispatch(dismissOnGoingProcessModal());
-            dispatch(LogActions.info(`Success [DynamicQrCode] 读取签名 BTC二维码`));
+            dispatch(LogActions.info(`Success [DynamicQrCode] 读取签名 BTC二维码, 完毕`));
             onShowPaymentSent();
           },
           null,

@@ -421,7 +421,7 @@ const RecoveryColdWallet = () => {
       opts.cold = '1';
       // console.log("---------- 使用私钥导入冷钱包 importData opts", JSON.stringify(importData), JSON.stringify(opts));
       dispatch(startOnGoingProcessModal('IMPORTING')); // 开始转圈
-      dispatch(LogActions.info('Starting [import cold Wallet]'));
+      dispatch(LogActions.info('Starting [import cold Wallet] 导入冷钱包开始...'));
       await sleep(1000);
       // 目标是导入一个只读钱包，使用公钥导入 
       const key = (await dispatch<any>(startCreateKeyWithOptsCold(opts))) as Key;
@@ -441,11 +441,12 @@ const RecoveryColdWallet = () => {
         }),
       );
       dispatch(dismissOnGoingProcessModal()); // 转圈结束
-      dispatch(LogActions.info('Success [import cold Wallet]'));
+      dispatch(LogActions.info('Success [import cold Wallet] 导入冷钱包结束'));
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
-      dispatch(LogActions.error('Failed [import cold Wallet]'));
+      const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+      dispatch(LogActions.error(`Failed [import cold Wallet] 导入冷钱包出错了: ${errorStr}`));
       await sleep(600);
       showErrorModal(e);
       return;

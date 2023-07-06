@@ -133,7 +133,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
       // 在组件卸载时执行清理操作
       console.log(`---------- DynamicEthQrCode useEffect 卸载 `);  
       // 执行其他清理操作，如取消订阅、清除计时器等
-      dispatch(LogActions.info('Success [DynamicEthQrCode] ETH二维码'));
+      dispatch(LogActions.info('Success [DynamicEthQrCode] ETH二维码 卸载'));
     };
   }, []);
 
@@ -305,6 +305,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
         if(newN > 0){
           // 未完成，继续扫码
           console.log(`----------  DynamicEthQrCode  未完成 需要继续扫码 newN = [${newN}]`);
+          dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 未完成, 需要继续扫码`));
           setDisplayQRCode(true);
         } else {
           
@@ -340,9 +341,11 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             // 发起交易
             const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: 150000 });
             console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
+            dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 签名中....`));
             // 等待交易上链
             await tx2.wait();
             console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
+            dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 上链完毕`));
             // dispatch(dismissOnGoingProcessModal());
             console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
             showLoading(false);

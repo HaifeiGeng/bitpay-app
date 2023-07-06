@@ -36,6 +36,7 @@ import {useTranslation} from 'react-i18next';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {ScrollView} from 'react-native';
 import {Analytics} from '../../../store/analytics/analytics.effects';
+import { LogActions } from '../../../store/log';
 
 const BWCProvider = BwcProvider.getInstance();
 
@@ -90,6 +91,7 @@ const FileOrText = () => {
   ) => {
     try {
       await dispatch(startOnGoingProcessModal('IMPORTING'));
+      dispatch(LogActions.info('Starting [FileOrText] 导入钱包开始...'));
       // @ts-ignore
       const key = await dispatch<Key>(startImportFile(decryptBackupText, opts));
       // console.log('---------- 只读钱包开始导入 key创建完毕, 输出 key : ', JSON.stringify(key));
@@ -113,9 +115,12 @@ const FileOrText = () => {
         }),
       );
       dispatch(dismissOnGoingProcessModal());
+      dispatch(LogActions.info('Success [FileOrText] 导入钱包完毕'));
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
+      const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+      dispatch(LogActions.error(`failed [startImportPublicKey]: ${errorStr}`));
       await sleep(500);
       showErrorModal(e.message);
       return;
