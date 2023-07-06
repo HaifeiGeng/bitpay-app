@@ -198,7 +198,7 @@ const JoinReadonlyMultisig = () => {
               );
             }
             dispatch(dismissOnGoingProcessModal());
-8            dispatch(LogActions.info('Success [JoinReadonlyMultisigWallet]'));
+            dispatch(LogActions.info('Success [JoinReadonlyMultisigWallet]'));
           },
         );
       } else {
