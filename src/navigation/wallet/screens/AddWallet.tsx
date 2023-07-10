@@ -434,6 +434,15 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           }),
         );
 
+        if(!!_associatedWallet?.customAddressEnabled){
+          wallet.customAddressEnabled = _associatedWallet?.customAddressEnabled;
+          wallet.customAddress = _associatedWallet.customAddress;
+
+          // 移除ETH钱包中的customAddressEnabled 与 customAddress
+          delete _associatedWallet.customAddressEnabled;
+          delete _associatedWallet.customAddress;
+        }
+
         console.log(`---------- _addWallet方法  wallet = ${JSON.stringify(wallet)}`);
         if (!wallet.receiveAddress) {
           const walletAddress = (await dispatch<any>(
@@ -481,7 +490,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           wallet => wallet.id === associatedWallet?.id,
         );
 
-        if(!!_associatedWallet){
+        if(!!_associatedWallet && paymentAddressEnabled){
           _associatedWallet.customAddressEnabled = paymentAddressEnabled;
           _associatedWallet.customAddress = paymentAddress;
         }
@@ -518,7 +527,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           }
         }
       }
-
+      console.log(`---------- add操作 _associatedWallet = [${JSON.stringify(_associatedWallet)}] `);
       // TODO 在添加钱包之前，检查一下   paymentAddress 这个变量能否set进去，
       const wallet = await _addWallet(_associatedWallet, walletName);
 

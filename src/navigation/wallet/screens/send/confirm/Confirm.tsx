@@ -556,7 +556,6 @@ const Confirm = () => {
               const isToken = !!wallet.credentials?.token && !wallet.hideWallet && wallet.chain === 'eth';
               if(isToken){
                 contract = getTokenContract(wallet.network, wallet.credentials?.token?.address, wallet.currencyAbbreviation);
-                
               }
               navigation.dispatch(StackActions.popToTop());
               navigation.dispatch(
