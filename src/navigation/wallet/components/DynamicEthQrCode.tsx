@@ -29,9 +29,9 @@ import {
   BitcoreLib as Bitcore
 } from 'crypto-wallet-core';
 import { sleep } from '../../../utils/helper-methods';
-import { ethers } from 'ethers'
-import { ETHERSCAN_API_KEY } from '../screens/KeyOverview';
+import { ethers } from 'ethers';
 import { LogActions } from '../../../store/log';
+import { CANAAN_ABI, GAS_LIMIT, getProvider } from '../../../constants/EthContract';
 
 
 export const BchAddressTypes = ['Cash Address', 'Legacy'];
@@ -329,17 +329,14 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             const signData = dynamicEthQrCodeData.txp.data;
             let addresses = _validSignature(destination, 0, finalV, finalR, finalS, signData, dynamicEthQrCodeData.txp.nonce, dynamicEthQrCodeData.wallet.receiveAddress);
             console.log(`---------- DynamicEthQrCode 方法内 签名中  addresses = [${JSON.stringify(addresses)}]`) ;
-            const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
-            // const provider = new ethers.providers.EtherscanProvider(dynamicEthQrCodeData.wallet.network === 'livenet' ? 'homestead' : dynamicEthQrCodeData.wallet.network, ETHERSCAN_API_KEY);
-            const provider = new ethers.providers.EtherscanProvider('goerli', ETHERSCAN_API_KEY);// TODO  测试完毕后删除
+            const provider = getProvider(dynamicEthQrCodeData.wallet.network,)
             const wallet = new ethers.Wallet(subPrivateKey, provider);
             console.log(`---------- DynamicEthQrCode 方法内 wallet创建完毕`) ;
             // 声明可写合约
-            const contractWrite = new ethers.Contract(dynamicEthQrCodeData.wallet.receiveAddress, customeAbi, wallet);
+            const contractWrite = new ethers.Contract(dynamicEthQrCodeData.wallet.receiveAddress, CANAAN_ABI, wallet);
             console.log(`---------- DynamicEthQrCode 方法内 写合约 创建完毕`) ;
-            // const contractWETH = new ethers.Contract('0x9d71037b73b6A23F40A1241e4A34a2054258B9bb', customeAbi, wallet);
             // 发起交易
-            const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: 150000 });
+            const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: GAS_LIMIT });
             console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
             dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 签名中....`));
             // 等待交易上链

@@ -19,6 +19,7 @@ import {Platform} from 'react-native';
 
 import { ethers } from "ethers";
 import { Wallet } from '../../store/wallet/wallet.models';
+import { DECIMALS_MAP } from '../../constants/EthContract';
 
 const BadgeContainer = styled.View`
   margin-left: 3px;
@@ -92,12 +93,7 @@ export const buildTestBadge = (
   );
 };
 
-export const decimalsMap: { [key: string]: number } = {
-  ETH: 18, // ETH小数位为18
-  USDT: 6, // USDT小数位为6
-  USDC: 6, // USDC小数位为6
-  // 可以根据需要添加其他代币的小数位
-};
+
 
 const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}: Props) => {
   const {
@@ -136,7 +132,7 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
     console.log(`----------  WalletRow中 WalletRow中, 当前渲染的token为  是否token = [${isToken}] 是否展示余额 = [${showFiatBalance}] chain = [${chain}] currencyName = [${currencyName}]  currencyAbbreviation = [${currencyAbbreviation}] walletName = [${walletName}] cryptoBalance = [${cryptoBalance}] fiatBalance = [${fiatBalance}]`);
     console.log(`----------  WalletRow中 当前详细钱包数据 currentWallet = [${JSON.stringify(currentWallet)}]`);
     contract.balanceOf(currentWallet.receiveAddress).then((value: any) => {
-      const decimals = decimalsMap[currencyAbbreviation] || 18;
+      const decimals = DECIMALS_MAP[currencyAbbreviation] || 18;
       const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
       console.log(`----------  WalletRow中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}] decimals = [${decimals}]`);
       setFinalCryptoBalance(formatCryptoBalance);

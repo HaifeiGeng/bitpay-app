@@ -16,7 +16,6 @@ import {
   createTokenProposalAndBuildTxDetails,
   handleCreateTxProposalError,
   startSendPayment,
-  startSendTokenPayment,
 } from '../../../../../store/wallet/effects/send/send';
 import PaymentSent from '../../../components/PaymentSent';
 import {formatFiatAmount, sleep} from '../../../../../utils/helper-methods';
@@ -76,13 +75,13 @@ import {Analytics} from '../../../../../store/analytics/analytics.effects';
 import DynamicQrCode from '../../../components/DynamicQrCode';
 import DynamicEthQrCode from '../../../components/DynamicEthQrCode';
 import ReceiveAddress from '../../../components/ReceiveAddress';
-import { ETHERSCAN_API_KEY, USDT_USDC_ABI, getTokenContract } from '../../KeyOverview';
 import {
   BitcoreLib as Bitcore
 } from 'crypto-wallet-core';
 import Loading from './loading/Loading';
 import { BigNumber, ethers } from "ethers";
 import { LogActions } from '../../../../../store/log';
+import { CANAAN_ABI, getProvider, getTokenContract } from '../../../../../constants/EthContract';
 
 const VerticalPadding = styled.View`
   padding: ${ScreenGutter} 0;
@@ -556,7 +555,8 @@ const Confirm = () => {
               let contract = undefined;
               const isToken = !!wallet.credentials?.token && !wallet.hideWallet && wallet.chain === 'eth';
               if(isToken){
-                contract = getTokenContract('goerli', '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', wallet.currencyAbbreviation, USDT_USDC_ABI);// TODO 测试完毕后替换为生产的
+                contract = getTokenContract(wallet.network, wallet.credentials?.token?.address, wallet.currencyAbbreviation);
+                
               }
               navigation.dispatch(StackActions.popToTop());
               navigation.dispatch(
@@ -619,10 +619,7 @@ const Confirm = () => {
               if(!txDetails.gasPrice || !txDetails.gasLimit){
                 throw new Error(t('please check gasPrice or gasLimit'));
               }
-              
-              const provider = new ethers.providers.EtherscanProvider('goerli', ETHERSCAN_API_KEY); // TODO 测试完毕删除
-              // const provider = new ethers.providers.EtherscanProvider(wallet.network === 'livenet' ? 'homestead' : wallet.network, ETHERSCAN_API_KEY); // TODO 测试完毕删除
-
+              const provider = getProvider(wallet.network)
               const xpriv = new Bitcore.HDPrivateKey(key.properties!.xPrivKey);
               const derived = xpriv.derive(wallet.credentials.rootPath + '/0/0');
               const subPrivateKey = '0x' + derived.privateKey;
@@ -637,9 +634,8 @@ const Confirm = () => {
               if(BigNumber.from(allFee).gt(BigNumber.from(balance.toString()))){
                 throw new Error(t('Insufficient balance, please check') + `\nbalance = [${balance.toString()}] fee = [${allFee}]`);
               }
-              const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
-              // const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
-              const currContract = getTokenContract('goerli', wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi); // TODO 测试完毕删除
+              
+              const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, CANAAN_ABI);
               const data = txp.outputs![0].data;
               // const value = txp.outputs![0].amount;
               const value: number = 0;
@@ -662,8 +658,6 @@ const Confirm = () => {
                 n: parseInt(n),
                 receiveAddress: wallet.receiveAddress!,
               }
-              // txpResult = await dispatch(startSendTokenPayment({txp, key, wallet, recipient}));
-
             } else {
               txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
             }

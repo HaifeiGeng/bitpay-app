@@ -71,8 +71,8 @@ import {WalletScreens} from '../../../../navigation/wallet/WalletStack';
 import {keyBackupRequired} from '../../../../navigation/tabs/home/components/Crypto';
 import {Analytics} from '../../../analytics/analytics.effects';
 import axios from 'axios';
-import { ETHERSCAN_API_KEY, getTokenContract } from '../../../../navigation/wallet/screens/KeyOverview';
 import { ethers } from "ethers";
+import { GAS_LIMIT, getEtherscanNonce, getGasPrice } from '../../../../constants/EthContract';
 const Uuid = require('uuid');
 
 export const createProposalAndBuildTxDetails =
@@ -373,10 +373,11 @@ export const createTokenProposalAndBuildTxDetails =
         const proposal = _.cloneDeep(txp) as TransactionProposal;
         const outputObj = proposal.outputs[0];
         proposal.gasPrice = await getGasPrice();
-        proposal.gasLimit = 70000;
+        proposal.gasLimit = GAS_LIMIT;
         proposal.nonce = await getEtherscanNonce(wallet.receiveAddress!);
         proposal.amount = typeof outputObj.amount === 'string' ? parseInt(outputObj.amount) : outputObj.amount;
         proposal.fee = proposal.gasLimit * proposal.gasPrice;
+        // proposal.fee = ethers.BigNumber.from(proposal.gasLimit).mul(ethers.BigNumber.from(proposal.gasPrice));
 
         console.log(`----------  send.ts文件中, createTokenProposalAndBuildTxDetails 转换过以后的proposal = [${JSON.stringify(proposal)}]`);
         const rates = await dispatch(startGetRates({force: true}));
@@ -409,29 +410,9 @@ const getGasLimit = (to: string, ) => {
 }
 
   
-const getEtherscanNonce = async (receiveAddress: string) => {
-  const getNonceUrl = `https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=${receiveAddress}&tag=latest&apikey=${ETHERSCAN_API_KEY}`;
-  try {
-    const response = await axios.get(getNonceUrl);
-    console.log(`----------  send.ts文件中, 获取getEtherscanNonce成功 = [${JSON.stringify(response.data)}]`);
-    return parseInt(response.data.result);
-  } catch (error) {
-    console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
-    throw error;
-  }
-}
 
-const getGasPrice = async () => {
-  const getGasPriceUrl = `https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${ETHERSCAN_API_KEY}`;
-  try {
-    const response = await axios.get(getGasPriceUrl);
-    console.log(`----------  send.ts文件中, 获取gasPrice成功 = [${JSON.stringify(response.data)}]`);
-    return parseInt(ethers.utils.parseUnits(response.data.result.FastGasPrice, 'gwei').toString());
-  } catch (error) {
-    console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
-    throw error;
-  }
-}
+
+
 
 const setEthAddressNonce =
   (wallet: Wallet, tx: TransactionOptions): Effect<Promise<void>> =>
@@ -1287,89 +1268,6 @@ export const startSendPayment =
         const errString =
           err instanceof Error ? err.message : JSON.stringify(err);
         dispatch(LogActions.error(`startSendPayment: ${errString}`));
-        reject(err);
-      }
-    });
-  };
-
-
-export const startSendTokenPayment =
-  ({
-    txp,
-    key,
-    wallet,
-    recipient,
-  }: {
-    txp: Partial<TransactionProposal>;
-    key: Key;
-    wallet: Wallet;
-    recipient: Recipient;
-  }): Effect<Promise<any>> =>
-  async dispatch => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log(`----------   startSendTokenPayment 参数 txp = [${JSON.stringify(txp)}]`);
-        console.log(`----------   startSendTokenPayment 参数 key = [${JSON.stringify(key)}]`);
-        console.log(`----------   startSendTokenPayment 参数 wallet = [${JSON.stringify(wallet)}]`);
-        console.log(`----------   startSendTokenPayment 参数 recipient = [${JSON.stringify(recipient)}]`);
-        console.log(`----------   startSendTokenPayment 参数 wallet.credentials.rootPath = [${wallet.credentials.rootPath}]`);
-
-
-        // wallet.createTxProposal(
-        //   {...txp, dryRun: false},
-        //   async (err: Error, proposal: TransactionProposal) => {
-        //     if (err) {
-        //       return reject(err);
-        //     }
-        //     try {
-        //       const broadcastedTx = await dispatch(
-        //         publishAndSign({
-        //           txp: proposal,
-        //           key,
-        //           wallet,
-        //           recipient,
-        //         }),
-        //       );
-        //       // console.log('----------   startSendTokenPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
-        //       return resolve(broadcastedTx);
-        //       // return resolve({txp: proposal,key,wallet,recipient,});
-        //     } catch (e) {
-        //       return reject(e);
-        //     }
-        //   },
-        //   null,
-        // );
-
-        const customeAbi = `[{"inputs":[{"internalType":"address[]","name":"_owners","type":"address[]"},{"internalType":"uint256","name":"_required","type":"uint256"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Funded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Spent","type":"event"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"MAX_OWNER_COUNT","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getOwners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRequired","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getSpendNonce","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_id","type":"uint256"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_operator","type":"address"},{"internalType":"address","name":"_from","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"destination","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint8[]","name":"vs","type":"uint8[]"},{"internalType":"bytes32[]","name":"rs","type":"bytes32[]"},{"internalType":"bytes32[]","name":"ss","type":"bytes32[]"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"spend","outputs":[],"stateMutability":"nonpayable","type":"function"}]`;
-        // 获取该地址的合约的m/n (该收款地址，也是合约地址)
-        // const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
-        const currContract = getTokenContract('goerli', wallet.receiveAddress!, wallet.currencyAbbreviation, customeAbi);
-        // 共有几个人
-        const owners = await currContract.getOwners();
-        // 签名最少需要几个人
-        const n = await currContract.getRequired();
-
-        console.log(`----------   startSendTokenPayment 参数 m = [${owners.length}] n = [${n}]`);
-
-        try {
-          const broadcastedTx = await dispatch(
-            tokenPublishAndSign({
-              txp: proposal,
-              key,
-              wallet,
-              recipient,
-            }),
-          );
-          // console.log('----------   startSendTokenPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
-          return resolve(broadcastedTx);
-          // return resolve({txp: proposal,key,wallet,recipient,});
-        } catch (e) {
-          return reject(e);
-        }
-      } catch (err) {
-        const errString =
-          err instanceof Error ? err.message : JSON.stringify(err);
-        dispatch(LogActions.error(`startSendTokenPayment: ${errString}`));
         reject(err);
       }
     });

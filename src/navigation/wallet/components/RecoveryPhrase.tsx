@@ -441,7 +441,8 @@ const RecoveryPhrase = () => {
     } catch (e: any) {
       logger.error(e.message);
       dispatch(dismissOnGoingProcessModal());
-      dispatch(LogActions.error('Failed [import Recovery Phrase Wallet]'));
+      const errorStr = e instanceof Error ? e.message : JSON.stringify(e);
+      dispatch(LogActions.error(`Failed [import Recovery Phrase Wallet] : ${errorStr}`));
       await sleep(600);
       showErrorModal(e);
       return;

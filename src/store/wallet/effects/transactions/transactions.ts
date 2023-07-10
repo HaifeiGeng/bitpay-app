@@ -895,6 +895,9 @@ export const buildTransactionDetails =
 
         const rates = await dispatch(startGetRates({}));
 
+
+        console.log(`----------   buildTransactionDetails  组装交易详情 chain = [${chain}] alternativeCurrency = [${alternativeCurrency}] transaction = [${JSON.stringify(transaction)}] `)
+
         _transaction.feeFiatStr = formatFiatAmount(
           dispatch(toFiat(_fee, alternativeCurrency, chain, chain, rates)),
           alternativeCurrency,

@@ -352,6 +352,7 @@ const TransactionDetails = () => {
     let url = dispatch(
       GetBlockExplorerUrl(currencyAbbreviation, network, chain),
     );
+    
     switch (currencyAbbreviation) {
       case 'doge':
         url =
@@ -362,7 +363,7 @@ const TransactionDetails = () => {
       default:
         url = `https://${url}tx/${txs.txid}`;
     }
-
+    console.log(`----------  View On Bloclchain currencyAbbreviation = [${currencyAbbreviation}] url = [${url}]  txs = [${JSON.stringify(txs)}]`)
     dispatch(openUrlWithInAppBrowser(url));
   };
 

@@ -78,7 +78,7 @@ import ReceiveAddress from '../components/ReceiveAddress';
 import BalanceDetailsModal from '../components/BalanceDetailsModal';
 import Icons from '../components/WalletIcons';
 import { WalletScreens, WalletStackParamList } from '../WalletStack';
-import { ETHERSCAN_API_KEY, USDT_USDC_ABI, buildUIFormattedWallet, getTokenContract } from './KeyOverview';
+import { buildUIFormattedWallet } from './KeyOverview';
 import { useAppDispatch, useAppSelector } from '../../../utils/hooks';
 import { getPriceHistory, startGetRates } from '../../../store/wallet/effects';
 import { createWalletAddress } from '../../../store/wallet/effects/address/address';
@@ -125,12 +125,13 @@ import SentBadgeSvg from '../../../../assets/img/sent-badge.svg';
 import { Analytics } from '../../../store/analytics/analytics.effects';
 import SignByQrCode from '../components/SignByQrCode';
 import SignEthByQrCode from '../components/SignEthByQrCode';
-import { decimalsMap } from '../../../components/list/WalletRow';
+
 
 import { ethers } from "ethers";
-import axios from 'axios';
+
 import Uuid from 'react-native-uuid'
 import bigInt from 'big-integer'
+import { DECIMALS_MAP, fetchTransactionHistory, getTokenContract } from '../../../constants/EthContract';
 
 
 export type WalletDetailsScreenParamList = {
@@ -435,8 +436,11 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     try {
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({ force: true }));
-      // 如果不是token, 才需要对下方进行更新
-      if(!isToken){
+      if(isToken){
+        // 如果是token
+        // TODO 刷新余额，刷新交易记录
+      } else {
+        // 如果不是是token
         await Promise.all([
           await dispatch(
             startUpdateWalletStatus({ key, wallet: fullWalletObj, force: true }),
@@ -497,14 +501,13 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     }
     if(!contract){
       console.log(`----------  WalletDetail中 是token, 且contract不存在, 创建contract`);
-      // contract = getTokenContract(fullWalletObj.network, fullWalletObj.credentials?.token?.address, fullWalletObj.currencyAbbreviation, USDT_USDC_ABI);
-      contract = getTokenContract('goerli', '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', fullWalletObj.currencyAbbreviation, USDT_USDC_ABI);
+      contract = getTokenContract(fullWalletObj.network, fullWalletObj.credentials?.token?.address, fullWalletObj.currencyAbbreviation);
     }
     console.log(`----------  WalletDetail中 isToken = [${isToken}] contract = [${JSON.stringify(contract)}]`);
     console.log(`----------  WalletDetail中 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
     // 查询余额
     contract.balanceOf(fullWalletObj.receiveAddress).then((value: any) => {
-      const decimals = decimalsMap[currencyAbbreviation.toUpperCase()] || 18;
+      const decimals = DECIMALS_MAP[currencyAbbreviation.toUpperCase()] || 18;
       const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);
       console.log(`----------  WalletDetail中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}] decimals = [${decimals}] defaultAltCurrency.isoCode = [${defaultAltCurrency.isoCode}]`);
       setFinalCryptoBalance(formatCryptoBalance);
@@ -526,29 +529,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       setHideSendButton(!Number(value.toString()));
     });
 
-
-    /**
-     * 
-     * @param contractAddress USDT, USDC对应的address 
-     * @param address 
-     * @param address 
-     * @returns 
-     */
-    const fetchTransactionHistory = async (contractAddress:string, address: string, apikey: string) => {
-      // const url = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
-      const url = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${apikey}`;
-      try {
-        const response = await axios.get(url);
-        return response.data.result;
-      } catch (error) {
-        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
-        throw error;
-      }
-    }
-// 
-    
-    // fetchTransactionHistory('0xdac17f958d2ee523a2206206994597c13d831ec7', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
-    fetchTransactionHistory('0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe', fullWalletObj.receiveAddress!, '583ED82X4PFCBG6RFZYFGH9TZI5QF3SP1F').then(transactions => {
+    fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
       console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
       const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
       console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
@@ -588,15 +569,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
 
 
   const convertTransactionList = (inputArray: any[], chain: string, amountUnitStr: string, network: string, selfAddress:string) => {
-    const decimalsMap: { [key: string]: number } = {
-      ETH: 18, // ETH小数位为18
-      USDT: 6, // USDT小数位为6
-      USDC: 6, // USDC小数位为6
-      // 可以根据需要添加其他代币的小数位
-    };
+    
   
-    const chainDecimals = decimalsMap[chain] || 18;
-    const decimals = decimalsMap[amountUnitStr] || 18;
+    const chainDecimals = DECIMALS_MAP[chain] || 18;
+    const decimals = DECIMALS_MAP[amountUnitStr] || 18;
 
     return inputArray.map((obj) => {
 
@@ -611,9 +587,10 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         uiDescription = 'Sent';
       }
 
-      const fees = bigInt(obj.gas.toString()).multiply(bigInt(obj.gasPrice.toString()));
+      const fees = bigInt(obj.gasPrice.toString()).multiply(bigInt(obj.gasUsed.toString()));
+      // const fees = ethers.BigNumber.from(obj.gasPrice.toString()).mul(ethers.BigNumber.from(obj.gasPrice.toString()));
       const amount = bigInt(obj.value.toString());
-      const limit = bigInt(obj.gas.toString());
+      const limit = bigInt(obj.gasPrice.toString());
 
       
       const feesStr = formatNumber(fees.toJSNumber(), chainDecimals);
@@ -652,7 +629,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         creatorName: '',
         hasUnconfirmedInputs: false,
         amountStr: `${amountStr} ${amountUnitStr}`,
-        feeStr: `${feesStr} ${amountUnitStr}`,
+        feeStr: `${feesStr} ${chain}`,
         amountValueStr: `${amountStr}`,
         amountUnitStr: amountUnitStr,
         safeConfirmed: obj.confirmations > 6 ? '6+' : obj.confirmations,
