@@ -437,8 +437,26 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({ force: true }));
       if(isToken){
-        // 如果是token
-        // TODO 刷新余额，刷新交易记录
+        // 如果是token，刷新余额，刷新交易记录
+        // 更新余额
+        fetchBalanceOf(contract);
+
+        // 更新历史交易记录
+        fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
+          console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+          const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+          console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+          if(finalTxList.length === 0){
+            return;
+          }
+          const data = [
+            {
+              title: 'Recent',
+              data: finalTxList
+            }
+          ];
+          setGroupedHistory(data);
+        });
       } else {
         // 如果不是是token
         await Promise.all([
@@ -505,6 +523,31 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     }
     console.log(`----------  WalletDetail中 isToken = [${isToken}] contract = [${JSON.stringify(contract)}]`);
     console.log(`----------  WalletDetail中 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
+
+    // 更新余额
+    fetchBalanceOf(contract);
+
+    // 更新历史交易记录
+    fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
+      console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+      const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+      console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+      if(finalTxList.length === 0){
+        return;
+      }
+      const data = [
+        {
+          title: 'Recent',
+          data: finalTxList
+        }
+      ];
+      setGroupedHistory(data);
+    });
+  }, [isToken]);
+
+
+
+  const fetchBalanceOf = (contract: any) => {
     // 查询余额
     contract.balanceOf(fullWalletObj.receiveAddress).then((value: any) => {
       const decimals = DECIMALS_MAP[currencyAbbreviation.toUpperCase()] || 18;
@@ -528,23 +571,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       );
       setHideSendButton(!Number(value.toString()));
     });
-
-    fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
-      console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
-      const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
-      console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
-      if(finalTxList.length === 0){
-        return;
-      }
-      const data = [
-        {
-          title: 'Recent',
-          data: finalTxList
-        }
-      ];
-      setGroupedHistory(data);
-    });
-  }, [isToken]);
+  }
 
 
 
