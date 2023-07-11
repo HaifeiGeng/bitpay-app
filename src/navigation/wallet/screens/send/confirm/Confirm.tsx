@@ -606,13 +606,32 @@ const Confirm = () => {
             console.log(`---------- 确认页面 - 滑动以发送: recipient = [${JSON.stringify(recipient)}]`);
             console.log(`---------- 确认页面 - 滑动以发送: 当前链 chain = [${wallet.chain}]`);
 
-
             // 检查是否为TOKEN
             const isToken = !!wallet.credentials?.token;
             console.log(`---------- 确认页面 - 滑动以发送: 是否为token isToken = [${isToken}]`);
 
             let txpResult = undefined;
             if(isToken){
+              console.log(`---------- 确认页面 - 滑动以发送: 自定义地址开关 customAddressEnabled = [${wallet.customAddressEnabled}]`);
+              // 如果是token，需要继续判断他是否自定义地址。
+              if(wallet.customAddressEnabled !== undefined && !wallet.customAddressEnabled){
+                dispatch(LogActions.info('Success [SwipeButton] 滑动支付按钮: 是token, 并且没有自定义收款地址.'));
+                // 需要判断, 如果不是自定义收款地址的话，才允许单签支付。
+                await dispatch(startSendPayment({txp, key, wallet, recipient}));
+                dispatch(dismissOnGoingProcessModal());
+                dispatch(
+                  Analytics.track('Sent Crypto', {
+                    context: 'Confirm',
+                    coin: currencyAbbreviation || '',
+                  }),
+                );
+                await sleep(500);
+                setShowPaymentSentModal(true);
+                dispatch(LogActions.info('Success [SwipeButton] 滑动支付按钮: 是token, 并且没有自定义收款地址. 支付完成'));
+                return;
+              }
+
+              dispatch(LogActions.info('Success [SwipeButton] 滑动支付按钮: 是token, 已经自定义收款地址, 需要使用冷钱包进行签名, 准备展示动态二维码'));
               // 检查当前需要支付手续费钱包的余额，如果不足以支付手续费，则抛异常, 打印txDetails
               console.log(`---------- 确认页面 - 滑动以发送: txDetails = [${JSON.stringify(txDetails)}]`)
               if(!txDetails.gasPrice || !txDetails.gasLimit){
@@ -658,11 +677,29 @@ const Confirm = () => {
                 receiveAddress: wallet.receiveAddress!,
               }
             } else {
-              txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
+              // 如果不是token, 需要检查是否为ETH, 并且m/n都等于1，并且非Readonly, 如果以上条件都满足，则需要直接签名
+              console.log(`---------- 确认页面 - 滑动以发送: 不是token, chain = [${wallet.chain}], m = [${wallet.m}], n = [${wallet.n}], !isReadOnly = [${!key.isReadOnly}]`);
+              if(wallet.m === 1 && wallet.n === 1 && !key.isReadOnly){
+                dispatch(LogActions.info(`Success [SwipeButton] 滑动支付按钮: 不是token, 币种[${wallet.chain}], 非只读, 单签, 准备直接付款`));
+                await dispatch(startSendPayment({txp, key, wallet, recipient}));
+                dispatch(dismissOnGoingProcessModal());
+                dispatch(
+                  Analytics.track('Sent Crypto', {
+                    context: 'Confirm',
+                    coin: currencyAbbreviation || '',
+                  }),
+                );
+                await sleep(500);
+                setShowPaymentSentModal(true);
+                dispatch(LogActions.info(`Success [SwipeButton] 滑动支付按钮: 不是token, 币种[${wallet.chain}], 非只读, 单签, 付款完毕`));
+                return;
+              } else {
+                txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
+              }
             }
             
             console.log(`---------- SwipeButton的最终返回值 txpResult = [${JSON.stringify(txpResult)}]`);
-            
+            dispatch(LogActions.info(`Success [SwipeButton] 滑动支付按钮: 开始准备展示动态二维码`));
             await sleep(500);
             // 将按钮恢复到未滑动状态
             setResetSwipeButton(true);

@@ -71,7 +71,7 @@ interface Props {
   hideIcon?: boolean;
   isLast?: boolean;
   onPress: () => void;
-  updateBalance: (walletId: string, sat: number) => void;
+  updateBalance?: (walletId: string, sat: number) => void;
   contract?: any;
 }
 
@@ -137,7 +137,9 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
       console.log(`----------  WalletRow中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}] decimals = [${decimals}]`);
       setFinalCryptoBalance(formatCryptoBalance);
       setShowFiatBalance(Number(value.toString()) > 0);
-      updateBalance(wallet.id, Number(value.toString()));
+      if(updateBalance !== undefined){
+        updateBalance(wallet.id, Number(value.toString()));
+      }
     });
   }, [isToken]);
 

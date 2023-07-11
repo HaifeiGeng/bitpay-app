@@ -1699,18 +1699,18 @@ export const signTx = (
       const rootPath = wallet.getRootPath();
       const signatures = key.methods!.sign(rootPath, txp, password);
       // console.log('----------  签名完成，签名所需参数，', JSON.stringify(rootPath), typeof rootPath);
-      resolve(signatures);
-      // wallet.pushSignatures(
-      //   txp,
-      //   signatures,
-      //   (err: Error, signedTxp: any) => {
-      //     if (err) {
-      //       reject(err);
-      //     }
-      //     resolve(signedTxp);
-      //   },
-      //   null,
-      // );
+      // resolve(signatures);
+      wallet.pushSignatures(
+        txp,
+        signatures,
+        (err: Error, signedTxp: any) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(signedTxp);
+        },
+        null,
+      );
     } catch (err) {
       reject(err);
     }

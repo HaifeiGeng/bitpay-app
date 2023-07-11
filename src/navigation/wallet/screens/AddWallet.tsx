@@ -434,14 +434,14 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           }),
         );
 
-        if(!!_associatedWallet?.customAddressEnabled){
-          wallet.customAddressEnabled = _associatedWallet?.customAddressEnabled;
-          wallet.customAddress = _associatedWallet.customAddress;
 
-          // 移除ETH钱包中的customAddressEnabled 与 customAddress
-          delete _associatedWallet.customAddressEnabled;
-          delete _associatedWallet.customAddress;
-        }
+        wallet.customAddressEnabled = _associatedWallet?.customAddressEnabled;
+        wallet.customAddress = _associatedWallet?.customAddress;
+
+        // 移除ETH钱包中的customAddressEnabled 与 customAddress
+        delete _associatedWallet?.customAddressEnabled;
+        delete _associatedWallet?.customAddress;
+        
 
         console.log(`---------- _addWallet方法  wallet = ${JSON.stringify(wallet)}`);
         if (!wallet.receiveAddress) {
@@ -490,7 +490,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
           wallet => wallet.id === associatedWallet?.id,
         );
 
-        if(!!_associatedWallet && paymentAddressEnabled){
+        if(!!_associatedWallet){
           _associatedWallet.customAddressEnabled = paymentAddressEnabled;
           _associatedWallet.customAddress = paymentAddress;
         }
