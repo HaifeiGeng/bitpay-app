@@ -5,6 +5,8 @@ import axios from 'axios';
 
 /**
  * 是否使用测试网络
+ * 
+ * Confirm.tsx中, 滑动支付按钮时，将const destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe';处理为正确的值
  */
 const TEST_NET = true;
 

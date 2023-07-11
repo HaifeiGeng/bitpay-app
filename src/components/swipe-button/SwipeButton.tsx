@@ -56,7 +56,8 @@ const SwipeButton = ({
           railStyles={{borderWidth: 2, borderRadius: 50}}
           railFillBackgroundColor={'#0E258D'}
           thumbIconStyles={{borderRadius: 50}}
-          thumbIconBackgroundColor={'#0E258D'}
+          // thumbIconBackgroundColor={'#0E258D'}
+          thumbIconBackgroundColor={'#ffffff'}
           thumbIconBorderColor={'#0E258D'}
           // @ts-ignore
           thumbIconComponent={() => <BitpayBSvg />}
