@@ -443,7 +443,7 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
         delete _associatedWallet?.customAddress;
         
 
-        console.log(`---------- _addWallet方法  wallet = ${JSON.stringify(wallet)}`);
+        console.log(`---------- _addWallet方法  wallet = ${JSON.stringify(wallet)} paymentAddressEnabled = [${paymentAddressEnabled}]`);
         if (!wallet.receiveAddress) {
           const walletAddress = (await dispatch<any>(
             createWalletCustomAddress({wallet, newAddress: true, paymentAddressEnabled, paymentAddress}),

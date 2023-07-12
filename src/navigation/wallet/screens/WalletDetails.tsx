@@ -131,7 +131,7 @@ import { ethers } from "ethers";
 
 import Uuid from 'react-native-uuid'
 import bigInt from 'big-integer'
-import { DECIMALS_MAP, fetchTransactionHistory, getTokenContract } from '../../../constants/EthContract';
+import { DECIMALS_MAP, fetchContractTransactionHistory, fetchEthTransactionHistory, formatEtherWithPrecision, getProvider, getTokenContract } from '../../../constants/EthContract';
 
 
 export type WalletDetailsScreenParamList = {
@@ -437,26 +437,51 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({ force: true }));
       if(isToken){
-        // 如果是token，刷新余额，刷新交易记录
-        // 更新余额
-        fetchBalanceOf(contract);
-
-        // 更新历史交易记录
-        fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
-          console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
-          const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
-          console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
-          if(finalTxList.length === 0){
-            return;
-          }
-          const data = [
-            {
-              title: 'Recent',
-              data: finalTxList
+        if(!!contract){
+          // 如果是token，刷新余额，刷新交易记录
+          // 更新余额
+          fetchBalanceOf(contract);
+          // 更新历史交易记录
+          fetchContractTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
+            console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+            const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+            console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+            if(finalTxList.length === 0){
+              return;
             }
-          ];
-          setGroupedHistory(data);
-        });
+            const data = [
+              {
+                title: 'Recent',
+                data: finalTxList
+              }
+            ];
+            setGroupedHistory(data);
+          });
+        } else {
+          // ETH
+          const provider = getProvider(fullWalletObj.network);
+          console.log(`----------  WalletDetail中 ETH钱包 下拉刷新ETH钱包`);
+          console.log(`----------  WalletDetail中 ETH钱包 isToken = [${isToken}], provider = [${JSON.stringify(provider)}]`);
+          console.log(`----------  WalletDetail中 ETH钱包 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
+          // 更新余额
+          fetchEthBalanceOf(provider);
+          fetchEthTransactionHistory(fullWalletObj.receiveAddress!).then((transactions: any) => {
+            transactions = transactions.filter((item: any) => item.value !== '0');
+            console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+            const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+            console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+            if(finalTxList.length === 0){
+              return;
+            }
+            const data = [
+              {
+                title: 'Recent',
+                data: finalTxList
+              }
+            ];
+            setGroupedHistory(data);
+          })
+        }
       } else {
         // 如果不是是token
         await Promise.all([
@@ -512,9 +537,14 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   const [finalFiatBalance, setFinalFiatBalance] = useState<string>(fiatBalance);
 
 
+  /** token专用的副作用 */
   useEffect(() => {
     if(!isToken){
       console.log(`----------  WalletDetail中  不是token, 跳过.`);
+      return;
+    }
+    if(currencyAbbreviation.toLowerCase() === 'eth'){
+      console.log(`----------  WalletDetail中  ETH钱包, 跳过.`);
       return;
     }
     if(!contract){
@@ -526,9 +556,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
 
     // 更新余额
     fetchBalanceOf(contract);
-
     // 更新历史交易记录
-    fetchTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
+    fetchContractTransactionHistory(currencyAbbreviation, fullWalletObj.receiveAddress!).then((transactions: any) => {
       console.log(`----------  WalletDetail中 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
       const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
       console.log(`----------  WalletDetail中 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
@@ -543,12 +572,69 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       ];
       setGroupedHistory(data);
     });
-  }, [isToken]);
+  }, []);
+
+  /** ETH token专用的副作用 */
+  useEffect(() => {
+    if(!isToken){
+      console.log(`----------  WalletDetail中  不是token, 跳过.`);
+      return;
+    }
+    if(currencyAbbreviation.toLowerCase() !== 'eth'){
+      console.log(`----------  WalletDetail中  不是ETH钱包, 跳过.`);
+      return;
+    }
+    const provider = getProvider(fullWalletObj.network);
+    console.log(`----------  WalletDetail中 ETH钱包 isToken = [${isToken}], provider = [${JSON.stringify(provider)}]`);
+    console.log(`----------  WalletDetail中 ETH钱包 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
+
+    // 更新余额
+    fetchEthBalanceOf(provider);
+    fetchEthTransactionHistory(fullWalletObj.receiveAddress!).then((transactions: any) => {
+      transactions = transactions.filter((item: any) => item.value !== '0');
+      console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
+      const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+      console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+      if(finalTxList.length === 0){
+        return;
+      }
+      const data = [
+        {
+          title: 'Recent',
+          data: finalTxList
+        }
+      ];
+      setGroupedHistory(data);
+    });
+  }, []);
 
 
+  const fetchEthBalanceOf = (provider: ethers.providers.EtherscanProvider) => {
+    // 查询ETH Token余额
+    provider.getBalance(fullWalletObj.receiveAddress!).then((value: any) => {
+        const formatCryptoBalance = ethers.utils.formatEther(value);
+        console.log(`----------  WalletDetail中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}]`);
+        setFinalCryptoBalance(formatEtherWithPrecision(formatCryptoBalance, 6));
+        setShowFiatBalance(Number(value.toString()) > 0);
+        if(updateBalance !== undefined){
+          updateBalance(fullWalletObj.id, Number(value.toString()));
+        }
+        fullWalletObj.balance.sat = Number(value.toString());
+        console.log(`----------  WalletDetail中 是否隐藏Send按钮 HideSendButton = [${!Number(value.toString())}]`);
+        // 防止不及时更新相关货币金额， 手动刷新
+        uiFormattedWallet = buildUIFormattedWallet(
+          fullWalletObj,
+          defaultAltCurrency.isoCode,
+          rates,
+          dispatch,
+          'symbol',
+        );
+        setHideSendButton(!Number(value.toString()));
+      });
+  }
 
   const fetchBalanceOf = (contract: any) => {
-    // 查询余额
+    // 查询Token余额
     contract.balanceOf(fullWalletObj.receiveAddress).then((value: any) => {
       const decimals = DECIMALS_MAP[currencyAbbreviation.toUpperCase()] || 18;
       const formatCryptoBalance = ethers.utils.formatUnits(value.toString(), decimals);

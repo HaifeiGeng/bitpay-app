@@ -39,6 +39,7 @@ export const CurrencyListIcons: {
   btc: props => <BtcIcon {...props} />,
   bch: props => <BchIcon {...props} />,
   eth: props => <EthIcon {...props} />,
+  eth_e: props => <EthIcon {...props} />,
   matic: props => <MaticIcon {...props} />,
   doge: props => <DogeIcon {...props} />,
   ltc: props => <LtcIcon {...props} />,
@@ -135,6 +136,17 @@ export const SupportedEvmCurrencyOptions: Array<SupportedCurrencyOption> = [
 ];
 
 export const SupportedTokenOptions: Array<SupportedCurrencyOption> = [
+  {
+    id: Math.random().toString(),
+    img: CurrencyListIcons.eth_e,
+    currencyName: 'Ethereum',
+    currencyAbbreviation: 'eth',
+    chain: 'eth',
+    isToken: true,
+    imgSrc: require('../../assets/img/currencies/png/ETH.png'),
+    badgeSrc: require('../../assets/img/currencies/png/ETH.png'),
+    badgeUri: CurrencyListIcons.eth,
+  },
   {
     id: Math.random().toString(),
     img: CurrencyListIcons.usdc_e,

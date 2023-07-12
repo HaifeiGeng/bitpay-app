@@ -3,6 +3,8 @@ import {EVM_BLOCKCHAIN_EXPLORERS} from './config';
 export type SupportedCoins = 'btc' | 'bch' | 'ltc' | 'doge' | 'eth' | 'matic';
 export type SupportedEthereumTokens =
   | 'usdc_e'
+  | 'usdt_e'
+  | 'eth_e'
   | 'gusd_e'
   | 'usdp_e'
   | 'pax_e' // backward compatibility
@@ -493,6 +495,38 @@ export const BitpaySupportedEthereumTokens: {[key in string]: CurrencyOpts} = {
       paymentCode: 'EIP681b',
       protocolPrefix: {livenet: 'ethereum', testnet: 'ethereum'},
       ratesApi: 'https://bws.bitpay.com/bws/api/v3/fiatrates/usdt',
+      blockExplorerUrls: EVM_BLOCKCHAIN_EXPLORERS.eth.livenet,
+      blockExplorerUrlsTestnet: EVM_BLOCKCHAIN_EXPLORERS.eth.testnet,
+    },
+    feeInfo: {
+      feeUnit: 'Gwei',
+      feeUnitAmount: 1e9,
+      blockTime: 0.2,
+      maxMerchantFee: 'urgent',
+    },
+  },
+  eth_e: {
+    name: 'Ethereum',
+    chain: 'eth',
+    coin: 'eth',
+    unitInfo: {
+      unitName: 'ETH',
+      unitToSatoshi: 1e18,
+      unitDecimals: 18,
+      unitCode: 'eth',
+    },
+    properties: {
+      hasMultiSig: true,
+      hasMultiSend: false,
+      isUtxo: false,
+      isERCToken: false,
+      isStableCoin: false,
+      singleAddress: true,
+    },
+    paymentInfo: {
+      paymentCode: 'EIP681',
+      protocolPrefix: {livenet: 'ethereum', testnet: 'ethereum'},
+      ratesApi: 'https://bws.bitpay.com/bws/api/v3/fiatrates/eth',
       blockExplorerUrls: EVM_BLOCKCHAIN_EXPLORERS.eth.livenet,
       blockExplorerUrlsTestnet: EVM_BLOCKCHAIN_EXPLORERS.eth.testnet,
     },

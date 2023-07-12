@@ -19,7 +19,7 @@ import {Platform} from 'react-native';
 
 import { ethers } from "ethers";
 import { Wallet } from '../../store/wallet/wallet.models';
-import { DECIMALS_MAP } from '../../constants/EthContract';
+import { DECIMALS_MAP, formatEtherWithPrecision, getProvider } from '../../constants/EthContract';
 
 const BadgeContainer = styled.View`
   margin-left: 3px;
@@ -129,6 +129,8 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
       console.log(`----------  WalletRow中  contract不存在, 跳过.`);
       return;
     }
+    console.log(`----------  WalletRow中 WalletRow中, img = [${JSON.stringify(img)}]`)
+    console.log(`----------  WalletRow中 WalletRow中, badgeImg = [${JSON.stringify(badgeImg)}]`)
     console.log(`----------  WalletRow中 WalletRow中, 当前渲染的token为  是否token = [${isToken}] 是否展示余额 = [${showFiatBalance}] chain = [${chain}] currencyName = [${currencyName}]  currencyAbbreviation = [${currencyAbbreviation}] walletName = [${walletName}] cryptoBalance = [${cryptoBalance}] fiatBalance = [${fiatBalance}]`);
     console.log(`----------  WalletRow中 当前详细钱包数据 currentWallet = [${JSON.stringify(currentWallet)}]`);
     contract.balanceOf(currentWallet.receiveAddress).then((value: any) => {
@@ -141,7 +143,36 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
         updateBalance(wallet.id, Number(value.toString()));
       }
     });
-  }, [isToken]);
+  }, []);
+
+  useEffect(() => {
+    if(!isToken){
+      console.log(`----------  @@ WalletRow中  不是token, 跳过.`);
+      return;
+    }
+    if(!!contract){
+      console.log(`----------  @@ WalletRow中  contract存在, 跳过.`);
+      return;
+    }
+    console.log(`----------  @@ WalletRow中 WalletRow中, img = [${JSON.stringify(img)}]`)
+    console.log(`----------  @@ WalletRow中 WalletRow中, badgeImg = [${JSON.stringify(badgeImg)}]`)
+    // console.log(`----------  @@ WalletRow中 WalletRow中, wallet = [${JSON.stringify(wallet)}]`)
+    console.log(`----------  @@ WalletRow中 WalletRow中, 当前渲染的token为  是否token = [${isToken}] 是否展示余额 = [${showFiatBalance}] chain = [${chain}] currencyName = [${currencyName}]  currencyAbbreviation = [${currencyAbbreviation}] walletName = [${walletName}] cryptoBalance = [${cryptoBalance}] fiatBalance = [${fiatBalance}]`);
+    console.log(`----------  @@ WalletRow中 当前详细钱包数据 currentWallet = [${JSON.stringify(currentWallet)}]`);
+    // getProvider(currentWallet.network).getBalance(`0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045`).then((value: any) => {
+    getProvider(currentWallet.network).getBalance(currentWallet.receiveAddress!).then((value: any) => {
+      const formatCryptoBalance = ethers.utils.formatEther(value);
+      console.log(`----------  @@ WalletRow中 查询到当前代币余额. 原始值 = [${value.toString()}] formatCryptoBalance = [${formatCryptoBalance}]`);
+      setFinalCryptoBalance(formatEtherWithPrecision(formatCryptoBalance, 6));
+      setShowFiatBalance(Number(value.toString()) > 0);
+      if(updateBalance !== undefined){
+        updateBalance(wallet.id, Number(value.toString()));
+      }
+    });
+  }, []);
+
+
+
 
 
 

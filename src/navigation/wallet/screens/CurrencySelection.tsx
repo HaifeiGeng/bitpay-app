@@ -126,7 +126,7 @@ const SupportedMultisigCurrencyOptions: SupportedCurrencyOption[] =
 
 const POPULAR_TOKENS: Record<string, string[]> = {
   // eth: ['usdc', 'usdt','busd', 'ape'],
-  eth: ['usdc', 'usdt'],
+  eth: ['usdc', 'usdt', 'eth'],
   matic: ['usdc', 'busd', 'ape'],
 };
 

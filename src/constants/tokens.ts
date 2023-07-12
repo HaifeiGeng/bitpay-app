@@ -20,6 +20,12 @@ export const BitpaySupportedEthereumTokenOpts: TokenOptsType = {
     decimals: 6,
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
   },
+  eth_e: {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+    address: '0x0000000000000000000000000000000000000000',
+  },
   // usdp_e: {
   //   name: 'Paxos Dollar',
   //   symbol: 'USDP',
@@ -139,6 +145,12 @@ export const BitpaySupportedEthereumTokenOptsByAddress: TokenOptsType = {
     symbol: 'USDT',
     decimals: 6,
     address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  },
+  '0x0000000000000000000000000000000000000000_e': {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+    address: '0x0000000000000000000000000000000000000000',
   },
   // '0x8e870d67f660d95d5be530380d0ec0bd388289e1_e': {
   //   name: 'Paxos Dollar',

@@ -27,11 +27,13 @@ const ABI_ARRAY: { [key: string]: string } = {
 const ContractAddressArrayMainNet: { [key: string]: string } = {
     usdt: "0xdac17f958d2ee523a2206206994597c13d831ec7",
     usdc: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    eth: "",
 };
 
 const ContractAddressArrayTestNet: { [key: string]: string } = {
     usdt: "0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe",
     usdc: "",
+    eth: "",
 };
 
 export const DECIMALS_MAP: { [key: string]: number } = {
@@ -51,12 +53,22 @@ export const getProvider = (network: string,): ethers.providers.EtherscanProvide
 };
 
 
+  /** 如果eth值的小数点超过6位，截取6位 */
+export const formatEtherWithPrecision = (etherValue: string, precision: number) => {
+    const decimals = etherValue.split('.')[1]?.length || 0;
+    const formattedValue = decimals > precision ? parseFloat(etherValue).toFixed(precision) : etherValue;
+    return formattedValue;
+}
+
   
 
 /**
  * 获取Token ontract
  */
-export const getTokenContract = (network: string, tokenAddress: string, currencyAbbreviation: string, abi?: string): ethers.Contract => {
+export const getTokenContract = (network: string, tokenAddress: string, currencyAbbreviation: string, abi?: string): ethers.Contract | null => {
+    if(currencyAbbreviation.toLowerCase() === 'eth'){
+        return null;
+    }
     // const provider = new ethers.providers.EtherscanProvider(network === 'livenet' ? 'homestead' : network, ETHERSCAN_API_KEY);
     const finalNetwork = TEST_NET ? 'goerli' : network === 'livenet' ? 'homestead' : network;
     const contractAddressArray = TEST_NET ? ContractAddressArrayTestNet : ContractAddressArrayMainNet;
@@ -71,13 +83,33 @@ export const getTokenContract = (network: string, tokenAddress: string, currency
 /**
  * 获取交易历史记录
  */
-export const fetchTransactionHistory: any = async (currencyAbbreviation: string, address: string) => {
+export const fetchContractTransactionHistory: any = async (currencyAbbreviation: string, address: string) => {
     const contractAddressArray = TEST_NET ? ContractAddressArrayTestNet : ContractAddressArrayMainNet;
     const contractAddress = contractAddressArray[currencyAbbreviation.toLowerCase()];
     const mainNetUrl = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
     const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
     const url = TEST_NET ? testNetUrl : mainNetUrl;
     console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}] currencyAbbreviation = [${currencyAbbreviation.toLowerCase()}] fetchTransactionHistory  url = [${url}]`);
+    try {
+        const response = await axios.get(url);
+        return response.data.result;
+    } catch (error) {
+        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        throw error;
+    }
+}
+
+
+/**
+ * 获取ETH交易历史记录
+ */
+export const fetchEthTransactionHistory: any = async (address: string) => {
+    const mainNetUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
+    const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
+    // const mainNetUrl = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
+    // const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
+    const url = TEST_NET ? testNetUrl : mainNetUrl;
+    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
     try {
         const response = await axios.get(url);
         return response.data.result;
