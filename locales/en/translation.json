@@ -1324,5 +1324,7 @@
   "About CanPay": "About CanPay",
   "please check gasPrice or gasLimit": "please check gasPrice or gasLimit",
   "Insufficient balance, please check": "Insufficient balance, please check",
-  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "Wallet error, ETH wallet transactions without custom payment address are not allowed"
+  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "Wallet error, ETH wallet transactions without custom payment address are not allowed",
+  "To add ETH Token, you must customize the payment address.": "To add ETH Token, you must customize the payment address.",
+  "Tokens for this currency already exist": "Tokens for this currency already exist"
 }

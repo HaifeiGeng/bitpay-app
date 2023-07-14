@@ -1165,5 +1165,7 @@
   "About CanPay": "关于 CanPay",
   "please check gasPrice or gasLimit": "请检查gasPrice 或 gasLimit",
   "Insufficient balance, please check": "余额不足，请检查",
-  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "钱包错误，不允许未自定义收款地址的ETH钱包交易"
+  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "钱包错误，不允许未自定义收款地址的ETH钱包交易",
+  "To add ETH Token, you must customize the payment address.": "添加ETH Token必须自定义收款地址",
+  "Tokens for this currency already exist": "该货币的Token已经存在了"
 }

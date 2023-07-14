@@ -475,13 +475,57 @@ const AddWallet: React.FC<AddWalletScreenProps> = ({navigation, route}) => {
   const add = handleSubmit(async ({walletName}) => {
     try {
 
-      console.log(`----------  currencyAbbreviation = ${JSON.stringify(currencyAbbreviation)}`)
-      console.log(`----------  currencyName = ${JSON.stringify(currencyName)}`)
-      console.log(`----------  associatedWallet = ${JSON.stringify(associatedWallet)}`)
-      console.log(`----------  isToken = ${JSON.stringify(isToken)}`)
-      console.log(`----------  paymentAddressEnabled = ${paymentAddressEnabled}， paymentAddress = ${paymentAddress}`)
+      console.log(`----------  currencyAbbreviation = ${JSON.stringify(currencyAbbreviation)}`);
+      console.log(`----------  currencyName = ${JSON.stringify(currencyName)}`);
+      console.log(`----------  associatedWallet = ${JSON.stringify(associatedWallet)}`);
+      console.log(`----------  isToken = ${JSON.stringify(isToken)}`);
+      console.log(`----------  paymentAddressEnabled = ${paymentAddressEnabled}， paymentAddress = ${paymentAddress}`);
 
-
+      if(currencyAbbreviation === 'eth' && !paymentAddressEnabled){
+        dispatch(
+          showBottomNotificationModal({
+            type: 'error',
+            title: t('Error'),
+            message: t('To add ETH Token, you must customize the payment address.'),
+            enableBackdropDismiss: true,
+            actions: [
+              {
+                text: t('OK'),
+                action: () => {},
+                primary: true,
+              },
+            ],
+          }),
+        );
+        return;
+      }
+      const existingCurrencyArr = key.wallets.filter((wallet: Wallet) => !!wallet.credentials.token).map((wallet: Wallet) => {
+        if(!!wallet.credentials.token){
+          return wallet.credentials.coin;
+        }
+      })
+      // 检查是否存在
+      console.log(`----------  已经存在的货币 existingCurrencyArr = ${JSON.stringify(existingCurrencyArr)}`);
+      const isExist = existingCurrencyArr.includes(currencyAbbreviation);
+      console.log(`----------  已经存在的货币 isExist = ${isExist}`);
+      if(isExist){
+        dispatch(
+          showBottomNotificationModal({
+            type: 'error',
+            title: t('Error'),
+            message: t('Tokens for this currency already exist'),
+            enableBackdropDismiss: true,
+            actions: [
+              {
+                text: t('OK'),
+                action: () => {},
+                primary: true,
+              },
+            ],
+          }),
+        );
+        return;
+      }
       const currency = currencyAbbreviation!.toLowerCase();
       let _associatedWallet: Wallet | undefined;
       console.log(`---------- add操作 isToken = [${isToken}] ， evmWallets = [${JSON.stringify(evmWallets)}]`);
