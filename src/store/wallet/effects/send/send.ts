@@ -1255,7 +1255,7 @@ export const startSendPayment =
                   recipient,
                 }),
               );
-              // console.log('----------   startSendPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
+              console.log('----------   startSendPayment 参数  返回最终的 txp  broadcastedTx： ', JSON.stringify(broadcastedTx));
               return resolve(broadcastedTx);
               // return resolve({txp: proposal,key,wallet,recipient,});
             } catch (e) {

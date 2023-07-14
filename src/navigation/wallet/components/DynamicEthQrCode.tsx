@@ -318,6 +318,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             
             // 签名完毕，满足签名需求，去签名，签名后广播，之后跳转到PaymentSent页面。
             // 获取该派生路径下的私钥
+            console.log(`---------- DynamicEthQrCode 方法内 签名中  dynamicEthQrCodeData = [${JSON.stringify(dynamicEthQrCodeData)}]`) ;
             const xpriv = new Bitcore.HDPrivateKey(dynamicEthQrCodeData.txp.properties);
             const derived = xpriv.derive(dynamicEthQrCodeData.wallet.credentials.rootPath + '/0/0');
             const subPrivateKey = '0x' + derived.privateKey;
@@ -325,9 +326,9 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
   
             // USDT测试： 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
             const destination = dynamicEthQrCodeData.txp.destination; // 0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe
-            const value = 0;
+            const value = dynamicEthQrCodeData.txp.value;
             const signData = dynamicEthQrCodeData.txp.data;
-            let addresses = _validSignature(destination, 0, finalV, finalR, finalS, signData, dynamicEthQrCodeData.txp.nonce, dynamicEthQrCodeData.wallet.receiveAddress);
+            let addresses = _validSignature(destination, value, finalV, finalR, finalS, signData, dynamicEthQrCodeData.txp.nonce, dynamicEthQrCodeData.wallet.receiveAddress);
             console.log(`---------- DynamicEthQrCode 方法内 签名中  addresses = [${JSON.stringify(addresses)}]`) ;
             const provider = getProvider(dynamicEthQrCodeData.wallet.network,)
             const wallet = new ethers.Wallet(subPrivateKey, provider);
@@ -335,6 +336,7 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             // 声明可写合约
             const contractWrite = new ethers.Contract(dynamicEthQrCodeData.wallet.receiveAddress, CANAAN_ABI, wallet);
             console.log(`---------- DynamicEthQrCode 方法内 写合约 创建完毕`) ;
+            console.log(`---------- DynamicEthQrCode 签名参数: destination = [${JSON.stringify(destination)}] value = [${JSON.stringify(value)}] finalV = [${JSON.stringify(finalV)}] finalR = [${JSON.stringify(finalR)}] finalS = [${JSON.stringify(finalS)}] signData = [${JSON.stringify(signData)}]`) ;
             // 发起交易
             const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: GAS_LIMIT });
             console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;

@@ -1323,5 +1323,6 @@
   "Waiting for signer": "Waiting for signer ",
   "About CanPay": "About CanPay",
   "please check gasPrice or gasLimit": "please check gasPrice or gasLimit",
-  "Insufficient balance, please check": "Insufficient balance, please check"
+  "Insufficient balance, please check": "Insufficient balance, please check",
+  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "Wallet error, ETH wallet transactions without custom payment address are not allowed"
 }

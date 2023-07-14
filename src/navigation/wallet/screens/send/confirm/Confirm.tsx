@@ -615,6 +615,10 @@ const Confirm = () => {
               console.log(`---------- 确认页面 - 滑动以发送: 自定义地址开关 customAddressEnabled = [${wallet.customAddressEnabled}]`);
               // 如果是token，需要继续判断他是否自定义地址。
               if(wallet.customAddressEnabled !== undefined && !wallet.customAddressEnabled){
+                // 如果《非自定义地址》 && 货币缩写 !== eth
+                if(wallet.currencyAbbreviation.toLowerCase() === 'eth'){
+                  throw new Error(t('Wallet error, ETH wallet transactions without custom payment address are not allowed'));
+                }
                 dispatch(LogActions.info('Success [SwipeButton] 滑动支付按钮: 是token, 并且没有自定义收款地址.'));
                 // 需要判断, 如果不是自定义收款地址的话，才允许单签支付。
                 await dispatch(startSendPayment({txp, key, wallet, recipient}));
@@ -647,24 +651,40 @@ const Confirm = () => {
               const ethersReceiveAddress = ethersWallet.address;
               const allFee = txDetails.gasPrice * txDetails.gasLimit;
               const balance = await provider.getBalance(ethersReceiveAddress);
-              console.log(`---------- 确认页面 - 滑动以发送: allFee = [${allFee}]  balance = [${BigNumber.from(balance.toString())}]`);
+              const gweiBalance = ethers.utils.formatUnits(balance, 'gwei');
+              console.log(`---------- 确认页面 - 滑动以发送: allFee = [${allFee}]  balance = [${BigNumber.from(balance.toString())}] gweiBalance = [${gweiBalance}]`);
               // 如果手续费大于余额的话， 抛出异常
-              if(BigNumber.from(allFee).gt(BigNumber.from(balance.toString()))){
-                throw new Error(t('Insufficient balance, please check') + `\nbalance = [${balance.toString()}] fee = [${allFee}]`);
+              if(BigNumber.from(allFee).gt(BigNumber.from(parseInt(gweiBalance)))){
+                throw new Error(t('Insufficient balance, please check') + `\nGweiBalance = [${gweiBalance}] fee = [${allFee}]`);
               }
               
               const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, CANAAN_ABI);
-              const data = txp.outputs![0].data;
-              // const value = txp.outputs![0].amount;
-              const value: number = 0;
+              if(!currContract){
+                // 如果写合约存在问题，抛异常
+                throw new Error( `Contract Error! Save Session Log Please.`);
+              }
               const coin = txp.chain;
-              const nonce = await getSpendNonce(currContract);
               // 共有几个人
               const ownerArray = await currContract.getOwners();
               // 签名最少需要几个人
               const n = await currContract.getRequired();
-              // const destination = txp.tokenAddress;
-              const destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除, 应该是主网的USDT的合约地址: 0xdac17f958d2ee523a2206206994597c13d831ec7
+              const nonce = await getSpendNonce(currContract);
+
+
+              let data = '0x';
+              let destination = '0x';
+              let value = 0;
+              // 如果自定义地址,  并且货币为ETH
+              if(wallet.currencyAbbreviation.toLowerCase() === 'eth'){
+                // 没有data， 没有destination，
+                // 实际的value
+                value = parseInt(String(txp.outputs![0].amount));
+                destination = recipient.address;
+              } else {
+                data = txp.outputs![0].data || '';
+                // destination = txp.tokenAddress!;
+                destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除, 应该是主网的USDT的合约地址: 0xdac17f958d2ee523a2206206994597c13d831ec7
+              }
               txpResult = {
                 data,
                 value,
@@ -694,6 +714,7 @@ const Confirm = () => {
                 dispatch(LogActions.info(`Success [SwipeButton] 滑动支付按钮: 不是token, 币种[${wallet.chain}], 非只读, 单签, 付款完毕`));
                 return;
               } else {
+                // 不是token, 但是是只读钱包, 需要冷钱包
                 txpResult = await dispatch(startSendPayment({txp, key, wallet, recipient}));
               }
             }

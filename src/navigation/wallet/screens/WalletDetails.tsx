@@ -131,7 +131,7 @@ import { ethers } from "ethers";
 
 import Uuid from 'react-native-uuid'
 import bigInt from 'big-integer'
-import { DECIMALS_MAP, fetchContractTransactionHistory, fetchEthTransactionHistory, formatEtherWithPrecision, getProvider, getTokenContract } from '../../../constants/EthContract';
+import { CANAAN_ABI, DECIMALS_MAP, fetchContractTransactionHistory, fetchEthInternalTransactionHistory, fetchEthTransactionHistory, formatEtherWithPrecision, getProvider, getTokenContract } from '../../../constants/EthContract';
 
 
 export type WalletDetailsScreenParamList = {
@@ -465,22 +465,38 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
           console.log(`----------  WalletDetail中 ETH钱包 打印当前钱包 fullWalletObj = [${JSON.stringify(fullWalletObj)}]`);
           // 更新余额
           fetchEthBalanceOf(provider);
-          fetchEthTransactionHistory(fullWalletObj.receiveAddress!).then((transactions: any) => {
-            transactions = transactions.filter((item: any) => item.value !== '0');
-            console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
-            const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
-            console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
-            if(finalTxList.length === 0){
-              return;
-            }
-            const data = [
-              {
-                title: 'Recent',
-                data: finalTxList
+
+          const transactions = await fetchEthTransactionHistory(fullWalletObj.receiveAddress!);
+          const internalTransactions = await fetchEthInternalTransactionHistory(fullWalletObj.receiveAddress!);
+          const iface = new ethers.utils.Interface(CANAAN_ABI);
+          console.log(`----------  WalletDetail中 fetchEthTransactionHistory = ${JSON.stringify(transactions)}`)
+          console.log(`----------  WalletDetail中 fetchEthInternalTransactionHistory = ${JSON.stringify(internalTransactions)}`)
+          const updatedList = transactions.map((item: any) => {
+              const matchingInternalItem = internalTransactions.find((internalItem: any) => internalItem.hash === item.hash && internalItem.type === 'call');
+              if (matchingInternalItem && matchingInternalItem.value !== '0') {
+                  return { ...item, value: matchingInternalItem.value };
               }
-            ];
-            setGroupedHistory(data);
-          })
+              return item;
+          }).filter((item: any) => item.value !== '0').map((item: any) => {
+            if(item.input.length > 2 && item.input.startsWith('0x')){
+                const parsedData = iface.parseTransaction({ data: item.input });
+                item.to = parsedData.args[0];
+            }
+            return item;
+        });
+          console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(updatedList)}]`);
+          const finalTxList: any = convertTransactionList(updatedList, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+          console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+          if(finalTxList.length === 0){
+            return;
+          }
+          const data = [
+            {
+              title: 'Recent',
+              data: finalTxList
+            }
+          ];
+          setGroupedHistory(data);
         }
       } else {
         // 如果不是是token
@@ -590,21 +606,39 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
 
     // 更新余额
     fetchEthBalanceOf(provider);
+
     fetchEthTransactionHistory(fullWalletObj.receiveAddress!).then((transactions: any) => {
-      transactions = transactions.filter((item: any) => item.value !== '0');
-      console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(transactions)}]`);
-      const finalTxList: any = convertTransactionList(transactions, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
-      console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
-      if(finalTxList.length === 0){
-        return;
-      }
-      const data = [
-        {
-          title: 'Recent',
-          data: finalTxList
+      fetchEthInternalTransactionHistory(fullWalletObj.receiveAddress!).then((internalTransactions: any) => {
+        const iface = new ethers.utils.Interface(CANAAN_ABI);
+        console.log(`----------  WalletDetail中 ETH钱包 fetchEthTransactionHistory = ${JSON.stringify(transactions)}`)
+        console.log(`----------  WalletDetail中 ETH钱包 fetchEthInternalTransactionHistory = ${JSON.stringify(internalTransactions)}`)
+        const updatedList = transactions.map((item: any) => {
+            const matchingInternalItem = internalTransactions.find((internalItem: any) => internalItem.hash === item.hash && internalItem.type === 'call');
+            if (matchingInternalItem && matchingInternalItem.value !== '0') {
+                return { ...item, value: matchingInternalItem.value };
+            }
+            return item;
+        }).filter((item: any) => item.value !== '0').map((item: any) => {
+          if(item.input.length > 2 && item.input.startsWith('0x')){
+              const parsedData = iface.parseTransaction({ data: item.input });
+              item.to = parsedData.args[0];
+          }
+          return item;
+      });
+        console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(updatedList)}]`);
+        const finalTxList: any = convertTransactionList(updatedList, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
+        console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
+        if(finalTxList.length === 0){
+          return;
         }
-      ];
-      setGroupedHistory(data);
+        const data = [
+          {
+            title: 'Recent',
+            data: finalTxList
+          }
+        ];
+        setGroupedHistory(data);
+      });
     });
   }, []);
 
@@ -696,6 +730,12 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
         action = 'received';
         uiDescription = 'Received';
       } else if (obj.from.toLowerCase() === selfAddress.toLowerCase()) {
+        action = 'sent';
+        uiDescription = 'Sent';
+      } else if (obj.to.toLowerCase() === obj.from.toLowerCase()){
+        action = 'move';
+        uiDescription = 'Move'
+      } else {
         action = 'sent';
         uiDescription = 'Sent';
       }

@@ -66,7 +66,7 @@ export const formatEtherWithPrecision = (etherValue: string, precision: number) 
  * 获取Token ontract
  */
 export const getTokenContract = (network: string, tokenAddress: string, currencyAbbreviation: string, abi?: string): ethers.Contract | null => {
-    if(currencyAbbreviation.toLowerCase() === 'eth'){
+    if(!abi && currencyAbbreviation.toLowerCase() === 'eth'){
         return null;
     }
     // const provider = new ethers.providers.EtherscanProvider(network === 'livenet' ? 'homestead' : network, ETHERSCAN_API_KEY);
@@ -106,8 +106,24 @@ export const fetchContractTransactionHistory: any = async (currencyAbbreviation:
 export const fetchEthTransactionHistory: any = async (address: string) => {
     const mainNetUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
-    // const mainNetUrl = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
-    // const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
+    const url = TEST_NET ? testNetUrl : mainNetUrl;
+    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
+    try {
+        const response = await axios.get(url);
+        return response.data.result;
+    } catch (error) {
+        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        throw error;
+    }
+}
+
+
+/**
+ * 获取ETH内部交易历史记录
+ */
+export const fetchEthInternalTransactionHistory: any = async (address: string) => {
+    const mainNetUrl = `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
+    const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&action=txlistinternal&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const url = TEST_NET ? testNetUrl : mainNetUrl;
     console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
     try {

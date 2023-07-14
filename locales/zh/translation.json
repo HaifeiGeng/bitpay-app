@@ -1164,5 +1164,6 @@
   "Waiting for signer": "等待签名者 ",
   "About CanPay": "关于 CanPay",
   "please check gasPrice or gasLimit": "请检查gasPrice 或 gasLimit",
-  "Insufficient balance, please check": "余额不足，请检查"
+  "Insufficient balance, please check": "余额不足，请检查",
+  "Wallet error, ETH wallet transactions without custom payment address are not allowed": "钱包错误，不允许未自定义收款地址的ETH钱包交易"
 }
