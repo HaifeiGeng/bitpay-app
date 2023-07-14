@@ -342,13 +342,33 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
             dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 签名中....`));
             // 等待交易上链
-            await tx2.wait();
-            console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
-            dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 上链完毕`));
-            // dispatch(dismissOnGoingProcessModal());
-            console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
-            showLoading(false);
-            onShowPaymentSent();
+            tx2.wait().then(() => {
+              console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
+              dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 上链完毕`));
+              // dispatch(dismissOnGoingProcessModal());
+              console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
+              showLoading(false);
+              onShowPaymentSent();
+            }).catch((error: any) => {
+              showLoading(false);
+              console.error(`----------  支付出现异常了  error = ${JSON.stringify(error)}`);
+              const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+              dispatch(LogActions.error(`Failed [DynamicEthQrCode] 签名中, 上链出现异常了 : ${errorStr}`));
+              // 如果出现异常，需要展示错误信息
+              showBottomNotificationModal({
+                type: 'warning',
+                title: t('Something went wrong'),
+                message: errorStr,
+                enableBackdropDismiss: true,
+                actions: [
+                  {
+                    text: t('OK'),
+                    action: () => {},
+                    primary: true,
+                  },
+                ],
+              })
+            });
           }
           doPay();
         }

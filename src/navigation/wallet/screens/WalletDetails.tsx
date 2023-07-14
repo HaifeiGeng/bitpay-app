@@ -732,9 +732,6 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       } else if (obj.from.toLowerCase() === selfAddress.toLowerCase()) {
         action = 'sent';
         uiDescription = 'Sent';
-      } else if (obj.to.toLowerCase() === obj.from.toLowerCase()){
-        action = 'move';
-        uiDescription = 'Move'
       } else {
         action = 'sent';
         uiDescription = 'Sent';
