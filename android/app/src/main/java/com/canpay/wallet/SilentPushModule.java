@@ -1,4 +1,4 @@
-package com.bitpay.wallet;
+package com.canpay.wallet;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 

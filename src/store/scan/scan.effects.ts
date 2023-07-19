@@ -89,7 +89,7 @@ export const incomingData =
     const coin = opts?.wallet?.currencyAbbreviation?.toLowerCase();
     const chain = opts?.wallet?.credentials?.chain.toLowerCase();
     let handled = true;
-
+    console.log(`---------- scan.effects.ts文件中 data = [${data}] `);
     try {
       if (IsBitPayInvoiceWebUrl(data)) {
         const invoiceId = new URLSearchParams(data).get('id');
@@ -711,7 +711,10 @@ export const goToAmount =
         cryptoCurrencyAbbreviation: coin.toUpperCase(),
         chain,
         onAmountSelected: async (amount, setButtonState, amountOpts) => {
-          dispatch(isToken ? 
+          // 如果是token, 并且已经勾选自定义地址, 则走改造过后的计算Amount方法
+          const flag = isToken && wallet.customAddressEnabled;
+          dispatch(LogActions.info(`Choose [scan.effects.ts文件中] isToken = [${isToken}] , wallet.customAddressEnabled = [${wallet.customAddressEnabled}]`));
+          dispatch(flag ? 
             goToTokenConfirm({
               recipient,
               amount: Number(amount),

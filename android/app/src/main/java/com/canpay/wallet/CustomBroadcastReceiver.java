@@ -1,4 +1,4 @@
-package com.bitpay.wallet;
+package com.canpay.wallet;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

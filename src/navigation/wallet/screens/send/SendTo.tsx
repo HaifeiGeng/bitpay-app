@@ -600,6 +600,12 @@ const SendTo = () => {
                   onScanComplete: data => {
                     try {
                       if (data) {
+                        const colonIndex = data.indexOf(':');
+                        if(!!wallet.credentials?.token && !wallet.hideWallet && wallet.chain === 'eth' && colonIndex !== -1){
+                          console.log(`----------  扫码完毕, 当前Wallet为Token : colonIndex = [${colonIndex}] `);
+                          data = data.substring(colonIndex + 1);
+                        }
+                        console.log(`----------  扫码完毕, 扫描得到的结果是: data = [${data}] `);
                         validateAndNavigateToConfirm(data);
                       }
                     } catch (err) {

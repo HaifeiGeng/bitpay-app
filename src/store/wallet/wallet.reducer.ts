@@ -56,9 +56,9 @@ export const initialState: WalletState = {
   },
   balanceCacheKey: {},
   feeLevel: {
-    btc: FeeLevels.NORMAL,
-    eth: FeeLevels.NORMAL,
-    matic: FeeLevels.NORMAL,
+    btc: FeeLevels.URGENT,
+    eth: FeeLevels.URGENT,
+    matic: FeeLevels.URGENT,
   },
   useUnconfirmedFunds: false,
   customizeNonce: false,

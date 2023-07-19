@@ -682,8 +682,8 @@ const Confirm = () => {
                 destination = recipient.address;
               } else {
                 data = txp.outputs![0].data || '';
-                // destination = txp.tokenAddress!;
-                destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除, 应该是主网的USDT的合约地址: 0xdac17f958d2ee523a2206206994597c13d831ec7
+                destination = txp.tokenAddress!;
+                // destination = '0x9DC9a9a2a753c13b63526d628B1Bf43CabB468Fe'; // TODO 测试完毕删除, 应该是主网的USDT的合约地址: 0xdac17f958d2ee523a2206206994597c13d831ec7
               }
               txpResult = {
                 data,

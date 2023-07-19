@@ -1,10 +1,8 @@
-package com.bitpay.wallet;
+package com.canpay.wallet;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-
-import java.util.ArrayList;
 
 public class LaunchActivity extends Activity {
     @Override

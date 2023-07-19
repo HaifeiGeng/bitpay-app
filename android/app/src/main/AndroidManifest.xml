@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.bitpay.wallet">
+    package="com.canpay.wallet">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -11,9 +11,9 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
     <permission
-        android:name="com.bitpay.wallet.permission.C2D_MESSAGE"
+        android:name="com.canpay.wallet.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
-    <uses-permission android:name="com.bitpay.wallet.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.canpay.wallet.permission.C2D_MESSAGE" />
 
     <application
         android:name=".MainApplication"

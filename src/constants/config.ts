@@ -7,8 +7,8 @@ export const STATIC_CONTENT_CARDS_ENABLED = true;
 export const APP_ANALYTICS_ENABLED = !__DEV__;
 
 // GENERAL
-export const APP_NAME = 'bitpay';
-export const APP_NAME_UPPERCASE = 'BitPay';
+export const APP_NAME = 'canpay';
+export const APP_NAME_UPPERCASE = 'CanPay';
 export const APP_NETWORK = Network.mainnet;
 export const APP_VERSION = version;
 export const BASE_BITPAY_URLS = {

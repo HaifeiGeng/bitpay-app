@@ -221,6 +221,7 @@ const NetworkFeePolicy = () => {
         currencyAbbreviation,
         network,
       );
+      console.log(`----------  initFeeLevel 中 currencyAbbreviation = [${currencyAbbreviation}], chain = [${chain}], _feeLevels = [${JSON.stringify(_feeLevels)}]`);
       if (_.isEmpty(_feeLevels)) {
         return;
       }
@@ -258,6 +259,7 @@ const NetworkFeePolicy = () => {
 
       feeOptions = feeOptions.reverse();
 
+      console.log(`----------  initFeeLevel 中 feeOptions = [${JSON.stringify(feeOptions)}]`);
       if (currencyAbbreviation === 'btc') {
         setBtcFeeOptions(feeOptions);
       } else if (currencyAbbreviation === 'eth') {

@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:149194066736:android:64dc8a200f13f9ee",
         "android_client_info": {
-          "package_name": "com.bitpay.wallet"
+          "package_name": "com.canpay.wallet"
         }
       },
       "oauth_client": [
@@ -35,7 +35,7 @@
               "client_id": "149194066736-nrekra78jvd1cqakh0l69bpbgmj05j81.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.bitpay.wallet",
+                "bundle_id": "com.canpay.wallet",
                 "app_store_id": "1149581638"
               }
             }

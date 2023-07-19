@@ -1,4 +1,4 @@
-package com.bitpay.wallet;
+package com.canpay.wallet;
 
 import com.braze.ui.inappmessage.BrazeInAppMessageManager;
 import com.facebook.react.ReactActivity;
@@ -19,7 +19,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "BitPay";
+    return "CanPay";
   }
 
   @Override
