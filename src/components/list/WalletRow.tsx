@@ -125,6 +125,11 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
       console.log(`----------  WalletRow中  不是token, 跳过.`);
       return;
     }
+    if(isToken && !currentWallet.customAddressEnabled){
+      // 是token, 并且没有开启customAddressEnabled
+      console.log(`----------  WalletRow中  是token, 但是没有开启customAddressEnabled 跳过.`);
+      return;
+    }
     if(!contract){
       console.log(`----------  WalletRow中  contract不存在, 跳过.`);
       return;
@@ -148,6 +153,11 @@ const WalletRow = ({wallet, hideIcon, onPress, isLast, updateBalance, contract}:
   useEffect(() => {
     if(!isToken){
       console.log(`----------  @@ WalletRow中  不是token, 跳过.`);
+      return;
+    }
+    if(isToken && !currentWallet.customAddressEnabled){
+      // 是token, 并且没有开启customAddressEnabled
+      console.log(`----------  @@ WalletRow中  是token, 但是没有开启customAddressEnabled 跳过.`);
       return;
     }
     if(!!contract){

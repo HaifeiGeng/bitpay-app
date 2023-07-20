@@ -726,7 +726,7 @@ const KeyOverview = () => {
   const memoizedRenderItem = useCallback(
     ({item}: {item: WalletRowProps}) => {
       let contract: any = undefined;
-      if(item.isToken) {
+      if(item.isToken && item.currentWallet.customAddressEnabled) {
         contract = getTokenContract(item.network, item.currentWallet.credentials?.token?.address, item.currentWallet.currencyAbbreviation);
       }
       return (

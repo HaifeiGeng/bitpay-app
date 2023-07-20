@@ -436,7 +436,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     try {
       dispatch(getPriceHistory(defaultAltCurrency.isoCode));
       await dispatch(startGetRates({ force: true }));
-      if(isToken){
+      // 如果是token, 并且customAddressEnabled为真，则需要走改造后的更新 [余额] 与 [交易记录]
+      if(isToken && fullWalletObj.customAddressEnabled){
         if(!!contract){
           // 如果是token，刷新余额，刷新交易记录
           // 更新余额
@@ -477,13 +478,13 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
                   return { ...item, value: matchingInternalItem.value };
               }
               return item;
-          }).filter((item: any) => item.value !== '0').map((item: any) => {
-            if(item.input.length > 2 && item.input.startsWith('0x')){
-                const parsedData = iface.parseTransaction({ data: item.input });
-                item.to = parsedData.args[0];
-            }
-            return item;
-        });
+              }).filter((item: any) => item.value !== '0').map((item: any) => {
+                if(item.input.length > 2 && item.input.startsWith('0x')){
+                    const parsedData = iface.parseTransaction({ data: item.input });
+                    item.to = parsedData.args[0];
+                }
+                return item;
+              });
           console.log(`----------  WalletDetail中 ETH钱包 获取到了交易历史 transactions = [${JSON.stringify(updatedList)}]`);
           const finalTxList: any = convertTransactionList(updatedList, fullWalletObj.chain.toUpperCase(), currencyAbbreviation.toUpperCase(), network, fullWalletObj.receiveAddress!);
           console.log(`----------  WalletDetail中 ETH钱包 转化过以后的List finalTxList = [${JSON.stringify(finalTxList)}]`);
@@ -557,6 +558,11 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
   useEffect(() => {
     if(!isToken){
       console.log(`----------  WalletDetail中  不是token, 跳过.`);
+      return;
+    }
+    if(isToken && !fullWalletObj.customAddressEnabled){
+      // 是token, 并且没有开启customAddressEnabled
+      console.log(`----------  WalletDetail中  是token, 但是没有开启customAddressEnabled 跳过.`);
       return;
     }
     if(currencyAbbreviation.toLowerCase() === 'eth'){
@@ -843,7 +849,8 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       return;
     }
     // 如果是token， 不走刷新功能
-    if(isToken){
+    // 如果是token, 并且customAddressEnabled为真，则结束当前方法
+    if(isToken && fullWalletObj.customAddressEnabled){
       return;
     }
     try {
@@ -872,7 +879,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
           if (_history?.length) {
             setHistory(_history);
             const grouped = GroupTransactionHistory(_history);
-            console.log(`------------------  历史记录： ${JSON.stringify(grouped)}`);
+            console.log(`----------  历史记录： ${JSON.stringify(grouped)}`);
             setGroupedHistory(grouped);
           }
 
@@ -898,7 +905,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       return;
     }
     // 如果是token， 不走刷新功能
-    if(isToken){
+    if(isToken && fullWalletObj.customAddressEnabled){
       return;
     }
     await dispatch(startUpdateWalletStatus({ key, wallet: fullWalletObj }));
@@ -911,7 +918,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       return;
     }
     // 如果是token， 不走刷新功能
-    if(isToken){
+    if(isToken && fullWalletObj.customAddressEnabled){
       return;
     }
     dispatch(
@@ -937,7 +944,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
       return;
     }
     // 如果是token， 不走刷新功能
-    if(isToken){
+    if(isToken && fullWalletObj.customAddressEnabled){
       return;
     }
     if (!skipInitializeHistory) {
@@ -1239,7 +1246,7 @@ const WalletDetails: React.FC<WalletDetailsScreenProps> = ({ route }) => {
     return (
       <TransactionRow
         icon={
-          isToken ? null :
+          isToken && fullWalletObj.customAddressEnabled ? null :
             item.customData?.recipientEmail ? (
               <ContactIcon
                 name={item.customData?.recipientEmail}

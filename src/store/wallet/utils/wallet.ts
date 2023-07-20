@@ -239,7 +239,7 @@ export const toFiat =
       chain,
     );
 
-    console.log(`---------- toFiat ratesPerCurrency = [${JSON.stringify(ratesPerCurrency)}] `)
+    // console.log(`---------- toFiat ratesPerCurrency = [${JSON.stringify(ratesPerCurrency)}] `)
     if (!ratesPerCurrency) {
       // Rate not found return 0
       console.log(
