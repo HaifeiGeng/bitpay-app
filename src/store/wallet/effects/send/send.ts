@@ -372,7 +372,7 @@ export const createTokenProposalAndBuildTxDetails =
         // const proposal: TransactionProposal = txp as TransactionProposal;
         const proposal = _.cloneDeep(txp) as TransactionProposal;
         const outputObj = proposal.outputs[0];
-        proposal.gasPrice = await getGasPrice();
+        proposal.gasPrice = await getGasPrice(); // wei
         proposal.gasLimit = GAS_LIMIT;
         proposal.nonce = await getEtherscanNonce(wallet.receiveAddress!);
         proposal.amount = typeof outputObj.amount === 'string' ? parseInt(outputObj.amount) : outputObj.amount;

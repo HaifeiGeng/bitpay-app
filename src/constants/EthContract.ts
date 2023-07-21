@@ -48,7 +48,7 @@ export const DECIMALS_MAP: { [key: string]: number } = {
 export const getProvider = (network: string,): ethers.providers.EtherscanProvider => {
     // return new ethers.providers.EtherscanProvider(network === 'livenet' ? 'homestead' : network, ETHERSCAN_API_KEY);
     const finalNetwork = TEST_NET ? 'goerli' : network === 'livenet' ? 'homestead' : network;
-    console.log(`---------- EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  finalNetwork = [${finalNetwork}]`);
+    console.log(`---------- EthContract.tsx 页面 getProvider - 是否TEST环境 = [${TEST_NET}]  finalNetwork = [${finalNetwork}]`);
     return new ethers.providers.EtherscanProvider(finalNetwork, ETHERSCAN_API_KEY);
 };
 
@@ -76,7 +76,7 @@ export const getTokenContract = (network: string, tokenAddress: string, currency
     const provider = new ethers.providers.EtherscanProvider(finalNetwork, ETHERSCAN_API_KEY);
     const finalAbi = !!abi ? abi : ABI_ARRAY[currencyAbbreviation.toLowerCase()] ;
     // 如果ABI有值，
-    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}] getTokenContract abi = [${!!abi}] currencyAbbreviation = [${currencyAbbreviation.toLowerCase()}] finalNetwork = [${finalNetwork}] contractAddress = [${contractAddress}] tokenAddress = [${tokenAddress}]`);
+    console.log(`----------  EthContract.tsx 页面 getTokenContract - 是否TEST环境 = [${TEST_NET}] getTokenContract abi = [${!!abi}] currencyAbbreviation = [${currencyAbbreviation.toLowerCase()}] finalNetwork = [${finalNetwork}] contractAddress = [${contractAddress}] tokenAddress = [${tokenAddress}]`);
     return new ethers.Contract(contractAddress, finalAbi, provider);
 };
 
@@ -89,12 +89,12 @@ export const fetchContractTransactionHistory: any = async (currencyAbbreviation:
     const mainNetUrl = `https://api.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
     const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&sort=desc&action=tokentx&contractaddress=${contractAddress}&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
     const url = TEST_NET ? testNetUrl : mainNetUrl;
-    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}] currencyAbbreviation = [${currencyAbbreviation.toLowerCase()}] fetchTransactionHistory  url = [${url}]`);
+    console.log(`----------  EthContract.tsx 页面 fetchContractTransactionHistory - 是否TEST环境 = [${TEST_NET}] currencyAbbreviation = [${currencyAbbreviation.toLowerCase()}] fetchTransactionHistory  url = [${url}]`);
     try {
         const response = await axios.get(url);
         return response.data.result;
     } catch (error) {
-        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        console.error('----------  EthContract.tsx 页面 fetchContractTransactionHistory 出错 ', error);
         throw error;
     }
 }
@@ -107,12 +107,12 @@ export const fetchEthTransactionHistory: any = async (address: string) => {
     const mainNetUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const url = TEST_NET ? testNetUrl : mainNetUrl;
-    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
+    console.log(`----------  EthContract.tsx 页面 fetchEthTransactionHistory - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
     try {
         const response = await axios.get(url);
         return response.data.result;
     } catch (error) {
-        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        console.error('----------  EthContract.tsx 页面 fetchEthTransactionHistory 出错 ', error);
         throw error;
     }
 }
@@ -125,12 +125,12 @@ export const fetchEthInternalTransactionHistory: any = async (address: string) =
     const mainNetUrl = `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const testNetUrl = `https://api-goerli.etherscan.io/api?module=account&action=txlistinternal&address=${address}&sort=desc&apikey=${ETHERSCAN_API_KEY}`
     const url = TEST_NET ? testNetUrl : mainNetUrl;
-    console.log(`----------  EthContract.tsx 页面 - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
+    console.log(`----------  EthContract.tsx 页面 fetchEthInternalTransactionHistory - 是否TEST环境 = [${TEST_NET}]  fetchEthTransactionHistory  url = [${url}]`);
     try {
         const response = await axios.get(url);
         return response.data.result;
     } catch (error) {
-        console.error('----------  WalletDetail中 fetchTransactionHistory出错 ', error);
+        console.error('----------  EthContract.tsx 页面 fetchEthInternalTransactionHistory 出错 ', error);
         throw error;
     }
 }
@@ -139,10 +139,10 @@ export const getGasPrice = async () => {
     const getGasPriceUrl = `https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${ETHERSCAN_API_KEY}`;
     try {
       const response = await axios.get(getGasPriceUrl);
-      console.log(`----------  send.ts文件中, 获取gasPrice成功 = [${JSON.stringify(response.data)}]`);
-      return parseInt(ethers.utils.parseUnits(response.data.result.FastGasPrice, 'gwei').toString());
+      console.log(`----------  EthContract.tsx 页面 getGasPrice 获取gasPrice成功 = [${JSON.stringify(response.data)}]`);
+      return parseInt(ethers.utils.parseUnits(response.data.result.FastGasPrice, 'gwei').toString()); // 将Gwei转换为wei
     } catch (error) {
-      console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
+      console.error('----------  EthContract.tsx 页面 getGasPrice 出错 ', error);
       throw error;
     }
 }
@@ -151,10 +151,10 @@ export const getEtherscanNonce = async (receiveAddress: string) => {
     const getNonceUrl = `https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=${receiveAddress}&tag=latest&apikey=${ETHERSCAN_API_KEY}`;
     try {
       const response = await axios.get(getNonceUrl);
-      console.log(`----------  send.ts文件中, 获取getEtherscanNonce成功 = [${JSON.stringify(response.data)}]`);
+      console.log(`----------  EthContract.tsx 页面, getEtherscanNonce 获取getEtherscanNonce成功 = [${JSON.stringify(response.data)}]`);
       return parseInt(response.data.result);
     } catch (error) {
-      console.error('----------  send.ts文件中 获取gasPrice出错 ', error);
+      console.error('----------  EthContract.tsx 页面, getEtherscanNonce 出错 ', error);
       throw error;
     }
 }

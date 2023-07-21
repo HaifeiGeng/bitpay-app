@@ -338,22 +338,44 @@ const DynamicEthQrCode = ({isVisible, closeModal, dynamicEthQrCodeData, onShowPa
             console.log(`---------- DynamicEthQrCode 方法内 写合约 创建完毕`) ;
             console.log(`---------- DynamicEthQrCode 签名参数: destination = [${JSON.stringify(destination)}] value = [${JSON.stringify(value)}] finalV = [${JSON.stringify(finalV)}] finalR = [${JSON.stringify(finalR)}] finalS = [${JSON.stringify(finalS)}] signData = [${JSON.stringify(signData)}]`) ;
             // 发起交易
-            const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: GAS_LIMIT });
-            console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
-            dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 签名中....`));
-            // 等待交易上链
-            tx2.wait().then(() => {
-              console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
-              dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 上链完毕`));
-              // dispatch(dismissOnGoingProcessModal());
-              console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
-              showLoading(false);
-              onShowPaymentSent();
+            // const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: GAS_LIMIT });
+            dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码完毕, 准备执行spend... `));
+            const tx2 = await contractWrite.spend(destination, value, finalV, finalR, finalS, signData, { gasLimit: GAS_LIMIT }).then((tx2: any) => {
+              console.log(`---------- DynamicEthQrCode 方法内 签名中  tx2 = [${JSON.stringify(tx2)}]`) ;
+              dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 签名中....`));
+              // 等待交易上链
+              tx2.wait().then(() => {
+                console.log(`---------- DynamicEthQrCode 方法内 签名中, 上链完毕  。。。`) ;
+                dispatch(LogActions.info(`Starting [DynamicEthQrCode] 读取签名 ETH二维码 上链完毕`));
+                // dispatch(dismissOnGoingProcessModal());
+                console.log(`----------  DynamicEthQrCode  上链完毕，结束执行转圈`);
+                showLoading(false);
+                onShowPaymentSent();
+              }).catch((error: any) => {
+                showLoading(false);
+                console.error(`----------  上链出现异常了  error = ${JSON.stringify(error)}`);
+                const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
+                dispatch(LogActions.error(`Failed [DynamicEthQrCode] 上链出现异常了 : ${errorStr}`));
+                // 如果出现异常，需要展示错误信息
+                showBottomNotificationModal({
+                  type: 'warning',
+                  title: t('Something went wrong'),
+                  message: errorStr,
+                  enableBackdropDismiss: true,
+                  actions: [
+                    {
+                      text: t('OK'),
+                      action: () => {},
+                      primary: true,
+                    },
+                  ],
+                })
+              });
             }).catch((error: any) => {
               showLoading(false);
-              console.error(`----------  支付出现异常了  error = ${JSON.stringify(error)}`);
+              console.error(`----------  签名中....出现异常了  error = ${JSON.stringify(error)}`);
               const errorStr = error instanceof Error ? error.message : JSON.stringify(error);
-              dispatch(LogActions.error(`Failed [DynamicEthQrCode] 签名中, 上链出现异常了 : ${errorStr}`));
+              dispatch(LogActions.error(`Failed [DynamicEthQrCode] 签名中....出现异常了 : ${errorStr}`));
               // 如果出现异常，需要展示错误信息
               showBottomNotificationModal({
                 type: 'warning',

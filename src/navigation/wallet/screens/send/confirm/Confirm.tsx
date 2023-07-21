@@ -652,10 +652,10 @@ const Confirm = () => {
               const allFee = txDetails.gasPrice * txDetails.gasLimit;
               const balance = await provider.getBalance(ethersReceiveAddress);
               const gweiBalance = ethers.utils.formatUnits(balance, 'gwei');
-              console.log(`---------- 确认页面 - 滑动以发送: allFee = [${allFee}]  balance = [${BigNumber.from(balance.toString())}] gweiBalance = [${gweiBalance}]`);
+              console.log(`---------- 确认页面 - 滑动以发送: allFee(Gwei) = [${allFee}]  balance = [${BigNumber.from(balance.toString())}] GweiBalance = [${gweiBalance}]`);
               // 如果手续费大于余额的话， 抛出异常
               if(BigNumber.from(allFee).gt(BigNumber.from(parseInt(gweiBalance)))){
-                throw new Error(t('Insufficient balance, please check') + `\nGweiBalance = [${gweiBalance}] fee = [${allFee}]`);
+                throw new Error(t('Insufficient balance, please check') + `\nBalance(Gwei) = [${gweiBalance}] Fee(Gwei) = [${allFee}]`);
               }
               
               const currContract = getTokenContract(wallet.network, wallet.receiveAddress!, wallet.currencyAbbreviation, CANAAN_ABI);
