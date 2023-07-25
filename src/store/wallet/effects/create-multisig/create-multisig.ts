@@ -8,7 +8,7 @@ import {
 } from '../../utils/wallet';
 import {successCreateKey, successAddWallet} from '../../wallet.actions';
 import {Key, KeyOptions, Wallet} from '../../wallet.models';
-import {createWalletWithOpts, createReadonlyWalletWithOpts} from '../create/create';
+import {createWalletWithOpts, createReadonlyWalletWithOpts, createOrOpenWalletWithOpts} from '../create/create';
 import {
   subscribePushNotifications,
   subscribeEmailNotifications,
@@ -126,6 +126,101 @@ export const startCreateKeyMultisig =
         });
 
         const _wallet = await createWalletWithOpts({key: _key, opts});
+
+        // subscribe new wallet to push notifications
+        if (notificationsAccepted) {
+          dispatch(subscribePushNotifications(_wallet, brazeEid!));
+        }
+        // subscribe new wallet to email notifications
+        if (
+          emailNotifications &&
+          emailNotifications.accepted &&
+          emailNotifications.email
+        ) {
+          const prefs = {
+            email: emailNotifications.email,
+            language: defaultLanguage,
+            unit: 'btc', // deprecated
+          };
+          dispatch(subscribeEmailNotifications(_wallet, prefs));
+        }
+
+        const {currencyAbbreviation, currencyName} = dispatch(
+          mapAbbreviationAndName(
+            _wallet.credentials.coin,
+            _wallet.credentials.chain,
+          ),
+        );
+
+        // build out app specific props
+        const wallet = merge(
+          _wallet,
+          buildWalletObj({
+            ..._wallet.credentials,
+            currencyAbbreviation,
+            currencyName,
+          }),
+        ) as Wallet;
+
+        const key = buildKeyObj({key: _key, wallets: [wallet], backupComplete: true});
+        const previousKeysLength = Object.keys(keys).length;
+        const numNewKeys = Object.keys(keys).length + 1;
+        const expectedLengthChange = previousKeysLength - numNewKeys;
+        batch(() => {
+          dispatch(
+            successCreateKey({
+              key,
+            }),
+          );
+          dispatch(setExpectedKeyLengthChange(expectedLengthChange));
+        });
+        resolve(key);
+      } catch (err) {
+        const errorStr =
+          err instanceof Error ? err.message : JSON.stringify(err);
+        dispatch(LogActions.error(`Error create key multisig: ${errorStr}`));
+        reject();
+      }
+    });
+  };
+
+
+  /**
+   * 改造，如果钱包存在，则开启钱包，如果钱包不存在，则创建钱包
+   * @param opts 
+   * @returns 
+   */
+  export const startCreateOrOpenReadonlyKeyMultisig =
+  (opts: Partial<KeyOptions>): Effect =>
+  async (dispatch, getState): Promise<Key> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const {
+          APP: {
+            notificationsAccepted,
+            emailNotifications,
+            brazeEid,
+            defaultLanguage,
+          },
+          WALLET: {keys},
+        } = getState();
+
+        // 模拟数据初始化
+        opts.useLegacyCoinType = true;
+        opts.useLegacyPurpose = true;
+
+
+        const _key = BWC.createKey({
+          seedType: 'extendedPublicKey',
+          seedData: opts.extendedPublicKey,
+          useLegacyCoinType: opts.useLegacyCoinType,
+          useLegacyPurpose: opts.useLegacyPurpose,
+        });
+
+        // const _wallet = await createWalletWithOpts({key: _key, opts});
+        const _wallet = await createOrOpenWalletWithOpts({key: _key, opts});
+
+        console.log(`---------- 多签 创建钱包 startCreateOrOpenReadonlyKeyMultisig 已经获取到 _wallet = [${JSON.stringify(_wallet)}]`);
 
         // subscribe new wallet to push notifications
         if (notificationsAccepted) {

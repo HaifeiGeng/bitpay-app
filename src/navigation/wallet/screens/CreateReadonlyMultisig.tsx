@@ -52,6 +52,7 @@ import {
   startCreateReadonlyKeyMultisig,
   addReadonlyWalletMultisig,
   getDecryptPassword,
+  startCreateOrOpenReadonlyKeyMultisig,
 } from '../../../store/wallet/effects';
 import {startOnGoingProcessModal} from '../../../store/app/app.effects';
 import InfoSvg from '../../../../assets/img/info.svg';
@@ -275,7 +276,7 @@ const CreateReadonlyMultisig = () => {
   ): Promise<void> => {
     try {
       if (key) {
-        // console.log(`---------- 进入if 多签 : key = [${JSON.stringify(key)}]`);
+        console.log(`---------- 进入if 多签 : opts = [${JSON.stringify(opts)}]`);
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -345,11 +346,12 @@ const CreateReadonlyMultisig = () => {
           },
         );
       } else {
-        // console.log(`---------- 进入else 多签 : opts = [${JSON.stringify(opts)}]`);
+        console.log(`---------- 进入else 多签 : opts = [${JSON.stringify(opts)}]`);
         await dispatch(startOnGoingProcessModal('CREATING_KEY'));
         dispatch(LogActions.info('Starting [CreateReadonlyMultisigWallet]'));
         const multisigKey = (await dispatch<any>(
-          startCreateReadonlyKeyMultisig(opts),
+          // startCreateReadonlyKeyMultisig(opts),
+          startCreateOrOpenReadonlyKeyMultisig(opts),
         )) as Key;
 
         dispatch(

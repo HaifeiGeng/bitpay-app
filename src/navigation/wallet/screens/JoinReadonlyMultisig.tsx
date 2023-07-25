@@ -25,6 +25,7 @@ import {
   addWalletJoinReadonlyMultisig,
   startJoinReadonlyMultisig,
   getDecryptPassword,
+  startCreateOrOpenJoinReadonlyMultisig,
 } from '../../../store/wallet/effects';
 import {startOnGoingProcessModal} from '../../../store/app/app.effects';
 import {sleep} from '../../../utils/helper-methods';
@@ -109,7 +110,7 @@ const JoinReadonlyMultisig = () => {
     try {
       // console.log('---------- 加入共享钱包  JoinReadonlyMultisigWallet   opts = ', JSON.stringify(opts));
       if (key) {
-        // console.log(`---------- 加入共享钱包  JoinReadonlyMultisigWallet   key不为空 = [${JSON.stringify(key)}]`);
+        console.log(`---------- 加入共享钱包 if JoinReadonlyMultisigWallet   opts = [${JSON.stringify(opts)}]`);
         if (key.isPrivKeyEncrypted) {
           opts.password = await dispatch(getDecryptPassword(key));
         }
@@ -203,10 +204,12 @@ const JoinReadonlyMultisig = () => {
         );
       } else {
         // console.log(`---------- 加入共享钱包  JoinReadonlyMultisigWallet   key为空 opts = [${JSON.stringify(opts)}]`);
+        console.log(`---------- 加入共享钱包 else JoinReadonlyMultisigWallet   opts = [${JSON.stringify(opts)}]`);
         dispatch(startOnGoingProcessModal('JOIN_WALLET'));
         dispatch(LogActions.info('Starting [JoinReadonlyMultisigWallet]'));
         const multisigKey = (await dispatch<any>(
-          startJoinReadonlyMultisig(opts),
+          // startJoinReadonlyMultisig(opts),
+          startCreateOrOpenJoinReadonlyMultisig(opts),
         )) as Key;
 
         dispatch(

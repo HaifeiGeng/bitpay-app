@@ -889,6 +889,89 @@ export const createWalletWithOpts = (params: {
   });
 };
 
+
+/**
+ * 创建或者开启钱包
+ * @param params 
+ * @returns 
+ */
+export const createOrOpenWalletWithOpts = (params: {
+  key: KeyMethods;
+  opts: Partial<KeyOptions>;
+}): Promise<API> => {
+  return new Promise((resolve, reject) => {
+    const bwcClient = BWC.getClient();
+    const {key, opts} = params;
+    try {
+      bwcClient.fromString(
+        key.createCredentials(opts.password, {
+          coin: opts.coin || 'btc',
+          chain: opts.coin || 'btc', // chain === coin for stored clients
+          network: opts.networkName || 'livenet',
+          account: opts.account || 0,
+          n: opts.n || 1,
+          m: opts.m || 1,
+          xpub: opts.extendedPublicKey || '',
+        }),
+      );
+
+      // 此处需要先选择开启钱包，如果开启失败，并且找不到钱包，再选择创建钱包
+      console.log(`---------- 多签 创建钱包 createOrOpenWalletWithOpts : 此处需要先选择开启钱包，如果开启失败，并且找不到钱包，再选择创建钱包 opts = [${JSON.stringify(opts)}]`);
+
+      let wallet: any;
+      wallet = BWC.getClient(JSON.stringify(bwcClient.credentials));
+      console.log(`---------- 多签 创建钱包 createOrOpenWalletWithOpts 开启钱包之前 wallet = [${JSON.stringify(wallet)}]`);
+      wallet.openWallet(async (err: Error) => {
+        if (err) {
+          console.log(`---------- 多签 创建钱包 createOrOpenWalletWithOpts 开启钱包失败 err = [${JSON.stringify(err)}]`);
+          if (err.message.indexOf('not found') > 0) {
+            // 未找到钱包， 需要进行创建钱包
+            console.log(`---------- 多签 创建钱包 createOrOpenWalletWithOpts 准备开始创建钱包 opts = [${JSON.stringify(opts)}]`);
+            bwcClient.createWallet(
+              opts.name,
+              opts.myName || 'me',
+              opts.m || 1,
+              opts.n || 1,
+              {
+                network: opts.networkName,
+                singleAddress: opts.singleAddress,
+                coin: opts.coin,
+                useNativeSegwit: opts.useNativeSegwit,
+              },
+              (err: Error) => {
+                if (err) {
+                  console.log(`---------- 多签 创建钱包 createOrOpenWalletWithOpts 准备钱包失败 err = [${JSON.stringify(err)}]`);
+                  switch (err.name) {
+                    case 'bwc.ErrorCOPAYER_REGISTERED': {
+                      return reject(
+                        // new Error(
+                        //   t('20 Wallet limit from the same coin and network has been reached.',),
+                        // ),
+                        new Error('Error COPAYER REGISTERED'),
+                      );
+                    }
+                  }
+                  reject(err);
+                } else {
+                  LogActions.info(`Added Coin ${opts.coin || 'btc'}`);
+                  resolve(bwcClient);
+                }
+              },
+            );
+          } else {
+            reject(err);
+          }
+        } else {
+          console.log(`---------- 多签 createOrOpenWalletWithOpts 开启钱包成功 直接返回钱包 wallet = [${JSON.stringify(wallet)}]`);
+          resolve(wallet);
+        }
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
 export const createReadonlyWalletWithOpts = (params: {
   key: KeyMethods;
   opts: Partial<KeyOptions>;
